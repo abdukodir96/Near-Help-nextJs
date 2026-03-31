@@ -26,6 +26,8 @@ const messageMap = {
   uz: uzMessages,
 } as const satisfies Record<AppLocale, typeof enMessages>;
 
+const APP_TIME_ZONE = 'Asia/Seoul';
+
 export const metadata: Metadata = {
   title: 'NearHelp',
   description: 'NearHelp home services marketplace frontend',
@@ -43,7 +45,7 @@ export default function RootLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans`}>
-        <AppProviders locale={locale} messages={messages}>
+        <AppProviders locale={locale} messages={messages} timeZone={APP_TIME_ZONE}>
           {children}
         </AppProviders>
       </body>

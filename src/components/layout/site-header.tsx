@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { List, X } from 'phosphor-react';
 import { useTranslations } from 'next-intl';
@@ -27,8 +28,15 @@ export const SiteHeader = () => {
   return (
     <header className="sticky top-0 z-40 border-b border-white/60 bg-white/80 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4 lg:px-10">
-        <Link href="/" className="text-xl font-black tracking-tight text-brand-ink dark:text-white">
-          {common('brand')}
+        <Link href="/" className="flex items-center" aria-label={common('brand')}>
+          <Image
+            src="/branding/near-help.png"
+            alt={common('brand')}
+            width={320}
+            height={157}
+            priority
+            className="h-14 w-auto object-contain md:h-16 lg:h-[4.5rem]"
+          />
         </Link>
 
         <nav className="hidden items-center gap-2 lg:flex">

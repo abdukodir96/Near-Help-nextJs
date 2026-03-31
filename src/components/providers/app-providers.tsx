@@ -24,10 +24,12 @@ export const AppProviders = ({
   children,
   locale,
   messages,
+  timeZone,
 }: {
   children: React.ReactNode;
   locale: AppLocale;
   messages: AbstractIntlMessages;
+  timeZone: string;
 }) => {
   const [mode, setModeState] = useState<ThemeMode>('light');
   const apolloClient = useMemo(() => createApolloClient(), []);
@@ -79,7 +81,7 @@ export const AppProviders = ({
 
   return (
     <ThemeModeContext.Provider value={value}>
-      <NextIntlClientProvider locale={locale} messages={messages}>
+      <NextIntlClientProvider locale={locale} messages={messages} timeZone={timeZone}>
         <ApolloProvider client={apolloClient}>
           <ThemeProvider theme={theme}>
             <CssBaseline />
