@@ -1,32 +1,33 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'react-toastify/dist/ReactToastify.css';
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
-import '../../styles/animate.css';
-import '../../styles/flaticon.css';
-import '../../styles/font-awesome.min.css';
-import '../../styles/themify-icons.css';
-import '../../styles/sass/style.scss';
+import type { Metadata } from 'next';
+import localFont from 'next/font/local';
 import './globals.css';
 
-import {NextIntlClientProvider} from 'next-intl';
-import {getLocale, getMessages} from 'next-intl/server';
-import {AppProviders} from '@/components/providers/app-providers';
+const geistSans = localFont({
+  src: './fonts/GeistVF.woff',
+  variable: '--font-geist-sans',
+  weight: '100 900',
+});
 
-export const metadata = {
+const geistMono = localFont({
+  src: './fonts/GeistMonoVF.woff',
+  variable: '--font-geist-mono',
+  weight: '100 900',
+});
+
+export const metadata: Metadata = {
   title: 'NearHelp',
-  description: 'NearHelp home services marketplace frontend'
+  description: 'NearHelp home services marketplace frontend',
 };
 
-export default async function RootLayout({children}: {children: React.ReactNode}) {
-  const [locale, messages] = await Promise.all([getLocale(), getMessages()]);
-
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <body>
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <AppProviders>{children}</AppProviders>
-        </NextIntlClientProvider>
+    <html lang="en">
+      <body className={`${geistSans.variable} ${geistMono.variable} font-sans`}>
+        {children}
       </body>
     </html>
   );
