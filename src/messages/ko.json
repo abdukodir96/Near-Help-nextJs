@@ -1,0 +1,27 @@
+{
+  "common": {
+    "brand": "NearHelp"
+  },
+  "navigation": {
+    "home": "홈",
+    "services": "서비스",
+    "agents": "기사",
+    "community": "커뮤니티",
+    "cs": "고객센터",
+    "mypage": "마이페이지",
+    "notifications": "알림",
+    "login": "로그인",
+    "signup": "회원가입"
+  },
+  "home": {
+    "eyebrow": "NearHelp",
+    "title": "깔끔한 프론트엔드 기반이 준비되었습니다.",
+    "subtitle": "이제 오래된 템플릿 부담 없이 실제 NearHelp 데이터를 연결할 수 있습니다.",
+    "featured": "우선 연결할 화면",
+    "primary": "서비스 보기",
+    "secondary": "커뮤니티 보기",
+    "nextStep": "다음 단계",
+    "nextTitle": "이제 인증, GraphQL, 라우트 레이아웃을 안정적으로 연결할 수 있습니다.",
+    "nextDescription": "이 기반에는 Tailwind, Apollo 준비 패키지, 국제화 구조와 공통 레이아웃이 이미 포함되어 있습니다."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "common": {
+    "brand": "NearHelp"
+  },
+  "navigation": {
+    "home": "Home",
+    "services": "Services",
+    "agents": "Agents",
+    "community": "Community",
+    "cs": "CS",
+    "mypage": "My Page",
+    "notifications": "Notifications",
+    "login": "Login",
+    "signup": "Sign up"
+  },
+  "home": {
+    "eyebrow": "NearHelp",
+    "title": "A clean frontend foundation is finally in place.",
+    "subtitle": "Now we can connect real NearHelp data without carrying over the old template debt.",
+    "featured": "Priority routes",
+    "primary": "Open services",
+    "secondary": "Open community",
+    "nextStep": "Next step",
+    "nextTitle": "We can now wire auth, GraphQL, and route layouts in a controlled way.",
+    "nextDescription": "This foundation already includes Tailwind, Apollo-ready dependencies, internationalization plumbing and shared route shells."
+  }
+}

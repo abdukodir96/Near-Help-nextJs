@@ -1,0 +1,27 @@
+{
+  "common": {
+    "brand": "NearHelp"
+  },
+  "navigation": {
+    "home": "Bosh sahifa",
+    "services": "Servislar",
+    "agents": "Agentlar",
+    "community": "Community",
+    "cs": "CS",
+    "mypage": "Mening sahifam",
+    "notifications": "Bildirishnomalar",
+    "login": "Kirish",
+    "signup": "Ro'yxatdan o'tish"
+  },
+  "home": {
+    "eyebrow": "NearHelp",
+    "title": "Toza frontend foundation endi tayyor.",
+    "subtitle": "Endi eski template qarzisiz NearHelp backendiga real ulanishlarni boshlaymiz.",
+    "featured": "Ustuvor sahifalar",
+    "primary": "Servislarni ochish",
+    "secondary": "Community ni ochish",
+    "nextStep": "Keyingi qadam",
+    "nextTitle": "Endi auth, GraphQL va route layoutlarni tartibli ulay olamiz.",
+    "nextDescription": "Bu foundation ichida Tailwind, Apollo-ready dependencylar, i18n va shared shelllar tayyor turibdi."
+  }
+}
