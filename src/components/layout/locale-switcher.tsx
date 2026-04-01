@@ -5,9 +5,25 @@ import { useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { localeCookieName, locales, type AppLocale } from '@/lib/i18n/config';
 
-export const LocaleSwitcher = () => {
+const localeLabels: Record<AppLocale, string> = {
+  en: 'English',
+  ko: 'Korean',
+  uz: "Uzbek",
+};
+
+type LocaleSwitcherProps = {
+  variant?: 'default' | 'topbar';
+};
+
+export const LocaleSwitcher = ({ variant = 'default' }: LocaleSwitcherProps) => {
   const locale = useLocale() as AppLocale;
   const router = useRouter();
+  const baseClassName =
+    'outline-none transition appearance-none';
+  const variantClassName =
+    variant === 'topbar'
+      ? 'h-auto border-none bg-transparent px-0 py-0 pr-6 text-base font-medium text-white'
+      : 'h-11 rounded-full border border-slate-200 bg-white px-4 pr-10 text-sm font-medium text-slate-700 hover:border-slate-300';
 
   return (
     <select
@@ -16,12 +32,12 @@ export const LocaleSwitcher = () => {
         Cookies.set(localeCookieName, event.target.value, { expires: 365 });
         router.refresh();
       }}
-      className="h-11 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 outline-none transition hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+      className={`${baseClassName} ${variantClassName}`}
       aria-label="Change language"
     >
       {locales.map((item) => (
         <option key={item} value={item}>
-          {item.toUpperCase()}
+          {localeLabels[item]}
         </option>
       ))}
     </select>

@@ -31,6 +31,11 @@ const APP_TIME_ZONE = 'Asia/Seoul';
 export const metadata: Metadata = {
   title: 'NearHelp',
   description: 'NearHelp home services marketplace frontend',
+  icons: {
+    icon: '/icon.png',
+    shortcut: '/icon.png',
+    apple: '/apple-icon.png',
+  },
 };
 
 export default function RootLayout({

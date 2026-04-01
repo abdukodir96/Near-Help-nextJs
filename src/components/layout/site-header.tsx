@@ -7,7 +7,6 @@ import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
-import { ThemeToggle } from '@/components/layout/theme-toggle';
 
 const mainLinks = [
   { href: '/', key: 'home' },
@@ -41,11 +40,13 @@ export const SiteHeader = () => {
               <span className="font-medium">+82 10 2469 4424</span>
             </div>
             <span className="h-7 w-px bg-white/30" />
-            <div className="flex items-center gap-3">
-              <div className="[&_button]:!border-none [&_button]:!bg-transparent [&_button]:!p-0 [&_button]:!text-base [&_button]:!font-medium [&_button]:!text-white [&_button]:shadow-none">
-                <LocaleSwitcher />
-              </div>
-              <ThemeToggle />
+            <div className="relative flex items-center">
+              <LocaleSwitcher variant="topbar" />
+              <CaretDown
+                size={14}
+                weight="bold"
+                className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-white/90"
+              />
             </div>
           </div>
         </div>
@@ -115,10 +116,14 @@ export const SiteHeader = () => {
           </div>
 
           <div className="mt-5 flex flex-wrap items-center gap-4">
-            <div className="[&_button]:!border-slate-200 [&_button]:!bg-white [&_button]:!text-[#253041]">
+            <div className="relative">
               <LocaleSwitcher />
+              <CaretDown
+                size={14}
+                weight="bold"
+                className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-500"
+              />
             </div>
-            <ThemeToggle />
             <Link href="/auth/login" className="text-sm font-semibold text-[#253041]">
               {t('login')}
             </Link>
@@ -133,7 +138,6 @@ export const SiteHeader = () => {
           <div className="mt-4 flex items-center gap-2 text-sm text-slate-500">
             <Clock size={18} />
             <span>Sun - Fri || 8:00 - 7:00</span>
-            <CaretDown size={14} className="opacity-0" />
           </div>
         </div>
       )}

@@ -9,6 +9,7 @@ $gold: #f4b81c;
 .page {
   background: $page-bg;
   color: $dark;
+  overflow-x: clip;
 }
 
 .container {
@@ -49,7 +50,7 @@ $gold: #f4b81c;
   z-index: 1;
   width: min(100%, 1280px);
   margin: 0 auto;
-  padding: 78px 24px 190px;
+  padding: 42px 24px 190px;
   display: grid;
   grid-template-columns: 1fr 1.05fr;
   gap: 20px;
@@ -61,11 +62,11 @@ $gold: #f4b81c;
 
   @media (max-width: 991px) {
     grid-template-columns: 1fr;
-    padding: 48px 24px 120px;
+    padding: 36px 24px 120px;
   }
 
   @media (max-width: 767px) {
-    padding: 30px 18px 90px;
+    padding: 24px 18px 90px;
   }
 }
 
@@ -209,11 +210,18 @@ $gold: #f4b81c;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: center;
   gap: 24px;
+  position: relative;
 
   @media (max-width: 767px) {
     grid-template-columns: 1fr;
-    gap: 18px;
+    gap: 30px;
   }
+}
+
+.featureStep {
+  position: relative;
+  display: flex;
+  justify-content: center;
 }
 
 .featureCard {
@@ -259,7 +267,7 @@ $gold: #f4b81c;
 .featureCardActive {
   background: $blue;
   color: $white;
-  transform: translateY(-54px);
+  transform: translateY(-74px);
 
   @media (max-width: 991px) {
     transform: none;
@@ -277,14 +285,53 @@ $gold: #f4b81c;
   }
 }
 
+.featureArrow {
+  position: absolute;
+  right: -62px;
+  top: 50%;
+  transform: translateY(-26%);
+  color: $blue;
+  z-index: 4;
+
+  svg {
+    display: block;
+    width: 116px;
+    height: 62px;
+  }
+
+  @media (max-width: 1199px) {
+    right: -48px;
+
+    svg {
+      width: 96px;
+      height: 54px;
+    }
+  }
+
+  @media (max-width: 991px) {
+    right: -34px;
+    transform: translateY(-18%);
+
+    svg {
+      width: 76px;
+      height: 44px;
+    }
+  }
+
+  @media (max-width: 767px) {
+    display: none;
+  }
+}
+
 .workSection {
-  padding: 0 0 70px;
+  padding: 14px 0 70px;
 }
 
 .workGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 28px;
+  align-items: start;
 
   @media (max-width: 767px) {
     grid-template-columns: 1fr;
@@ -323,6 +370,14 @@ $gold: #f4b81c;
   background: $blue;
 }
 
+.workGrid .workCard:first-child {
+  margin-right: -6px;
+}
+
+.workGrid .workCard:last-child {
+  margin-left: -6px;
+}
+
 .workIcon,
 .workTitle {
   position: relative;
@@ -330,11 +385,11 @@ $gold: #f4b81c;
 }
 
 .workTitle {
-  font-size: 34px;
+  font-size: 30px;
   font-weight: 700;
 
   @media (max-width: 991px) {
-    font-size: 26px;
+    font-size: 24px;
   }
 }
 
@@ -371,6 +426,7 @@ $gold: #f4b81c;
 .serviceSection {
   position: relative;
   padding: 48px 0 90px;
+  overflow: hidden;
 
   &::before,
   &::after {
