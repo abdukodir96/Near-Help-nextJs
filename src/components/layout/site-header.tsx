@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { List, X } from 'phosphor-react';
+import { CaretDown, Clock, List, PhoneCall, X } from 'phosphor-react';
 import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
@@ -16,7 +16,6 @@ const mainLinks = [
   { href: '/community', key: 'community' },
   { href: '/cs', key: 'cs' },
   { href: '/mypage', key: 'mypage' },
-  { href: '/notifications', key: 'notifications' },
 ] as const;
 
 export const SiteHeader = () => {
@@ -26,8 +25,33 @@ export const SiteHeader = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/60 bg-white/80 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4 lg:px-10">
+    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white shadow-[0_10px_30px_rgba(16,24,40,0.06)]">
+      <div className="hidden bg-[#253041] text-white lg:block">
+        <div className="mx-auto flex max-w-[1280px] items-center justify-between px-6 py-4 lg:px-10">
+          <div className="flex items-center gap-3 text-[1.05rem] font-medium text-white/95">
+            <span className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-white text-[#0fb5ff]">
+              <Clock size={22} weight="duotone" />
+            </span>
+            <span>Sun - Fri || 8:00 - 7:00</span>
+          </div>
+
+          <div className="flex items-center gap-5 text-[1.05rem] text-white/95">
+            <div className="flex items-center gap-3">
+              <PhoneCall size={26} className="text-[#08c2ff]" weight="duotone" />
+              <span className="font-medium">+82 10 2469 4424</span>
+            </div>
+            <span className="h-7 w-px bg-white/30" />
+            <div className="flex items-center gap-3">
+              <div className="[&_button]:!border-none [&_button]:!bg-transparent [&_button]:!p-0 [&_button]:!text-base [&_button]:!font-medium [&_button]:!text-white [&_button]:shadow-none">
+                <LocaleSwitcher />
+              </div>
+              <ThemeToggle />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-6 px-6 py-5 lg:px-10">
         <Link href="/" className="flex items-center" aria-label={common('brand')}>
           <Image
             src="/branding/near-help.png"
@@ -35,21 +59,19 @@ export const SiteHeader = () => {
             width={320}
             height={157}
             priority
-            className="h-14 w-auto object-contain md:h-16 lg:h-[4.5rem]"
+            className="h-[4.4rem] w-auto object-contain lg:h-[4.9rem]"
           />
         </Link>
 
-        <nav className="hidden items-center gap-2 lg:flex">
+        <nav className="hidden items-center gap-3 xl:flex">
           {mainLinks.map((link) => {
             const active = pathname === link.href;
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  active
-                    ? 'bg-brand-teal text-white'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
+                className={`px-3 py-2 text-[1.15rem] font-semibold transition ${
+                  active ? 'text-[#0052da]' : 'text-[#253041] hover:text-[#0052da]'
                 }`}
               >
                 {t(link.key)}
@@ -58,24 +80,19 @@ export const SiteHeader = () => {
           })}
         </nav>
 
-        <div className="hidden items-center gap-3 lg:flex">
-          <LocaleSwitcher />
-          <ThemeToggle />
-          <Link href="/auth/login" className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-            {t('login')}
-          </Link>
+        <div className="hidden items-center gap-4 xl:flex">
           <Link
-            href="/auth/signup"
-            className="rounded-full bg-brand-ember px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-500"
+            href="/#booking"
+            className="inline-flex min-h-[4.25rem] min-w-[11rem] items-center justify-center rounded-2xl bg-[#0052da] px-7 text-lg font-semibold text-white transition hover:bg-[#0246b7]"
           >
-            {t('signup')}
+            GET FREE QUOTE
           </Link>
         </div>
 
         <button
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-700 lg:hidden dark:border-slate-700 dark:text-slate-200"
+          className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 text-slate-700 xl:hidden"
           aria-label="Toggle navigation"
         >
           {isOpen ? <X size={20} weight="bold" /> : <List size={20} weight="bold" />}
@@ -83,32 +100,40 @@ export const SiteHeader = () => {
       </div>
 
       {isOpen && (
-        <div className="border-t border-slate-200 px-6 py-4 lg:hidden dark:border-slate-800">
+        <div className="border-t border-slate-200 bg-white px-6 py-5 xl:hidden">
           <div className="flex flex-col gap-2">
             {mainLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsOpen(false)}
-                className="rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                className="rounded-2xl px-4 py-3 text-base font-semibold text-[#253041] transition hover:bg-slate-100"
               >
                 {t(link.key)}
               </Link>
             ))}
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <LocaleSwitcher />
+          <div className="mt-5 flex flex-wrap items-center gap-4">
+            <div className="[&_button]:!border-slate-200 [&_button]:!bg-white [&_button]:!text-[#253041]">
+              <LocaleSwitcher />
+            </div>
             <ThemeToggle />
-            <Link href="/auth/login" className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <Link href="/auth/login" className="text-sm font-semibold text-[#253041]">
               {t('login')}
             </Link>
             <Link
               href="/auth/signup"
-              className="rounded-full bg-brand-ember px-4 py-2 text-sm font-semibold text-white"
+              className="rounded-full bg-[#0052da] px-5 py-2 text-sm font-semibold text-white"
             >
               {t('signup')}
             </Link>
+          </div>
+
+          <div className="mt-4 flex items-center gap-2 text-sm text-slate-500">
+            <Clock size={18} />
+            <span>Sun - Fri || 8:00 - 7:00</span>
+            <CaretDown size={14} className="opacity-0" />
           </div>
         </div>
       )}
