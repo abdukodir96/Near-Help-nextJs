@@ -287,39 +287,36 @@ $gold: #f4b81c;
 
 .featureArrow {
   position: absolute;
-  right: -62px;
+  right: -34px;
   top: 50%;
-  transform: translateY(-26%);
-  color: $blue;
+  transform: translateY(-18%);
   z-index: 4;
 
-  svg {
-    display: block;
-    width: 116px;
-    height: 62px;
-  }
-
   @media (max-width: 1199px) {
-    right: -48px;
-
-    svg {
-      width: 96px;
-      height: 54px;
-    }
+    right: -28px;
   }
 
   @media (max-width: 991px) {
-    right: -34px;
-    transform: translateY(-18%);
-
-    svg {
-      width: 76px;
-      height: 44px;
-    }
+    right: -20px;
+    transform: translateY(-12%);
   }
 
   @media (max-width: 767px) {
     display: none;
+  }
+}
+
+.featureArrowImage {
+  display: block;
+  width: 75px;
+  height: auto;
+
+  @media (max-width: 1199px) {
+    width: 68px;
+  }
+
+  @media (max-width: 991px) {
+    width: 58px;
   }
 }
 

@@ -268,25 +268,13 @@ export const LandingPage = () => {
                 </div>
                 {index < featureItems.length - 1 && (
                   <span className={styles.featureArrow} aria-hidden="true">
-                    <svg
-                      viewBox="0 0 120 64"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M10 44C33 20 63 18 92 31"
-                        stroke="currentColor"
-                        strokeWidth="5"
-                        strokeLinecap="round"
-                      />
-                      <path
-                        d="M81 18L101 33L76 34"
-                        stroke="currentColor"
-                        strokeWidth="5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+                    <Image
+                      src="/branding/step-arrow.png"
+                      alt=""
+                      width={75}
+                      height={33}
+                      className={styles.featureArrowImage}
+                    />
                   </span>
                 )}
               </div>
