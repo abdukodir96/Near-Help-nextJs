@@ -121,7 +121,7 @@ const projectItems = [
     category: "Cleaning",
   },
   {
-    image: "/theme/images/projects/img-10.jpg",
+    image: "/theme/images/projects/img-7.jpg",
     title: "Basement utility rebuild",
     category: "Basement plumbing",
   },
@@ -239,7 +239,11 @@ export const LandingPage = () => {
               Seoul.
             </p>
             <div className={styles.heroActions}>
-              <Link prefetch={false} href="#booking" className={styles.primaryButton}>
+              <Link
+                prefetch={false}
+                href="#booking"
+                className={styles.primaryButton}
+              >
                 BOOK ONLINE
               </Link>
               <button
@@ -343,7 +347,11 @@ export const LandingPage = () => {
                 <div className={styles.serviceBody}>
                   <h3>{item.title}</h3>
                   <p>{item.description}</p>
-                  <Link prefetch={false} href="/services" className={styles.inlineLink}>
+                  <Link
+                    prefetch={false}
+                    href="/services"
+                    className={styles.inlineLink}
+                  >
                     View details <ArrowRight size={16} />
                   </Link>
                 </div>
@@ -357,9 +365,7 @@ export const LandingPage = () => {
         <div className={styles.container}>
           <div className={styles.factsLayout}>
             <div className={styles.factsCopy}>
-              <h2>
-                We Are Always Different From Other Services.
-              </h2>
+              <h2>We Are Always Different From Other Services.</h2>
               <div className={styles.reviewBadge}>
                 <strong>89K</strong>
                 <div className={styles.reviewMeta}>
@@ -413,6 +419,11 @@ export const LandingPage = () => {
                 </div>
               </article>
             ))}
+          </div>
+          <div className={styles.projectsButtonWrap}>
+            <Link prefetch={false} href="/services" className={styles.primaryCta}>
+              View All Projects
+            </Link>
           </div>
         </div>
       </section>
@@ -568,7 +579,11 @@ export const LandingPage = () => {
                     <span>{item.category}</span>
                   </p>
                   <h3>{item.title}</h3>
-                  <Link prefetch={false} href="/community" className={styles.inlineLink}>
+                  <Link
+                    prefetch={false}
+                    href="/community"
+                    className={styles.inlineLink}
+                  >
                     Read more <ArrowRight size={16} />
                   </Link>
                 </div>
