@@ -5,12 +5,10 @@ import Link from "next/link";
 import {
   ArrowRight,
   Buildings,
-  CalendarBlank,
   MapPinLine,
   Play,
   Quotes,
   Star,
-  TrendUp,
   UsersThree,
   Wrench,
 } from "phosphor-react";
@@ -75,24 +73,24 @@ const serviceItems = [
 
 const statItems = [
   {
-    icon: <UsersThree size={40} weight="duotone" />,
-    value: "2.4k+",
-    label: "Verified specialists",
+    icon: <Buildings size={52} weight="duotone" />,
+    value: "200",
+    label: "Running Project",
   },
   {
-    icon: <Wrench size={40} weight="duotone" />,
-    value: "18k+",
-    label: "Jobs completed",
+    icon: <UsersThree size={52} weight="duotone" />,
+    value: "85+",
+    label: "Team Member",
   },
   {
-    icon: <TrendUp size={40} weight="duotone" />,
-    value: "96%",
-    label: "Repeat booking rate",
+    icon: <Star size={52} weight="duotone" />,
+    value: "39K",
+    label: "Happy Clients",
   },
   {
-    icon: <CalendarBlank size={40} weight="duotone" />,
-    value: "24/7",
-    label: "Emergency response",
+    icon: <Wrench size={52} weight="duotone" />,
+    value: "45",
+    label: "Award-winning",
   },
 ] as const;
 
@@ -360,17 +358,21 @@ export const LandingPage = () => {
           <div className={styles.factsLayout}>
             <div className={styles.factsCopy}>
               <h2>
-                Thousands of homeowners trust NearHelp when the job cannot wait.
+                We Are Always Different From Other Services.
               </h2>
               <div className={styles.reviewBadge}>
-                <strong>4.9</strong>
-                <div>
+                <strong>89K</strong>
+                <div className={styles.reviewMeta}>
                   <div className={styles.stars}>
                     {Array.from({ length: 5 }).map((_, index) => (
-                      <Star key={index} size={16} weight="fill" />
+                      <Star
+                        key={index}
+                        size={16}
+                        weight={index < 4 ? "fill" : "regular"}
+                      />
                     ))}
                   </div>
-                  <span>Average rating from verified service bookings</span>
+                  <span>Customer Review</span>
                 </div>
               </div>
             </div>

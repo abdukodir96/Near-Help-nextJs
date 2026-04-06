@@ -556,27 +556,34 @@ $gold: #f4b81c;
 }
 
 .factsSection {
+  position: relative;
+  overflow: hidden;
   padding: 90px 0;
-  background: $blue url('/theme/images/funfact.jpg') center/cover no-repeat;
+  background: #0052da;
   color: $white;
 }
 
 .factsLayout {
   display: grid;
-  grid-template-columns: 0.95fr 1.05fr;
-  gap: 40px;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 56px;
   align-items: center;
 
   @media (max-width: 991px) {
     grid-template-columns: 1fr;
+    gap: 36px;
   }
 }
 
 .factsCopy {
+  position: relative;
+  z-index: 1;
+  max-width: 520px;
+
   h2 {
-    margin: 0 0 36px;
-    font-size: clamp(2.2rem, 4vw, 3.4rem);
-    line-height: 1.12;
+    margin: 0 0 44px;
+    font-size: clamp(2.8rem, 5vw, 4rem);
+    line-height: 1.15;
     font-weight: 800;
   }
 }
@@ -584,44 +591,80 @@ $gold: #f4b81c;
 .reviewBadge {
   display: inline-flex;
   align-items: center;
-  gap: 18px;
-  padding: 22px 26px;
+  gap: 22px;
+  min-width: 390px;
+  padding: 26px 34px;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 44px rgba(11, 33, 79, 0.16);
 
   strong {
-    font-size: 60px;
+    font-size: clamp(3.8rem, 6vw, 5rem);
     line-height: 1;
     color: $gold;
   }
 
-  span {
-    color: rgba(255, 255, 255, 0.9);
+  @media (max-width: 575px) {
+    min-width: auto;
+    width: 100%;
+    padding: 24px 22px;
   }
 }
 
 .stars {
   display: flex;
-  gap: 2px;
-  margin-bottom: 8px;
+  gap: 4px;
+  margin-bottom: 10px;
   color: $gold;
+}
+
+.reviewMeta {
+  span {
+    display: block;
+    color: rgba(255, 255, 255, 0.94);
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
 }
 
 .statsGrid {
   position: relative;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px 18px;
-  padding: 32px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
+  gap: 72px 52px;
+  padding: 92px 38px 92px 90px;
+  z-index: 1;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -72px;
+    width: 760px;
+    height: 760px;
+    transform: translateY(-50%);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    z-index: -1;
+  }
 
   @media (max-width: 991px) {
-    border-radius: 32px;
+    gap: 34px 24px;
+    padding: 54px 26px;
+
+    &::before {
+      top: 0;
+      right: 50%;
+      width: 100%;
+      height: 100%;
+      transform: translateX(50%);
+      border-radius: 40px;
+    }
   }
 
   @media (max-width: 575px) {
     grid-template-columns: 1fr;
+    gap: 28px;
   }
 }
 
@@ -629,27 +672,25 @@ $gold: #f4b81c;
   display: flex;
   align-items: center;
   gap: 18px;
-  justify-content: center;
+  justify-content: flex-start;
 
   h3 {
     margin: 0 0 6px;
-    font-size: 48px;
+    font-size: clamp(2.8rem, 5vw, 4rem);
     line-height: 1;
     font-weight: 800;
   }
 
   p {
     margin: 0;
-    color: rgba(255, 255, 255, 0.88);
-  }
-
-  @media (max-width: 991px) {
-    justify-content: flex-start;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 1rem;
   }
 }
 
 .statIcon {
   color: rgba(255, 255, 255, 0.95);
+  flex-shrink: 0;
 }
 
 .projectsSection {
