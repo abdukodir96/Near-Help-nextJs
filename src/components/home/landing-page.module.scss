@@ -494,6 +494,9 @@ $gold: #f4b81c;
   padding: 30px;
   background: $section;
   border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .serviceImageWrap {
@@ -514,6 +517,9 @@ $gold: #f4b81c;
 
 .serviceBody {
   padding: 36px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 
   h3 {
     margin: 0 0 16px;
@@ -542,6 +548,7 @@ $gold: #f4b81c;
   color: $dark;
   font-weight: 700;
   text-decoration: none;
+  margin-top: auto;
 
   &:hover {
     color: $blue;
