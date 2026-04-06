@@ -37,21 +37,39 @@ const featureItems = [
 const serviceItems = [
   {
     image: "/theme/images/service/1.jpg",
-    title: "Pipe leak repair",
+    title: "Emergency plumbing",
     description:
-      "Same-day leak repair for kitchens, bathrooms, and hidden utility lines.",
+      "Rapid help for burst pipes, heavy leaks, blocked drains, and urgent water damage risks.",
   },
   {
     image: "/theme/images/service/2.jpg",
     title: "Water heater support",
     description:
-      "Trusted diagnostics, replacement guidance, and emergency hot water repair.",
+      "Diagnostics, repair, installation guidance, and hot water recovery for homes and apartments.",
   },
   {
     image: "/theme/images/service/3.jpg",
+    title: "Gas line services",
+    description:
+      "Safe gas appliance hookup, leak inspection, valve replacement, and certified line work.",
+  },
+  {
+    image: "/theme/images/service/4.jpg",
+    title: "Electrical repairs",
+    description:
+      "Fix outlets, switches, lighting, breaker issues, and urgent electrical faults with trusted pros.",
+  },
+  {
+    image: "/theme/images/service/5.jpg",
     title: "Bathroom remodeling",
     description:
-      "From fixtures to tiling, find vetted specialists for complete upgrades.",
+      "From fixtures to tiling and layout upgrades, plan full bathroom refresh projects with specialists.",
+  },
+  {
+    image: "/theme/images/service/6.jpg",
+    title: "Clean-up services",
+    description:
+      "Post-repair, move-in, and post-renovation cleaning support to leave every space fresh and ready.",
   },
 ] as const;
 
@@ -308,8 +326,8 @@ export const LandingPage = () => {
           <div className={styles.sectionIntro}>
             <span>Featured services</span>
             <h2>
-              Reliable home service support for urgent fixes and planned
-              upgrades.
+              Everything NearHelp offers for urgent repairs, installations,
+              upgrades, and finishing work.
             </h2>
           </div>
           <div className={styles.serviceGrid}>

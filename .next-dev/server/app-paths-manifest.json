@@ -1,6 +1,3 @@
 {
-  "/(main)/services/page": "app/(main)/services/page.js",
-  "/(main)/page": "app/(main)/page.js",
-  "/(main)/agents/page": "app/(main)/agents/page.js",
-  "/(main)/community/page": "app/(main)/community/page.js"
+  "/(main)/page": "app/(main)/page.js"
 }
