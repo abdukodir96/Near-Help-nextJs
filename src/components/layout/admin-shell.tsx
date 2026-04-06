@@ -18,6 +18,7 @@ export const AdminShell = ({ children }: { children: React.ReactNode }) => {
             {adminLinks.map((link) => (
               <Link
                 key={link.href}
+                prefetch={false}
                 href={link.href}
                 className="rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
               >

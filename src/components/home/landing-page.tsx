@@ -223,7 +223,7 @@ export const LandingPage = () => {
               Seoul.
             </p>
             <div className={styles.heroActions}>
-              <Link href="#booking" className={styles.primaryButton}>
+              <Link prefetch={false} href="#booking" className={styles.primaryButton}>
                 BOOK ONLINE
               </Link>
               <button
@@ -251,34 +251,36 @@ export const LandingPage = () => {
 
       <section className={styles.featuresSection}>
         <div className={styles.container}>
-          <div className={styles.featuresGrid}>
-            {featureItems.map((item, index) => (
-              <div key={item.title} className={styles.featureStep}>
-                <div
-                  className={`${styles.featureCard} ${item.active ? styles.featureCardActive : ""}`.trim()}
-                >
-                  <Image
-                    src={item.icon}
-                    alt={item.title}
-                    width={82}
-                    height={82}
-                    className={styles.featureIcon}
-                  />
-                  <h3>{item.title}</h3>
-                </div>
-                {index < featureItems.length - 1 && (
-                  <span className={styles.featureArrow} aria-hidden="true">
+          <div className={styles.featuresPanel}>
+            <div className={styles.featuresGrid}>
+              {featureItems.map((item, index) => (
+                <div key={item.title} className={styles.featureStep}>
+                  <div
+                    className={`${styles.featureCard} ${item.active ? styles.featureCardActive : ""}`.trim()}
+                  >
                     <Image
-                      src="/branding/step-arrow.png"
-                      alt=""
-                      width={75}
-                      height={33}
-                      className={styles.featureArrowImage}
+                      src={item.icon}
+                      alt={item.title}
+                      width={82}
+                      height={82}
+                      className={styles.featureIcon}
                     />
-                  </span>
-                )}
-              </div>
-            ))}
+                    <h3>{item.title}</h3>
+                  </div>
+                  {index < featureItems.length - 1 && (
+                    <span className={styles.featureArrow} aria-hidden="true">
+                      <Image
+                        src="/branding/step-arrow.png"
+                        alt=""
+                        width={75}
+                        height={33}
+                        className={styles.featureArrowImage}
+                      />
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -289,6 +291,7 @@ export const LandingPage = () => {
             {workItems.map((item) => (
               <Link
                 key={item.title}
+                prefetch={false}
                 href={item.href}
                 className={`${styles.workCard} ${item.accent ? styles.workCardAccent : ""}`.trim()}
               >
@@ -324,7 +327,7 @@ export const LandingPage = () => {
                 <div className={styles.serviceBody}>
                   <h3>{item.title}</h3>
                   <p>{item.description}</p>
-                  <Link href="/services" className={styles.inlineLink}>
+                  <Link prefetch={false} href="/services" className={styles.inlineLink}>
                     View details <ArrowRight size={16} />
                   </Link>
                 </div>
@@ -545,7 +548,7 @@ export const LandingPage = () => {
                     <span>{item.category}</span>
                   </p>
                   <h3>{item.title}</h3>
-                  <Link href="/community" className={styles.inlineLink}>
+                  <Link prefetch={false} href="/community" className={styles.inlineLink}>
                     Read more <ArrowRight size={16} />
                   </Link>
                 </div>

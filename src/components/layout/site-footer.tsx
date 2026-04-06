@@ -27,7 +27,7 @@ export const SiteFooter = () => {
 
         <div className="flex flex-wrap gap-5 text-sm font-semibold text-white/90">
           {footerLinks.map((link) => (
-            <Link key={link.href} href={link.href} className="transition hover:text-[#32c3ff]">
+            <Link prefetch={false} key={link.href} href={link.href} className="transition hover:text-[#32c3ff]">
               {link.label}
             </Link>
           ))}

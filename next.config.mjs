@@ -1,12 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config, { dev }) => {
-    if (dev) {
-      config.cache = false;
-    }
-
-    return config;
-  },
+  distDir: process.env.NODE_ENV === 'development' ? '.next-dev' : '.next',
 };
 
 export default nextConfig;

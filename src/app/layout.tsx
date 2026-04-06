@@ -32,9 +32,12 @@ export const metadata: Metadata = {
   title: 'NearHelp',
   description: 'NearHelp home services marketplace frontend',
   icons: {
-    icon: '/icon.png',
-    shortcut: '/icon.png',
-    apple: '/apple-icon.png',
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.png', type: 'image/png', sizes: '66x66' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: [{ url: '/apple-icon.png', type: 'image/png', sizes: '66x66' }],
   },
 };
 

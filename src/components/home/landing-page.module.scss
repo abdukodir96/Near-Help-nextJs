@@ -176,6 +176,7 @@ $gold: #f4b81c;
   justify-content: flex-end;
   align-items: flex-end;
   min-height: 640px;
+  z-index: 4;
 
   @media (max-width: 991px) {
     min-height: auto;
@@ -188,20 +189,41 @@ $gold: #f4b81c;
   width: min(100%, 720px);
   height: auto;
   object-fit: contain;
+  position: relative;
+  z-index: 4;
 }
 
 .featuresSection {
   position: relative;
-  z-index: 3;
-  margin-top: -150px;
+  z-index: 2;
+  margin-top: -118px;
 
   @media (max-width: 991px) {
-    margin-top: -65px;
+    margin-top: -42px;
   }
 
   @media (max-width: 767px) {
-    margin-top: -20px;
+    margin-top: 0;
     padding-bottom: 40px;
+  }
+}
+
+.featuresPanel {
+  position: relative;
+  padding: 48px 44px 32px;
+  border-radius: 56px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 24px 70px rgba(37, 48, 65, 0.05);
+  overflow: visible;
+
+  @media (max-width: 991px) {
+    padding: 34px 26px 24px;
+    border-radius: 36px;
+  }
+
+  @media (max-width: 767px) {
+    padding: 26px 18px;
+    border-radius: 28px;
   }
 }
 
@@ -211,6 +233,7 @@ $gold: #f4b81c;
   align-items: center;
   gap: 24px;
   position: relative;
+  z-index: 2;
 
   @media (max-width: 767px) {
     grid-template-columns: 1fr;

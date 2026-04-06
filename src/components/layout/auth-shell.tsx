@@ -14,7 +14,11 @@ export const AuthShell = ({ children }: { children: React.ReactNode }) => {
             We are rebuilding the frontend on a clean foundation, so auth and dashboard flows can now be connected
             to the real backend without template debt.
           </p>
-          <Link href="/" className="mt-8 inline-flex rounded-full border border-white/20 px-5 py-3 text-sm font-semibold">
+          <Link
+            prefetch={false}
+            href="/"
+            className="mt-8 inline-flex rounded-full border border-white/20 px-5 py-3 text-sm font-semibold"
+          >
             Back to home
           </Link>
         </div>
