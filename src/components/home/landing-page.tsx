@@ -5,13 +5,19 @@ import Link from "next/link";
 import {
   ArrowRight,
   Buildings,
+  HeartStraight,
   MapPinLine,
   Play,
   Quotes,
   Star,
+  Trophy,
   UsersThree,
   Wrench,
 } from "phosphor-react";
+import { Autoplay, Pagination } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/pagination";
 import styles from "./landing-page.module.scss";
 
 const featureItems = [
@@ -130,25 +136,106 @@ const projectItems = [
 const agentItems = [
   {
     image: "/theme/images/team/1.jpg",
-    name: "Martin Lee",
-    role: "Emergency plumbing expert",
+    name: "Henry Barton",
+    role: "Team Leader",
+    completedProjects: 86,
+    likes: 1320,
+    followers: 468,
   },
   {
     image: "/theme/images/team/2.jpg",
-    name: "Tina Park",
-    role: "Bathroom remodeling lead",
+    name: "Mattie Washington",
+    role: "Junior Member",
+    completedProjects: 74,
+    likes: 1188,
+    followers: 402,
   },
   {
     image: "/theme/images/team/3.jpg",
-    name: "David Kim",
-    role: "Gas & electrical specialist",
+    name: "Winifred Harmon",
+    role: "Team Leader",
+    completedProjects: 74,
+    likes: 1210,
+    followers: 397,
   },
   {
     image: "/theme/images/team/4.jpg",
-    name: "Nora Han",
-    role: "Clean-up & finish manager",
+    name: "Shelia Lawrence",
+    role: "Senior Member",
+    completedProjects: 61,
+    likes: 980,
+    followers: 355,
+  },
+  {
+    image: "/theme/images/team/1.jpg",
+    name: "Elijah Foster",
+    role: "Field Supervisor",
+    completedProjects: 58,
+    likes: 940,
+    followers: 338,
+  },
+  {
+    image: "/theme/images/team/2.jpg",
+    name: "Grace Kim",
+    role: "Premium Installer",
+    completedProjects: 52,
+    likes: 905,
+    followers: 322,
+  },
+  {
+    image: "/theme/images/team/3.jpg",
+    name: "Owen Park",
+    role: "Gas Safety Specialist",
+    completedProjects: 49,
+    likes: 860,
+    followers: 301,
+  },
+  {
+    image: "/theme/images/team/4.jpg",
+    name: "Amelia Stone",
+    role: "Remodel Coordinator",
+    completedProjects: 45,
+    likes: 812,
+    followers: 286,
+  },
+  {
+    image: "/theme/images/team/1.jpg",
+    name: "Lucas Bennett",
+    role: "Drainage Technician",
+    completedProjects: 39,
+    likes: 760,
+    followers: 254,
+  },
+  {
+    image: "/theme/images/team/2.jpg",
+    name: "Chloe Rivera",
+    role: "Clean Finish Expert",
+    completedProjects: 34,
+    likes: 708,
+    followers: 233,
   },
 ] as const;
+
+const rankedAgentItems = [...agentItems]
+  .map((item) => ({
+    ...item,
+    points: item.completedProjects,
+  }))
+  .sort((a, b) => {
+    if (b.points !== a.points) return b.points - a.points;
+    if (b.likes !== a.likes) return b.likes - a.likes;
+    return b.followers - a.followers;
+  })
+  .map((item, index) => ({
+    ...item,
+    rank: index + 1,
+  }));
+
+const formatCompactNumber = (value: number) =>
+  new Intl.NumberFormat("en-US", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
 
 const testimonialItems = [
   {
@@ -432,27 +519,73 @@ export const LandingPage = () => {
         <div className={styles.container}>
           <div className={styles.sectionIntroCenter}>
             <span>Top master agents</span>
-            <h2>
-              Meet specialists customers repeatedly trust for urgent and premium
-              jobs.
-            </h2>
+            <h2>Dedicated Member</h2>
+            <p className={styles.sectionDescription}>
+              Ranking is calculated from completed projects with 1 point for
+              every finished job, then ordered by likes and follower count.
+            </p>
           </div>
-          <div className={styles.teamGrid}>
-            {agentItems.map((item) => (
-              <article key={item.name} className={styles.teamCard}>
-                <Image
-                  src={item.image}
-                  alt={item.name}
-                  width={420}
-                  height={420}
-                  className={styles.teamImage}
-                />
-                <div className={styles.teamBody}>
-                  <span>{item.role}</span>
-                  <h3>{item.name}</h3>
-                </div>
-              </article>
-            ))}
+          <div className={styles.teamSliderWrap}>
+            <Swiper
+              modules={[Autoplay, Pagination]}
+              spaceBetween={26}
+              slidesPerView={1}
+              loop
+              speed={900}
+              autoplay={{ delay: 3200, disableOnInteraction: false }}
+              pagination={{ clickable: true }}
+              breakpoints={{
+                640: { slidesPerView: 2 },
+                992: { slidesPerView: 3 },
+                1280: { slidesPerView: 4 },
+              }}
+              className={styles.teamSlider}
+            >
+              {rankedAgentItems.map((item) => (
+                <SwiperSlide key={item.name} className={styles.teamSlide}>
+                  <article className={styles.teamCard}>
+                    <div className={styles.teamRankBadge}>
+                      <Trophy size={16} weight="fill" />
+                      <span>#{item.rank}</span>
+                    </div>
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      width={420}
+                      height={420}
+                      className={styles.teamImage}
+                    />
+                    <div className={styles.teamBody}>
+                      <h3>{item.name}</h3>
+                      <span>{item.role}</span>
+                      <div className={styles.teamMetrics}>
+                        <div className={styles.teamMetric}>
+                          <Trophy size={18} weight="duotone" />
+                          <div>
+                            <strong>{item.points}</strong>
+                            <small>Points</small>
+                          </div>
+                        </div>
+                        <div className={styles.teamMetric}>
+                          <HeartStraight size={18} weight="duotone" />
+                          <div>
+                            <strong>{formatCompactNumber(item.likes)}</strong>
+                            <small>Likes</small>
+                          </div>
+                        </div>
+                        <div className={styles.teamMetric}>
+                          <UsersThree size={18} weight="duotone" />
+                          <div>
+                            <strong>{formatCompactNumber(item.followers)}</strong>
+                            <small>Followers</small>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                </SwiperSlide>
+              ))}
+            </Swiper>
           </div>
         </div>
       </section>
