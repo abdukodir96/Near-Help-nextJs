@@ -508,7 +508,11 @@ export const LandingPage = () => {
             ))}
           </div>
           <div className={styles.projectsButtonWrap}>
-            <Link prefetch={false} href="/services" className={styles.primaryCta}>
+            <Link
+              prefetch={false}
+              href="/services"
+              className={styles.primaryCta}
+            >
               View All Projects
             </Link>
           </div>
@@ -521,7 +525,8 @@ export const LandingPage = () => {
             <span>Top master agents</span>
             <h2>Dedicated Member</h2>
             <p className={styles.sectionDescription}>
-              Meet the standout specialists homeowners trust most for speed, consistency, and high-quality results.
+              Meet the standout specialists homeowners trust most for speed,
+              consistency, and high-quality results.
             </p>
           </div>
           <div className={styles.teamSliderWrap}>
@@ -575,7 +580,9 @@ export const LandingPage = () => {
                         <div className={styles.teamMetric}>
                           <UsersThree size={18} weight="duotone" />
                           <div>
-                            <strong>{formatCompactNumber(item.followers)}</strong>
+                            <strong>
+                              {formatCompactNumber(item.followers)}
+                            </strong>
                             <small>Followers</small>
                           </div>
                         </div>
@@ -590,9 +597,18 @@ export const LandingPage = () => {
       </section>
 
       <section className={styles.contactSection} id="booking">
-        <div className={styles.contactMedia}>
+        <div className={styles.contactAccent} aria-hidden="true">
           <Image
             src="/theme/images/contact.png"
+            alt=""
+            width={360}
+            height={360}
+            className={styles.contactAccentImage}
+          />
+        </div>
+        <div className={styles.contactMedia}>
+          <Image
+            src="/theme/images/contact.jpg"
             alt="Online booking"
             fill
             className={styles.contactImage}
@@ -637,7 +653,7 @@ export const LandingPage = () => {
                   placeholder="Describe the issue you need help with"
                 />
                 <button type="submit" className={styles.primaryButton}>
-                  GET FREE QUOTE
+                  GET A BOOKING
                 </button>
               </form>
             </div>

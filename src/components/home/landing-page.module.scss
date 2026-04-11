@@ -973,6 +973,25 @@ $gold: #f4b81c;
   overflow: hidden;
 }
 
+.contactAccent {
+  position: absolute;
+  left: -4%;
+  bottom: -8%;
+  z-index: 0;
+  pointer-events: none;
+
+  @media (max-width: 991px) {
+    display: none;
+  }
+}
+
+.contactAccentImage {
+  width: min(100%, 340px);
+  height: auto;
+  object-fit: contain;
+  opacity: 0.95;
+}
+
 .contactMedia {
   position: absolute;
   right: 0;
@@ -1014,6 +1033,8 @@ $gold: #f4b81c;
 }
 
 .contactLayout {
+  position: relative;
+  z-index: 1;
   min-height: 780px;
   display: flex;
   align-items: center;
