@@ -521,8 +521,7 @@ export const LandingPage = () => {
             <span>Top master agents</span>
             <h2>Dedicated Member</h2>
             <p className={styles.sectionDescription}>
-              Ranking is calculated from completed projects with 1 point for
-              every finished job, then ordered by likes and follower count.
+              Meet the standout specialists homeowners trust most for speed, consistency, and high-quality results.
             </p>
           </div>
           <div className={styles.teamSliderWrap}>
@@ -537,7 +536,7 @@ export const LandingPage = () => {
               breakpoints={{
                 640: { slidesPerView: 2 },
                 992: { slidesPerView: 3 },
-                1280: { slidesPerView: 4 },
+                1280: { slidesPerView: 3 },
               }}
               className={styles.teamSlider}
             >

@@ -821,6 +821,10 @@ $gold: #f4b81c;
 .teamSlider {
   padding: 6px 4px 58px;
 
+  :global(.swiper-wrapper) {
+    align-items: stretch;
+  }
+
   :global(.swiper-pagination) {
     bottom: 0;
   }
@@ -838,6 +842,7 @@ $gold: #f4b81c;
 }
 
 .teamSlide {
+  display: flex;
   height: auto;
 }
 
@@ -889,14 +894,20 @@ $gold: #f4b81c;
 .teamBody {
   padding: 28px 28px 30px;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 10px;
 
   h3 {
     margin: 0;
+    min-height: 4.7rem;
     font-size: 2rem;
     font-weight: 800;
     line-height: 1.15;
+
+    @media (max-width: 767px) {
+      min-height: auto;
+    }
   }
 
   span {
@@ -910,7 +921,9 @@ $gold: #f4b81c;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
-  margin-top: 10px;
+  margin-top: auto;
+  padding-top: 10px;
+  align-items: stretch;
 
   @media (max-width: 575px) {
     grid-template-columns: 1fr;
@@ -920,10 +933,16 @@ $gold: #f4b81c;
 .teamMetric {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
+  min-height: 82px;
   padding: 12px 10px;
   border-radius: 18px;
   background: #f6f9ff;
+
+  > div {
+    min-width: 0;
+  }
 
   svg {
     color: $blue;
