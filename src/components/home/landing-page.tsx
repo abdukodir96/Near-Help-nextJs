@@ -272,21 +272,27 @@ const testimonialItems = [
 const blogItems = [
   {
     image: "/theme/images/blog/img-1.jpg",
-    date: "March 12, 2026",
+    date: "12 Apr 2026",
     title: "How to choose the right plumber for an urgent repair",
-    category: "Guide",
+    author: "Laura Kim",
+    comments: 35,
+    likes: 126,
   },
   {
     image: "/theme/images/blog/img-2.jpg",
-    date: "March 21, 2026",
+    date: "09 Apr 2026",
     title: "What to expect before a bathroom remodel starts",
-    category: "Remodeling",
+    author: "David Luis",
+    comments: 80,
+    likes: 245,
   },
   {
     image: "/theme/images/blog/img-3.jpg",
-    date: "March 27, 2026",
+    date: "06 Apr 2026",
     title: "Post-renovation cleaning checklist for busy homeowners",
-    category: "Cleaning",
+    author: "Jenefer Willy",
+    comments: 95,
+    likes: 318,
   },
 ] as const;
 
@@ -794,10 +800,11 @@ export const LandingPage = () => {
         <div className={styles.container}>
           <div className={styles.sectionIntroCenter}>
             <span>Community updates</span>
-            <h2>
-              Helpful articles, practical tips, and project stories from the
-              NearHelp network.
-            </h2>
+            <h2>Latest News & Blog</h2>
+            <p className={styles.sectionDescription}>
+              Fresh maintenance tips, home service stories, and practical
+              updates from the NearHelp community.
+            </p>
           </div>
           <div className={styles.blogGrid}>
             {blogItems.map((item) => (
@@ -805,23 +812,18 @@ export const LandingPage = () => {
                 <Image
                   src={item.image}
                   alt={item.title}
-                  width={480}
-                  height={300}
+                  width={560}
+                  height={360}
                   className={styles.blogImage}
                 />
                 <div className={styles.blogBody}>
-                  <p className={styles.blogMeta}>
-                    <span>{item.date}</span>
-                    <span>{item.category}</span>
-                  </p>
+                  <p className={styles.blogDate}>{item.date}</p>
                   <h3>{item.title}</h3>
-                  <Link
-                    prefetch={false}
-                    href="/community"
-                    className={styles.inlineLink}
-                  >
-                    Read more <ArrowRight size={16} />
-                  </Link>
+                  <p className={styles.blogStats}>
+                    <span>{item.author}</span>
+                    <span>{item.comments} Comments</span>
+                    <span>{item.likes} Likes</span>
+                  </p>
                 </div>
               </article>
             ))}
