@@ -244,20 +244,27 @@ const testimonialItems = [
       "NearHelp made it easy to compare real pros. We booked same-day service and the work quality was excellent.",
     name: "Hannah Seo",
     role: "Apartment owner",
-    image: "/theme/images/testimonial/img-1.jpg",
+    image: "/theme/images/testimonial/img-2.jpg",
   },
   {
     quote:
       "The platform saved us during an emergency leak. Messaging, booking, and updates all felt smooth and trustworthy.",
     name: "Minho Choi",
     role: "Property manager",
-    image: "/theme/images/testimonial/img-2.jpg",
+    image: "/theme/images/testimonial/img-1.jpg",
   },
   {
     quote:
       "I liked how clear the pricing guidance and reviews were. It felt much easier than calling random contractors.",
     name: "Sora Lim",
     role: "Homeowner",
+    image: "/theme/images/testimonial/img-5.jpg",
+  },
+  {
+    quote:
+      "The technician arrived on time, explained the problem clearly, and finished the repair without any surprise costs.",
+    name: "Jiwon Park",
+    role: "Townhouse resident",
     image: "/theme/images/testimonial/img-3.jpg",
   },
 ] as const;
@@ -323,8 +330,9 @@ const bookingCategoryOptions: ReadonlyArray<{
 ];
 
 export const LandingPage = () => {
-  const [selectedCategory, setSelectedCategory] =
-    useState<BookingCategory | "">("");
+  const [selectedCategory, setSelectedCategory] = useState<
+    BookingCategory | ""
+  >("");
   const [selectedServiceOption, setSelectedServiceOption] = useState("");
 
   return (
@@ -679,8 +687,9 @@ export const LandingPage = () => {
                     name="serviceCategory"
                     required
                     onChange={(event) => {
-                      const nextCategory = event.currentTarget
-                        .value as BookingCategory | "";
+                      const nextCategory = event.currentTarget.value as
+                        | BookingCategory
+                        | "";
                       setSelectedCategory(nextCategory);
                       setSelectedServiceOption("");
                     }}
@@ -726,41 +735,57 @@ export const LandingPage = () => {
 
       <section className={styles.testimonialSection}>
         <div className={styles.container}>
-          <div className={styles.testimonialLayout}>
-            <div className={styles.testimonialIntro}>
-              <span>Testimonials</span>
-              <h2>
-                Customers come back because the experience feels fast, clear,
-                and reliable.
-              </h2>
-              <p>
-                NearHelp combines real reviews, direct messaging, and smooth
-                booking so users can choose with confidence instead of guessing.
-              </p>
-            </div>
-            <div className={styles.testimonialGrid}>
+          <div className={styles.sectionIntroCenter}>
+            <span>Testimonials</span>
+            <h2>What People Say</h2>
+            <p className={styles.sectionDescription}>
+              Hear from homeowners who trusted NearHelp for urgent fixes,
+              cleaner communication, and service visits that actually showed up
+              on time.
+            </p>
+          </div>
+          <div className={styles.testimonialSlider}>
+            <Swiper
+              modules={[Autoplay]}
+              autoplay={{ delay: 4500, disableOnInteraction: false }}
+              loop
+              speed={1000}
+              spaceBetween={24}
+              slidesPerView={3}
+              breakpoints={{
+                0: { slidesPerView: 1 },
+                768: { slidesPerView: 2 },
+                1200: { slidesPerView: 2 },
+                1500: { slidesPerView: 3 },
+              }}
+            >
               {testimonialItems.map((item) => (
-                <article key={item.name} className={styles.testimonialCard}>
-                  <div className={styles.testimonialQuote}>
-                    <Quotes size={40} weight="fill" />
-                    <p>{item.quote}</p>
-                  </div>
-                  <div className={styles.testimonialAuthor}>
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      width={70}
-                      height={70}
-                      className={styles.authorImage}
-                    />
-                    <div>
-                      <h3>{item.name}</h3>
-                      <span>{item.role}</span>
+                <SwiperSlide
+                  key={item.name}
+                  className={styles.testimonialSlide}
+                >
+                  <article className={styles.testimonialCard}>
+                    <div className={styles.testimonialQuote}>
+                      <Quotes size={40} weight="fill" />
+                      <p>{item.quote}</p>
                     </div>
-                  </div>
-                </article>
+                    <div className={styles.testimonialAuthor}>
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        width={70}
+                        height={70}
+                        className={styles.authorImage}
+                      />
+                      <div>
+                        <h3>{item.name}</h3>
+                        <span>{item.role}</span>
+                      </div>
+                    </div>
+                  </article>
+                </SwiperSlide>
               ))}
-            </div>
+            </Swiper>
           </div>
         </div>
       </section>
