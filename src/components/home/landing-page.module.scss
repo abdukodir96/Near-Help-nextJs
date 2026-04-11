@@ -975,9 +975,10 @@ $gold: #f4b81c;
 
 .contactAccent {
   position: absolute;
-  left: -4%;
-  bottom: -8%;
+  left: -5%;
+  bottom: -5%;
   z-index: 0;
+  width: 360px;
   pointer-events: none;
 
   @media (max-width: 991px) {
@@ -986,10 +987,10 @@ $gold: #f4b81c;
 }
 
 .contactAccentImage {
-  width: min(100%, 340px);
+  max-width: 75%;
+  width: 100%;
   height: auto;
   object-fit: contain;
-  opacity: 0.95;
 }
 
 .contactMedia {
@@ -1120,6 +1121,10 @@ $gold: #f4b81c;
   @media (max-width: 575px) {
     grid-template-columns: 1fr;
   }
+}
+
+.formGridWide {
+  grid-column: 1 / -1;
 }
 
 .testimonialSection {

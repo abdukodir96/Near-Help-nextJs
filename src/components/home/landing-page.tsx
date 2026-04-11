@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import {
   ArrowRight,
   Buildings,
@@ -297,7 +298,35 @@ const workItems = [
   },
 ] as const;
 
+type BookingCategory =
+  | "PLUMBING"
+  | "GAS_LINE"
+  | "ELECTRICITY"
+  | "WATER_LINE"
+  | "BATHROOM_PLUMBING"
+  | "BASEMENT_PLUMBING"
+  | "REMODELING"
+  | "CLEANING";
+
+const bookingCategoryOptions: ReadonlyArray<{
+  value: BookingCategory;
+  label: string;
+}> = [
+  { value: "PLUMBING", label: "Plumbing" },
+  { value: "GAS_LINE", label: "Gas line services" },
+  { value: "ELECTRICITY", label: "Electricity services" },
+  { value: "WATER_LINE", label: "Water line repair" },
+  { value: "BATHROOM_PLUMBING", label: "Bathroom plumbing" },
+  { value: "BASEMENT_PLUMBING", label: "Basement plumbing" },
+  { value: "REMODELING", label: "Remodeling" },
+  { value: "CLEANING", label: "Cleaning" },
+];
+
 export const LandingPage = () => {
+  const [selectedCategory, setSelectedCategory] =
+    useState<BookingCategory | "">("");
+  const [selectedServiceOption, setSelectedServiceOption] = useState("");
+
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
@@ -629,23 +658,57 @@ export const LandingPage = () => {
               <form className={styles.contactForm}>
                 <div className={styles.formGrid}>
                   <input type="text" placeholder="Your full name" />
-                  <input type="tel" placeholder="Phone number" />
-                  <select defaultValue="">
+                  <input
+                    type="email"
+                    name="email"
+                    autoComplete="email"
+                    placeholder="Email address"
+                    required
+                    pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+                    onInvalid={(event) => {
+                      event.currentTarget.setCustomValidity(
+                        "Please enter a valid email address so we can confirm your booking.",
+                      );
+                    }}
+                    onInput={(event) => {
+                      event.currentTarget.setCustomValidity("");
+                    }}
+                  />
+                  <select
+                    value={selectedCategory}
+                    name="serviceCategory"
+                    required
+                    onChange={(event) => {
+                      const nextCategory = event.currentTarget
+                        .value as BookingCategory | "";
+                      setSelectedCategory(nextCategory);
+                      setSelectedServiceOption("");
+                    }}
+                  >
                     <option value="" disabled>
                       Service category
                     </option>
-                    <option>Plumbing</option>
-                    <option>Gas line services</option>
-                    <option>Electricity services</option>
-                    <option>Cleaning</option>
+                    {bookingCategoryOptions.map((category) => (
+                      <option key={category.value} value={category.value}>
+                        {category.label}
+                      </option>
+                    ))}
                   </select>
-                  <select defaultValue="">
+                  <select
+                    value={selectedServiceOption}
+                    name="serviceOption"
+                    required
+                    disabled={!selectedCategory}
+                    onChange={(event) => {
+                      setSelectedServiceOption(event.currentTarget.value);
+                    }}
+                  >
                     <option value="" disabled>
                       Service option
                     </option>
-                    <option>Standard</option>
-                    <option>Premium</option>
-                    <option>Emergency</option>
+                    <option value="STANDARD">Standard</option>
+                    <option value="PREMIUM">Premium</option>
+                    <option value="EMERGENCY">Emergency</option>
                   </select>
                 </div>
                 <textarea
