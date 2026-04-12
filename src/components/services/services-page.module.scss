@@ -93,6 +93,11 @@
   }
 }
 
+.gridAnchor {
+  position: relative;
+  top: -110px;
+}
+
 .serviceGrid {
   position: relative;
   z-index: 1;
@@ -201,4 +206,75 @@
     color: #0052da;
     transform: translateX(2px);
   }
+}
+
+.paginationWrap {
+  position: relative;
+  z-index: 1;
+  margin-top: 42px;
+}
+
+.paginationSummary {
+  margin: 0 0 18px;
+  text-align: center;
+  color: #5f6778;
+  font-size: 0.98rem;
+  font-weight: 600;
+}
+
+.pagination {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.pageButton,
+.pageNavButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 54px;
+  border: 1px solid rgba(0, 82, 218, 0.18);
+  border-radius: 999px;
+  background: #fff;
+  color: #253041;
+  font-size: 1rem;
+  font-weight: 800;
+  transition: all 0.28s ease;
+  box-shadow: 0 12px 24px rgba(37, 48, 65, 0.04);
+
+  &:hover:not(:disabled) {
+    border-color: #0052da;
+    color: #0052da;
+    transform: translateY(-2px);
+    box-shadow: 0 18px 34px rgba(0, 82, 218, 0.16);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+    box-shadow: none;
+    transform: none;
+  }
+}
+
+.pageButton {
+  width: 54px;
+}
+
+.pageNavButton {
+  gap: 8px;
+  padding: 0 22px;
+  min-width: 110px;
+}
+
+.pageButtonActive {
+  background: #0052da;
+  border-color: #0052da;
+  color: #fff;
+  box-shadow: 0 20px 38px rgba(0, 82, 218, 0.24);
 }
