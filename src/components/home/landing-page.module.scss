@@ -1248,15 +1248,21 @@ $gold: #f4b81c;
 
 .blogStats {
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
   margin: 0;
   color: #5f6778;
-  font-size: 1rem;
+  font-size: 0.94rem;
+  line-height: 1.35;
+
+  span {
+    white-space: nowrap;
+  }
 
   span + span {
     position: relative;
-    padding-left: 12px;
+    padding-left: 10px;
 
     &::before {
       content: '';
@@ -1277,5 +1283,14 @@ $gold: #f4b81c;
 
   span:nth-child(3) {
     color: #5f6778;
+  }
+
+  @media (max-width: 767px) {
+    flex-wrap: wrap;
+    row-gap: 8px;
+
+    span {
+      white-space: normal;
+    }
   }
 }
