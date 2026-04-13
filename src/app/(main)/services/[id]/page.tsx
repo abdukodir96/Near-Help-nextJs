@@ -1,5 +1,5 @@
-import { PagePlaceholder } from '@/components/shared/page-placeholder';
+import { ServiceDetailPageContent } from '@/components/services/service-detail-page';
 
-export default function ServiceDetailPage() {
-  return <PagePlaceholder eyebrow="Services / Detail" title="Service detail page" description="This page will be wired to getService, booking, likes, comments and message agent flow." />;
+export default function ServiceDetailPage({ params }: { params: { id: string } }) {
+  return <ServiceDetailPageContent slug={params.id} />;
 }

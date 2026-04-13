@@ -98,18 +98,338 @@
   top: -110px;
 }
 
-.serviceGrid {
+.layoutGrid {
   position: relative;
   z-index: 1;
   max-width: 1280px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 30px;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
 
-  @media (max-width: 1199px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  @media (max-width: 1080px) {
+    grid-template-columns: 1fr;
   }
+}
+
+.filterPanel {
+  position: sticky;
+  top: 124px;
+  border-radius: 36px;
+  background: #fff;
+  padding: 30px 26px 32px;
+  box-shadow: 0 20px 60px rgba(37, 48, 65, 0.08);
+}
+
+.filterHeader {
+  margin-bottom: 22px;
+
+  h2 {
+    margin: 8px 0 0;
+    color: #253041;
+    font-size: 2rem;
+    line-height: 1.1;
+    font-weight: 900;
+  }
+}
+
+.filterEyebrow {
+  margin: 0;
+  color: #0052da;
+  font-size: 0.86rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 34px;
+}
+
+.searchBox {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-height: 88px;
+  border: 2px solid #dbe9ff;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 16px 32px rgba(37, 48, 65, 0.06);
+  overflow: hidden;
+
+  input {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: #253041;
+    font-size: 1.05rem;
+    padding: 0 60px 0 68px;
+    outline: none;
+
+    &::placeholder {
+      color: #a8b2c3;
+    }
+  }
+}
+
+.searchIcon {
+  position: absolute;
+  left: 24px;
+  color: #253041;
+}
+
+.clearButton,
+.resetButton {
+  border: 0;
+  background: transparent;
+  color: #7b8494;
+  transition: color 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    color: #0052da;
+    transform: rotate(6deg);
+  }
+}
+
+.clearButton {
+  position: absolute;
+  right: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: #eef4ff;
+}
+
+.resetButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(37, 48, 65, 0.08);
+  flex-shrink: 0;
+}
+
+.filterGroup + .filterGroup {
+  margin-top: 34px;
+}
+
+.filterGroup h3 {
+  margin: 0 0 18px;
+  color: #253041;
+  font-size: 1.16rem;
+  font-weight: 900;
+}
+
+.expandableFilterGroup {
+  position: relative;
+}
+
+.expandableHeader {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+  margin-bottom: 18px;
+
+  h3 {
+    margin-bottom: 0;
+  }
+}
+
+
+.locationList {
+  position: relative;
+  max-height: 234px;
+  overflow: hidden;
+  transition: max-height 0.28s ease;
+}
+
+.expandableFilterGroup:hover .locationList,
+.expandableFilterGroup:focus-within .locationList {
+  max-height: 560px;
+}
+
+.locationList::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 44px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #fff 88%);
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.expandableFilterGroup:hover .locationList::after,
+.expandableFilterGroup:focus-within .locationList::after {
+  opacity: 0;
+}
+
+.checkboxList {
+  display: grid;
+  gap: 14px;
+}
+
+.checkOption {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #253041;
+  font-size: 0.96rem;
+  font-weight: 700;
+  text-transform: uppercase;
+
+  input {
+    width: 24px;
+    height: 24px;
+    accent-color: #0052da;
+    flex-shrink: 0;
+  }
+}
+
+.priceRangeGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.priceButton {
+  min-height: 54px;
+  border: 1px solid #d7dfeb;
+  border-radius: 18px;
+  background: #fff;
+  color: #253041;
+  font-size: 0.95rem;
+  font-weight: 800;
+  padding: 0 14px;
+  transition: all 0.25s ease;
+
+  &:hover {
+    border-color: #0052da;
+    color: #0052da;
+    box-shadow: 0 14px 28px rgba(0, 82, 218, 0.12);
+  }
+}
+
+.priceButtonActive {
+  background: #0052da;
+  border-color: #0052da;
+  color: #fff;
+  box-shadow: 0 18px 34px rgba(0, 82, 218, 0.2);
+}
+
+.resultsColumn {
+  min-width: 0;
+}
+
+.resultsToolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-right: 2px;
+}
+
+.sortControl {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  z-index: 5;
+}
+
+.sortLabel {
+  color: #253041;
+  font-size: 1.06rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.sortButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  background: transparent;
+  color: #253041;
+  padding: 0;
+  font-size: 1.06rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sortCaret {
+  color: #253041;
+  transition: transform 0.2s ease;
+}
+
+.sortCaretOpen {
+  transform: rotate(180deg);
+}
+
+.sortMenu {
+  position: absolute;
+  top: calc(100% + 16px);
+  right: 0;
+  min-width: 208px;
+  padding: 10px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 18px 45px rgba(37, 48, 65, 0.14);
+  display: grid;
+  gap: 4px;
+}
+
+.sortOption {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #253041;
+  text-align: left;
+  font-size: 0.98rem;
+  font-weight: 500;
+  padding: 16px 20px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: background 0.2s ease, color 0.2s ease;
+
+  &:hover {
+    background: #f5f8fe;
+  }
+}
+
+.sortOptionActive {
+  background: #f7f9fd;
+  color: #0052da;
+}
+
+.sortCheck {
+  color: #0052da;
+  flex-shrink: 0;
+}
+
+.serviceGrid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 30px;
 
   @media (max-width: 767px) {
     grid-template-columns: 1fr;
@@ -166,7 +486,7 @@
   }
 
   p {
-    margin: 0 0 24px;
+    margin: 0 0 20px;
     color: #5f6778;
     line-height: 1.9;
   }
@@ -192,6 +512,16 @@
   text-transform: uppercase;
 }
 
+.serviceMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+  color: #6b7280;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
 .inlineLink {
   display: inline-flex;
   align-items: center;
@@ -208,18 +538,43 @@
   }
 }
 
+.emptyState {
+  margin-top: 30px;
+  border-radius: 28px;
+  background: #fff;
+  padding: 42px 30px;
+  text-align: center;
+  box-shadow: 0 18px 50px rgba(37, 48, 65, 0.06);
+
+  h3 {
+    margin: 0;
+    color: #253041;
+    font-size: 1.6rem;
+    font-weight: 900;
+  }
+
+  p {
+    margin: 12px 0 0;
+    color: #5f6778;
+    line-height: 1.8;
+  }
+}
+
+.emptyAction {
+  margin-top: 18px;
+  min-height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: #0052da;
+  color: #fff;
+  padding: 0 22px;
+  font-weight: 800;
+}
+
 .paginationWrap {
   position: relative;
   z-index: 1;
   margin-top: 42px;
-}
-
-.paginationSummary {
-  margin: 0 0 18px;
-  text-align: center;
-  color: #5f6778;
-  font-size: 0.98rem;
-  font-weight: 600;
 }
 
 .pagination {
@@ -277,4 +632,73 @@
   border-color: #0052da;
   color: #fff;
   box-shadow: 0 20px 38px rgba(0, 82, 218, 0.24);
+}
+
+@media (max-width: 1080px) {
+  .filterPanel {
+    position: static;
+  }
+
+  .resultsToolbar {
+    justify-content: flex-start;
+    padding-right: 0;
+  }
+
+  .sortControl {
+    gap: 14px;
+  }
+
+  .expandableHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .locationList {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .locationList::after {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero {
+    padding: 72px 18px 34px;
+  }
+
+  .resultsToolbar {
+    margin-bottom: 24px;
+  }
+
+  .sortControl {
+    width: 100%;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .sortMenu {
+    right: 0;
+    left: 0;
+    min-width: 0;
+  }
+
+  .serviceSection {
+    padding: 18px 18px 90px;
+  }
+
+  .searchRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .resetButton {
+    width: 100%;
+    border-radius: 18px;
+  }
+
+  .priceRangeGrid {
+    grid-template-columns: 1fr;
+  }
 }

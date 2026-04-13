@@ -2,106 +2,144 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { CaretLeft, CaretRight } from 'phosphor-react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { ArrowsClockwise, CaretDown, CaretLeft, CaretRight, Check, MagnifyingGlass, X } from 'phosphor-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  locationOptions,
+  priceRangeOptions,
+  serviceItems,
+  serviceOptionChoices,
+  serviceTypeOptions,
+  type ServiceLocation,
+  type ServiceOption,
+  type ServicePriceBand,
+} from './services-data';
 import styles from './services-page.module.scss';
-
-const serviceItems = [
-  {
-    slug: 'emergency-plumbing',
-    image: '/theme/images/service/1.jpg',
-    title: 'Emergency plumbing',
-    category: 'PLUMBING',
-    description:
-      'Rapid response for burst pipes, severe leaks, blocked drains, and urgent water damage before things get worse.',
-  },
-  {
-    slug: 'water-heater-support',
-    image: '/theme/images/service/2.jpg',
-    title: 'Water heater support',
-    category: 'WATER LINE',
-    description:
-      'Diagnostics, repair, replacement planning, and hot water recovery support for apartments and family homes.',
-  },
-  {
-    slug: 'gas-line-services',
-    image: '/theme/images/service/3.jpg',
-    title: 'Gas line services',
-    category: 'GAS LINE',
-    description:
-      'Certified help for gas appliance hookup, safety checks, valve replacement, leak inspection, and line upgrades.',
-  },
-  {
-    slug: 'electrical-repairs',
-    image: '/theme/images/service/4.jpg',
-    title: 'Electrical repairs',
-    category: 'ELECTRICITY',
-    description:
-      'Fix switches, outlets, lighting issues, and urgent breaker faults with specialists who work clean and safely.',
-  },
-  {
-    slug: 'bathroom-remodeling',
-    image: '/theme/images/service/5.jpg',
-    title: 'Bathroom remodeling',
-    category: 'REMODELING',
-    description:
-      'Upgrade fixtures, tiling, layout, and finishes with coordinated bathroom refresh work from vetted crews.',
-  },
-  {
-    slug: 'clean-up-services',
-    image: '/theme/images/service/6.jpg',
-    title: 'Clean-up services',
-    category: 'CLEANING',
-    description:
-      'Post-repair, move-in, and post-renovation cleaning support so every job ends with a ready-to-use space.',
-  },
-  {
-    slug: 'water-line-repair',
-    image: '/theme/images/service/2.jpg',
-    title: 'Water line repair',
-    category: 'WATER LINE',
-    description:
-      'Track down pressure issues, hidden pipe damage, and main line problems before they disrupt daily living.',
-  },
-  {
-    slug: 'basement-plumbing',
-    image: '/theme/images/service/5.jpg',
-    title: 'Basement plumbing',
-    category: 'BASEMENT PLUMBING',
-    description:
-      'Sump pump, utility drains, moisture-prone pipework, and basement plumbing upgrades handled by trusted pros.',
-  },
-] as const;
 
 const ITEMS_PER_PAGE = 6;
 
+const sortChoices = [
+  { value: 'RECENT', label: 'New' },
+  { value: 'LOWEST_PRICE', label: 'Lowest Price' },
+  { value: 'HIGHEST_PRICE', label: 'Highest Price' },
+] as const;
+
+type ServiceSort = (typeof sortChoices)[number]['value'];
+
+const priceBandRank: Record<ServicePriceBand, number> = {
+  UNDER_100K: 1,
+  FROM_100K_TO_250K: 2,
+  FROM_250K_TO_500K: 3,
+  ABOVE_500K: 4,
+};
+
 export const ServicesPageContent = () => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLocations, setSelectedLocations] = useState<ServiceLocation[]>([]);
+  const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>([]);
+  const [selectedServiceOptions, setSelectedServiceOptions] = useState<ServiceOption[]>([]);
+  const [selectedPriceRange, setSelectedPriceRange] = useState<ServicePriceBand | 'ANY'>('ANY');
+  const [selectedSort, setSelectedSort] = useState<ServiceSort>('RECENT');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
+
   const gridAnchorRef = useRef<HTMLDivElement | null>(null);
+  const sortMenuRef = useRef<HTMLDivElement | null>(null);
   const firstRenderRef = useRef(true);
 
+  const filteredServices = useMemo(() => {
+    const matchedServices = serviceItems.filter((service) => {
+      const matchesSearch =
+        searchTerm.trim().length === 0 ||
+        service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        service.category.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesLocation =
+        selectedLocations.length === 0 || selectedLocations.some((location) => service.locations.includes(location));
+
+      const matchesServiceType =
+        selectedServiceTypes.length === 0 || selectedServiceTypes.includes(service.category);
+
+      const matchesServiceOption =
+        selectedServiceOptions.length === 0 ||
+        selectedServiceOptions.some((option) => service.options.includes(option));
+
+      const matchesPriceRange = selectedPriceRange === 'ANY' || service.priceBand === selectedPriceRange;
+
+      return (
+        matchesSearch &&
+        matchesLocation &&
+        matchesServiceType &&
+        matchesServiceOption &&
+        matchesPriceRange
+      );
+    });
+
+    const indexedServices = matchedServices.map((service, index) => ({ service, index }));
+
+    indexedServices.sort((left, right) => {
+      if (selectedSort === 'LOWEST_PRICE') {
+        const diff = priceBandRank[left.service.priceBand] - priceBandRank[right.service.priceBand];
+        return diff !== 0 ? diff : left.index - right.index;
+      }
+
+      if (selectedSort === 'HIGHEST_PRICE') {
+        const diff = priceBandRank[right.service.priceBand] - priceBandRank[left.service.priceBand];
+        return diff !== 0 ? diff : left.index - right.index;
+      }
+
+      return left.index - right.index;
+    });
+
+    return indexedServices.map(({ service }) => service);
+  }, [
+    searchTerm,
+    selectedLocations,
+    selectedPriceRange,
+    selectedServiceOptions,
+    selectedServiceTypes,
+    selectedSort,
+  ]);
+
   const pageInfo = useMemo(() => {
-    const totalItems = serviceItems.length;
-    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const totalItems = filteredServices.length;
+    const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
+    const safeCurrentPage = Math.min(currentPage, totalPages);
+    const startIndex = totalItems === 0 ? 0 : (safeCurrentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, totalItems);
 
     return {
-      currentPage,
+      currentPage: safeCurrentPage,
       totalItems,
       totalPages,
       pageSize: ITEMS_PER_PAGE,
-      hasPreviousPage: currentPage > 1,
-      hasNextPage: currentPage < totalPages,
-      startItem: startIndex + 1,
+      hasPreviousPage: safeCurrentPage > 1,
+      hasNextPage: safeCurrentPage < totalPages,
+      startItem: totalItems === 0 ? 0 : startIndex + 1,
       endItem: endIndex,
     };
-  }, [currentPage]);
+  }, [filteredServices.length, currentPage]);
 
-  const visibleServices = serviceItems.slice(
+  const visibleServices = filteredServices.slice(
     (pageInfo.currentPage - 1) * pageInfo.pageSize,
     pageInfo.currentPage * pageInfo.pageSize,
   );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedLocations, selectedServiceTypes, selectedServiceOptions, selectedPriceRange, selectedSort]);
+
+  useEffect(() => {
+    if (currentPage > pageInfo.totalPages) {
+      setCurrentPage(pageInfo.totalPages);
+    }
+  }, [currentPage, pageInfo.totalPages]);
 
   useEffect(() => {
     if (firstRenderRef.current) {
@@ -112,6 +150,52 @@ export const ServicesPageContent = () => {
     gridAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [currentPage]);
 
+
+  useEffect(() => {
+    const handlePointerDown = (event: MouseEvent) => {
+      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target as Node)) {
+        setIsSortMenuOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsSortMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
+
+  useEffect(() => {
+    const nextSort = searchParams.get('sort');
+
+    if (nextSort && sortChoices.some((choice) => choice.value === nextSort)) {
+      setSelectedSort(nextSort as ServiceSort);
+      return;
+    }
+
+    setSelectedSort('RECENT');
+  }, [searchParams]);
+
+  const toggleArrayValue = <T,>(value: T, current: T[], setter: (next: T[]) => void) => {
+    setter(current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
+  };
+
+  const resetFilters = () => {
+    setSearchTerm('');
+    setSelectedLocations([]);
+    setSelectedServiceTypes([]);
+    setSelectedServiceOptions([]);
+    setSelectedPriceRange('ANY');
+  };
+
   const goToPreviousPage = () => {
     setCurrentPage((prev) => Math.max(prev - 1, 1));
   };
@@ -119,6 +203,24 @@ export const ServicesPageContent = () => {
   const goToNextPage = () => {
     setCurrentPage((prev) => Math.min(prev + 1, pageInfo.totalPages));
   };
+
+  const updateSort = (nextSort: ServiceSort) => {
+    setSelectedSort(nextSort);
+    setIsSortMenuOpen(false);
+
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (nextSort === 'RECENT') {
+      params.delete('sort');
+    } else {
+      params.set('sort', nextSort);
+    }
+
+    const nextQuery = params.toString();
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+  };
+
+  const currentSortLabel = sortChoices.find((choice) => choice.value === selectedSort)?.label ?? 'New';
 
   return (
     <main className={styles.page}>
@@ -136,78 +238,252 @@ export const ServicesPageContent = () => {
       <section className={styles.serviceSection}>
         <div ref={gridAnchorRef} className={styles.gridAnchor} aria-hidden="true" />
 
-        <div className={styles.serviceGrid}>
-          {visibleServices.map((service) => (
-            <article key={service.slug} className={styles.serviceCard}>
-              <div className={styles.serviceImageWrap}>
-                <Image
-                  src={service.image}
-                  alt={service.title}
-                  width={560}
-                  height={420}
-                  className={styles.serviceImage}
+        <div className={styles.layoutGrid}>
+          <aside className={styles.filterPanel}>
+            <div className={styles.filterHeader}>
+              <div>
+                <p className={styles.filterEyebrow}>Filter Services</p>
+                <h2>Find Your Service</h2>
+              </div>
+            </div>
+
+            <div className={styles.searchRow}>
+              <label className={styles.searchBox}>
+                <MagnifyingGlass size={24} weight="bold" className={styles.searchIcon} />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="What service are you looking for?"
+                  aria-label="Search services"
                 />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchTerm('')}
+                    className={styles.clearButton}
+                    aria-label="Clear search"
+                  >
+                    <X size={18} weight="bold" />
+                  </button>
+                )}
+              </label>
+
+              <button type="button" onClick={resetFilters} className={styles.resetButton} aria-label="Reset filters">
+                <ArrowsClockwise size={28} weight="bold" />
+              </button>
+            </div>
+
+            <div className={`${styles.filterGroup} ${styles.expandableFilterGroup}`}>
+              <div className={styles.expandableHeader}>
+                <h3>Location</h3>
               </div>
-
-              <div className={styles.serviceBody}>
-                <span className={styles.categoryPill}>{service.category}</span>
-                <h2>
-                  <Link prefetch={false} href={`/services/${service.slug}`}>
-                    {service.title}
-                  </Link>
-                </h2>
-                <p>{service.description}</p>
-                <Link prefetch={false} href={`/services/${service.slug}`} className={styles.inlineLink}>
-                  Read more
-                  <span aria-hidden="true">→</span>
-                </Link>
+              <div className={`${styles.checkboxList} ${styles.locationList}`}>
+                {locationOptions.map((location) => {
+                  const checked = selectedLocations.includes(location);
+                  return (
+                    <label key={location} className={styles.checkOption}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleArrayValue(location, selectedLocations, setSelectedLocations)}
+                      />
+                      <span>{location}</span>
+                    </label>
+                  );
+                })}
               </div>
-            </article>
-          ))}
-        </div>
+            </div>
 
-        <div className={styles.paginationWrap}>
-          <p className={styles.paginationSummary}>
-            Showing {pageInfo.startItem}-{pageInfo.endItem} of {pageInfo.totalItems} services
-          </p>
+            <div className={styles.filterGroup}>
+              <h3>Service Type</h3>
+              <div className={styles.checkboxList}>
+                {serviceTypeOptions.map((serviceType) => {
+                  const checked = selectedServiceTypes.includes(serviceType);
+                  return (
+                    <label key={serviceType} className={styles.checkOption}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() =>
+                          toggleArrayValue(serviceType, selectedServiceTypes, setSelectedServiceTypes)
+                        }
+                      />
+                      <span>{serviceType}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
 
-          <div className={styles.pagination} aria-label="Services pagination">
-            <button
-              type="button"
-              onClick={goToPreviousPage}
-              disabled={!pageInfo.hasPreviousPage}
-              className={styles.pageNavButton}
-            >
-              <CaretLeft size={18} weight="bold" />
-              <span>Prev</span>
-            </button>
+            <div className={styles.filterGroup}>
+              <h3>Service Options</h3>
+              <div className={styles.checkboxList}>
+                {serviceOptionChoices.map((option) => {
+                  const checked = selectedServiceOptions.includes(option);
+                  return (
+                    <label key={option} className={styles.checkOption}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() =>
+                          toggleArrayValue(option, selectedServiceOptions, setSelectedServiceOptions)
+                        }
+                      />
+                      <span>{option}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
 
-            {Array.from({ length: pageInfo.totalPages }, (_, index) => {
-              const pageNumber = index + 1;
-              const active = pageInfo.currentPage === pageNumber;
+            <div className={styles.filterGroup}>
+              <h3>Price Range</h3>
+              <div className={styles.priceRangeGrid}>
+                {priceRangeOptions.map((option) => {
+                  const active = selectedPriceRange === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setSelectedPriceRange(option.value)}
+                      className={`${styles.priceButton} ${active ? styles.priceButtonActive : ''}`}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </aside>
 
-              return (
+          <div className={styles.resultsColumn}>
+            <div className={styles.resultsToolbar}>
+              <div className={styles.sortControl} ref={sortMenuRef}>
+                <span className={styles.sortLabel}>Sort by</span>
                 <button
-                  key={pageNumber}
                   type="button"
-                  onClick={() => setCurrentPage(pageNumber)}
-                  className={`${styles.pageButton} ${active ? styles.pageButtonActive : ''}`}
-                  aria-current={active ? 'page' : undefined}
+                  className={styles.sortButton}
+                  aria-haspopup="menu"
+                  aria-expanded={isSortMenuOpen}
+                  onClick={() => setIsSortMenuOpen((prev) => !prev)}
                 >
-                  {pageNumber}
+                  <span>{currentSortLabel}</span>
+                  <CaretDown
+                    size={20}
+                    weight="bold"
+                    className={`${styles.sortCaret} ${isSortMenuOpen ? styles.sortCaretOpen : ''}`}
+                  />
                 </button>
-              );
-            })}
 
-            <button
-              type="button"
-              onClick={goToNextPage}
-              disabled={!pageInfo.hasNextPage}
-              className={styles.pageNavButton}
-            >
-              <span>Next</span>
-              <CaretRight size={18} weight="bold" />
-            </button>
+                {isSortMenuOpen && (
+                  <div className={styles.sortMenu} role="menu" aria-label="Sort services">
+                    {sortChoices.map((choice) => {
+                      const active = selectedSort === choice.value;
+
+                      return (
+                        <button
+                          key={choice.value}
+                          type="button"
+                          role="menuitemradio"
+                          aria-checked={active}
+                          className={`${styles.sortOption} ${active ? styles.sortOptionActive : ''}`}
+                          onClick={() => updateSort(choice.value)}
+                        >
+                          <span>{choice.label}</span>
+                          {active && <Check size={18} weight="bold" className={styles.sortCheck} />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className={styles.serviceGrid}>
+              {visibleServices.map((service) => (
+                <article key={service.slug} className={styles.serviceCard}>
+                  <div className={styles.serviceImageWrap}>
+                    <Image
+                      src={service.image}
+                      alt={service.title}
+                      width={560}
+                      height={420}
+                      className={styles.serviceImage}
+                    />
+                  </div>
+
+                  <div className={styles.serviceBody}>
+                    <span className={styles.categoryPill}>{service.category}</span>
+                    <h2>
+                      <Link prefetch={false} href={`/services/${service.slug}`}>
+                        {service.title}
+                      </Link>
+                    </h2>
+                    <p>{service.description}</p>
+                    <div className={styles.serviceMeta}>
+                      <span>{service.priceLabel}</span>
+                      <span>{service.locations.join(' · ')}</span>
+                    </div>
+                    <Link prefetch={false} href={`/services/${service.slug}`} className={styles.inlineLink}>
+                      Read more
+                      <span aria-hidden="true">→</span>
+                    </Link>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            {pageInfo.totalItems === 0 && (
+              <div className={styles.emptyState}>
+                <h3>No services match your filters</h3>
+                <p>Try clearing a few filters or searching with a broader keyword.</p>
+                <button type="button" onClick={resetFilters} className={styles.emptyAction}>
+                  Reset filters
+                </button>
+              </div>
+            )}
+
+            <div className={styles.paginationWrap}>
+              <div className={styles.pagination} aria-label="Services pagination">
+                <button
+                  type="button"
+                  onClick={goToPreviousPage}
+                  disabled={!pageInfo.hasPreviousPage}
+                  className={styles.pageNavButton}
+                >
+                  <CaretLeft size={18} weight="bold" />
+                  <span>Prev</span>
+                </button>
+
+                {Array.from({ length: pageInfo.totalPages }, (_, index) => {
+                  const pageNumber = index + 1;
+                  const active = pageInfo.currentPage === pageNumber;
+
+                  return (
+                    <button
+                      key={pageNumber}
+                      type="button"
+                      onClick={() => setCurrentPage(pageNumber)}
+                      className={`${styles.pageButton} ${active ? styles.pageButtonActive : ''}`}
+                      aria-current={active ? 'page' : undefined}
+                    >
+                      {pageNumber}
+                    </button>
+                  );
+                })}
+
+                <button
+                  type="button"
+                  onClick={goToNextPage}
+                  disabled={!pageInfo.hasNextPage}
+                  className={styles.pageNavButton}
+                >
+                  <span>Next</span>
+                  <CaretRight size={18} weight="bold" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
