@@ -3,7 +3,18 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { ArrowsClockwise, CaretDown, CaretLeft, CaretRight, Check, MagnifyingGlass, X } from 'phosphor-react';
+import {
+  ArrowsClockwise,
+  CaretDown,
+  CaretLeft,
+  CaretRight,
+  ChatCircleText,
+  Check,
+  Eye,
+  HeartStraight,
+  MagnifyingGlass,
+  X,
+} from 'phosphor-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   locationOptions,
@@ -15,9 +26,14 @@ import {
   type ServiceOption,
   type ServicePriceBand,
 } from './services-data';
+import { getLikedServices, getViewedServices, recordServiceLike, recordServiceView } from './service-interactions';
 import styles from './services-page.module.scss';
 
 const ITEMS_PER_PAGE = 6;
+const compactNumberFormatter = new Intl.NumberFormat('en', {
+  notation: 'compact',
+  maximumFractionDigits: 1,
+});
 
 const sortChoices = [
   { value: 'RECENT', label: 'New' },
@@ -34,6 +50,8 @@ const priceBandRank: Record<ServicePriceBand, number> = {
   ABOVE_500K: 4,
 };
 
+const formatCompactNumber = (value: number) => compactNumberFormatter.format(value);
+
 export const ServicesPageContent = () => {
   const router = useRouter();
   const pathname = usePathname();
@@ -47,18 +65,28 @@ export const ServicesPageContent = () => {
   const [selectedSort, setSelectedSort] = useState<ServiceSort>('RECENT');
   const [currentPage, setCurrentPage] = useState(1);
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
+  const [activeCommentsSlug, setActiveCommentsSlug] = useState<string | null>(null);
+  const [viewedServices, setViewedServices] = useState<Record<string, true>>({});
+  const [likedServices, setLikedServices] = useState<Record<string, true>>({});
 
   const gridAnchorRef = useRef<HTMLDivElement | null>(null);
   const sortMenuRef = useRef<HTMLDivElement | null>(null);
   const firstRenderRef = useRef(true);
 
+  useEffect(() => {
+    setViewedServices(getViewedServices());
+    setLikedServices(getLikedServices());
+  }, []);
+
   const filteredServices = useMemo(() => {
     const matchedServices = serviceItems.filter((service) => {
+      const query = searchTerm.toLowerCase();
       const matchesSearch =
         searchTerm.trim().length === 0 ||
-        service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        service.category.toLowerCase().includes(searchTerm.toLowerCase());
+        service.title.toLowerCase().includes(query) ||
+        service.description.toLowerCase().includes(query) ||
+        service.category.toLowerCase().includes(query) ||
+        service.agentName.toLowerCase().includes(query);
 
       const matchesLocation =
         selectedLocations.length === 0 || selectedLocations.some((location) => service.locations.includes(location));
@@ -133,6 +161,7 @@ export const ServicesPageContent = () => {
 
   useEffect(() => {
     setCurrentPage(1);
+    setActiveCommentsSlug(null);
   }, [searchTerm, selectedLocations, selectedServiceTypes, selectedServiceOptions, selectedPriceRange, selectedSort]);
 
   useEffect(() => {
@@ -150,7 +179,6 @@ export const ServicesPageContent = () => {
     gridAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [currentPage]);
 
-
   useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
       if (sortMenuRef.current && !sortMenuRef.current.contains(event.target as Node)) {
@@ -161,6 +189,7 @@ export const ServicesPageContent = () => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsSortMenuOpen(false);
+        setActiveCommentsSlug(null);
       }
     };
 
@@ -218,6 +247,22 @@ export const ServicesPageContent = () => {
 
     const nextQuery = params.toString();
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+  };
+
+  const handleOpenService = (slug: string) => {
+    if (!recordServiceView(slug)) {
+      return;
+    }
+
+    setViewedServices((current) => ({ ...current, [slug]: true }));
+  };
+
+  const handleLikeService = (slug: string) => {
+    if (!recordServiceLike(slug)) {
+      return;
+    }
+
+    setLikedServices((current) => ({ ...current, [slug]: true }));
   };
 
   const currentSortLabel = sortChoices.find((choice) => choice.value === selectedSort)?.label ?? 'New';
@@ -305,9 +350,7 @@ export const ServicesPageContent = () => {
                       <input
                         type="checkbox"
                         checked={checked}
-                        onChange={() =>
-                          toggleArrayValue(serviceType, selectedServiceTypes, setSelectedServiceTypes)
-                        }
+                        onChange={() => toggleArrayValue(serviceType, selectedServiceTypes, setSelectedServiceTypes)}
                       />
                       <span>{serviceType}</span>
                     </label>
@@ -326,9 +369,7 @@ export const ServicesPageContent = () => {
                       <input
                         type="checkbox"
                         checked={checked}
-                        onChange={() =>
-                          toggleArrayValue(option, selectedServiceOptions, setSelectedServiceOptions)
-                        }
+                        onChange={() => toggleArrayValue(option, selectedServiceOptions, setSelectedServiceOptions)}
                       />
                       <span>{option}</span>
                     </label>
@@ -401,37 +442,102 @@ export const ServicesPageContent = () => {
             </div>
 
             <div className={styles.serviceGrid}>
-              {visibleServices.map((service) => (
-                <article key={service.slug} className={styles.serviceCard}>
-                  <div className={styles.serviceImageWrap}>
-                    <Image
-                      src={service.image}
-                      alt={service.title}
-                      width={560}
-                      height={420}
-                      className={styles.serviceImage}
-                    />
-                  </div>
+              {visibleServices.map((service) => {
+                const viewed = Boolean(viewedServices[service.slug]);
+                const liked = Boolean(likedServices[service.slug]);
+                const commentsOpen = activeCommentsSlug === service.slug;
+                const totalViews = service.baseViews + (viewed ? 1 : 0);
+                const totalLikes = service.baseLikes + (liked ? 1 : 0);
 
-                  <div className={styles.serviceBody}>
-                    <span className={styles.categoryPill}>{service.category}</span>
-                    <h2>
-                      <Link prefetch={false} href={`/services/${service.slug}`}>
-                        {service.title}
+                return (
+                  <article key={service.slug} className={styles.serviceCard}>
+                    <div className={styles.serviceImageWrap}>
+                      <Link
+                        prefetch={false}
+                        href={`/services/${service.slug}`}
+                        className={styles.mediaLink}
+                        onClick={() => handleOpenService(service.slug)}
+                      >
+                        <Image
+                          src={service.image}
+                          alt={service.title}
+                          width={560}
+                          height={420}
+                          className={styles.serviceImage}
+                        />
                       </Link>
-                    </h2>
-                    <p>{service.description}</p>
-                    <div className={styles.serviceMeta}>
-                      <span>{service.priceLabel}</span>
-                      <span>{service.locations.join(' · ')}</span>
                     </div>
-                    <Link prefetch={false} href={`/services/${service.slug}`} className={styles.inlineLink}>
-                      Read more
-                      <span aria-hidden="true">→</span>
-                    </Link>
-                  </div>
-                </article>
-              ))}
+
+                    <div className={styles.serviceBody}>
+                      <span className={styles.categoryPill}>{service.category}</span>
+                      <h2>
+                        <Link prefetch={false} href={`/services/${service.slug}`} onClick={() => handleOpenService(service.slug)}>
+                          {service.title}
+                        </Link>
+                      </h2>
+                      <p>{service.description}</p>
+                      <div className={styles.serviceMeta}>
+                        <span>{service.priceLabel}</span>
+                        <span>{service.locations.join(' · ')}</span>
+                      </div>
+
+                      <div className={styles.serviceEngagement}>
+                        <span className={styles.agentName}>{service.agentName}</span>
+
+                        <div className={styles.engagementActions}>
+                          <span className={styles.statItem} title="Unique service views">
+                            <Eye size={22} weight="regular" />
+                            <span>{formatCompactNumber(totalViews)}</span>
+                          </span>
+
+                          <button
+                            type="button"
+                            className={`${styles.statButton} ${liked ? styles.statButtonLiked : ''}`}
+                            aria-pressed={liked}
+                            aria-label={`Like ${service.title}`}
+                            onClick={() => handleLikeService(service.slug)}
+                          >
+                            <HeartStraight size={22} weight={liked ? 'fill' : 'regular'} />
+                            <span>{formatCompactNumber(totalLikes)}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            className={`${styles.statButton} ${commentsOpen ? styles.statButtonActive : ''}`}
+                            aria-expanded={commentsOpen}
+                            aria-controls={`service-comments-${service.slug}`}
+                            aria-label={`Show comments for ${service.title}`}
+                            onClick={() => setActiveCommentsSlug((current) => (current === service.slug ? null : service.slug))}
+                          >
+                            <ChatCircleText size={22} weight="regular" />
+                            <span>{formatCompactNumber(service.comments.length)}</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {commentsOpen && (
+                        <div id={`service-comments-${service.slug}`} className={styles.commentsPanel}>
+                          <div className={styles.commentsHeader}>
+                            <h3>Recent comments</h3>
+                            <span>{service.comments.length} total</span>
+                          </div>
+                          <div className={styles.commentsList}>
+                            {service.comments.map((comment) => (
+                              <article key={comment.id} className={styles.commentItem}>
+                                <div className={styles.commentMeta}>
+                                  <strong>{comment.author}</strong>
+                                  <span>{comment.date}</span>
+                                </div>
+                                <p>{comment.message}</p>
+                              </article>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
 
             {pageInfo.totalItems === 0 && (

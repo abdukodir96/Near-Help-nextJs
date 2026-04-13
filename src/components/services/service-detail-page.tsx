@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { serviceItems } from './services-data';
+import { ServiceViewTracker } from './service-view-tracker';
 import styles from './service-detail-page.module.scss';
 
 export const ServiceDetailPageContent = ({ slug }: { slug: string }) => {
@@ -13,6 +14,8 @@ export const ServiceDetailPageContent = ({ slug }: { slug: string }) => {
 
   return (
     <main className={styles.page}>
+      <ServiceViewTracker slug={service.slug} />
+
       <section className={styles.hero}>
         <div className={styles.heroInner}>
           <p className={styles.eyebrow}>Services / Detail</p>

@@ -247,7 +247,6 @@
   }
 }
 
-
 .locationList {
   position: relative;
   max-height: 234px;
@@ -451,6 +450,10 @@
   border-radius: 22px;
 }
 
+.mediaLink {
+  display: block;
+}
+
 .serviceImage {
   width: 100%;
   height: auto;
@@ -520,6 +523,140 @@
   color: #6b7280;
   font-size: 0.92rem;
   font-weight: 700;
+}
+
+.serviceEngagement {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid rgba(37, 48, 65, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.agentName {
+  color: #7b8494;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.engagementActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.statItem,
+.statButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #6b7280;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+
+  span:last-child {
+    min-width: 24px;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.statButton {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    color: #0052da;
+    transform: translateY(-1px);
+  }
+}
+
+.statButtonLiked {
+  color: #e04868;
+}
+
+.statButtonActive {
+  color: #0052da;
+}
+
+.commentsPanel {
+  margin-top: 18px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(0, 82, 218, 0.1);
+  padding: 18px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.commentsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+
+  h3 {
+    margin: 0;
+    color: #253041;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  span {
+    color: #7b8494;
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
+}
+
+.commentsList {
+  display: grid;
+  gap: 12px;
+}
+
+.commentItem {
+  border-radius: 18px;
+  background: #fff;
+  padding: 14px 16px;
+  box-shadow: 0 10px 24px rgba(37, 48, 65, 0.05);
+
+  p {
+    margin: 8px 0 0;
+    color: #5f6778;
+    font-size: 0.95rem;
+    line-height: 1.75;
+  }
+}
+
+.commentMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  strong {
+    color: #253041;
+    font-size: 0.95rem;
+    font-weight: 800;
+  }
+
+  span {
+    color: #7b8494;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
 }
 
 .inlineLink {
@@ -700,5 +837,19 @@
 
   .priceRangeGrid {
     grid-template-columns: 1fr;
+  }
+
+  .serviceEngagement {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .engagementActions {
+    justify-content: flex-start;
+  }
+
+  .commentMeta {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
