@@ -1,5 +1,5 @@
-import { PagePlaceholder } from '@/components/shared/page-placeholder';
+import { CommunityPageContent } from '@/components/community/community-page';
 
 export default function CommunityPage() {
-  return <PagePlaceholder eyebrow="Community" title="Community articles page" description="This page will connect to getArticles, category tabs, likes and comment entry points." />;
+  return <CommunityPageContent />;
 }
