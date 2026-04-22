@@ -1,0 +1,167 @@
+.page {
+  background: #fff;
+}
+
+.profileSection {
+  padding: 72px 24px 28px;
+}
+
+.profileInner,
+.copyInner {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.profileGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+  gap: 56px;
+  align-items: start;
+}
+
+.portraitPanel {
+  min-width: 0;
+}
+
+.portraitFrame {
+  background: #fbfbfc;
+  border: 1px solid #f1f3f7;
+  padding: 28px;
+}
+
+.portraitWrap {
+  position: relative;
+  overflow: hidden;
+  background: #f3f5f8;
+  aspect-ratio: 0.88;
+}
+
+.portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.infoPanel {
+  background: #fbfbfc;
+  border: 1px solid #f1f3f7;
+  padding: 28px 30px 34px;
+}
+
+.nameBand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 88px;
+  margin: 12px 0 34px;
+  padding: 16px 24px;
+  background: #f1f3f5;
+  text-align: center;
+
+  h1 {
+    margin: 0;
+    color: #253041;
+    font-size: clamp(2rem, 3vw, 2.95rem);
+    line-height: 1.1;
+    font-weight: 900;
+  }
+}
+
+.infoList {
+  display: grid;
+  gap: 26px;
+  margin: 0;
+}
+
+.infoItem {
+  display: grid;
+  grid-template-columns: 158px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+
+  dt {
+    margin: 0;
+    color: #253041;
+    font-size: 1.08rem;
+    line-height: 1.5;
+    font-weight: 800;
+  }
+
+  dd {
+    margin: 0;
+    color: #8b8f97;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    font-weight: 700;
+  }
+}
+
+.copySection {
+  padding: 24px 24px 108px;
+}
+
+.copyInner {
+  h2 {
+    margin: 0;
+    color: #253041;
+    font-size: clamp(2.4rem, 4.2vw, 3.8rem);
+    line-height: 1.1;
+    font-weight: 900;
+  }
+
+  p {
+    margin: 34px 0 0;
+    color: #5d6573;
+    font-size: 1.18rem;
+    line-height: 2;
+  }
+}
+
+@media (max-width: 1100px) {
+  .profileGrid {
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+
+  .infoPanel {
+    padding: 24px 24px 28px;
+  }
+
+  .nameBand {
+    min-height: 78px;
+    margin-bottom: 28px;
+  }
+}
+
+@media (max-width: 767px) {
+  .profileSection {
+    padding: 48px 16px 20px;
+  }
+
+  .copySection {
+    padding: 20px 16px 80px;
+  }
+
+  .portraitFrame,
+  .infoPanel {
+    padding: 18px;
+  }
+
+  .nameBand {
+    min-height: 68px;
+    padding: 12px 16px;
+  }
+
+  .infoItem {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .copyInner {
+    p {
+      margin-top: 24px;
+      font-size: 1.02rem;
+      line-height: 1.9;
+    }
+  }
+}

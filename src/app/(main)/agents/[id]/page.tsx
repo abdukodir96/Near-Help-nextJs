@@ -1,5 +1,5 @@
-import { PagePlaceholder } from '@/components/shared/page-placeholder';
+import { AgentDetailPageContent } from '@/components/agents/agent-detail-page';
 
-export default function AgentDetailPage() {
-  return <PagePlaceholder eyebrow="Agents / Detail" title="Agent detail page" description="This screen will show agent profile, services, likes, views and messaging entry points." />;
+export default function AgentDetailPage({ params }: { params: { id: string } }) {
+  return <AgentDetailPageContent slug={params.id} />;
 }
