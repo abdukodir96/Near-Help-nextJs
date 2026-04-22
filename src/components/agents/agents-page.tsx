@@ -2,7 +2,15 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { CaretDown, Eye, HeartStraight, MagnifyingGlass, UsersThree } from 'phosphor-react';
+import {
+  CaretDown,
+  CaretLeft,
+  CaretRight,
+  Eye,
+  HeartStraight,
+  MagnifyingGlass,
+  UsersThree,
+} from 'phosphor-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { agentItems } from './agents-data';
 import styles from './agents-page.module.scss';
@@ -13,6 +21,8 @@ const sortChoices = [
   { value: 'MOST_LIKED', label: 'Most Liked' },
   { value: 'MOST_FOLLOWED', label: 'Most Followed' },
 ] as const;
+
+const AGENTS_PER_PAGE = 6;
 
 type AgentSort = (typeof sortChoices)[number]['value'];
 
@@ -27,6 +37,7 @@ export const AgentsPageContent = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSort, setSelectedSort] = useState<AgentSort>('RECENT');
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
+  const [activePage, setActivePage] = useState(0);
   const sortMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -88,6 +99,23 @@ export const AgentsPageContent = () => {
     return indexed.map(({ agent }) => agent);
   }, [searchTerm, selectedSort]);
 
+  const totalPages = Math.ceil(filteredAgents.length / AGENTS_PER_PAGE);
+
+  const visibleAgents = useMemo(() => {
+    const startIndex = activePage * AGENTS_PER_PAGE;
+    return filteredAgents.slice(startIndex, startIndex + AGENTS_PER_PAGE);
+  }, [activePage, filteredAgents]);
+
+  useEffect(() => {
+    setActivePage(0);
+  }, [searchTerm, selectedSort]);
+
+  useEffect(() => {
+    if (activePage > 0 && activePage >= totalPages) {
+      setActivePage(Math.max(totalPages - 1, 0));
+    }
+  }, [activePage, totalPages]);
+
   const currentSortLabel = sortChoices.find((choice) => choice.value === selectedSort)?.label ?? 'Recent';
 
   return (
@@ -148,45 +176,89 @@ export const AgentsPageContent = () => {
             </div>
           </div>
 
-          <div className={styles.agentGrid}>
-            {filteredAgents.map((agent) => (
-              <article key={agent.slug} className={styles.agentCard}>
-                <Link prefetch={false} href={`/agents/${agent.slug}`} className={styles.imageLink}>
-                  <div className={styles.imageWrap}>
-                    <span className={styles.jobsBadge}>{agent.completedProjects} jobs</span>
-                    <Image src={agent.image} alt={agent.name} width={320} height={400} className={styles.agentImage} />
-                  </div>
-                </Link>
-
-                <div className={styles.cardBody}>
-                  <h2>
-                    <Link prefetch={false} href={`/agents/${agent.slug}`}>
-                      {agent.name}
+          {filteredAgents.length > 0 ? (
+            <>
+              <div className={styles.agentGrid}>
+                {visibleAgents.map((agent) => (
+                  <article key={agent.slug} className={styles.agentCard}>
+                    <Link prefetch={false} href={`/agents/${agent.slug}`} className={styles.imageLink}>
+                      <div className={styles.imageWrap}>
+                        <span className={styles.jobsBadge}>{agent.completedProjects} jobs</span>
+                        <Image src={agent.image} alt={agent.name} width={320} height={400} className={styles.agentImage} />
+                      </div>
                     </Link>
-                  </h2>
-                  <p className={styles.role}>{agent.role}</p>
-                  <p className={styles.specialty}>{agent.specialty}</p>
 
-                  <div className={styles.cardMeta}>
-                    <span className={styles.metaItem}>
-                      <Eye size={18} weight="regular" />
-                      <span>{formatCompactNumber(agent.profileViews)}</span>
-                    </span>
-                    <span className={styles.metaItem}>
-                      <HeartStraight size={18} weight="regular" />
-                      <span>{formatCompactNumber(agent.likes)}</span>
-                    </span>
-                    <span className={styles.metaItem}>
-                      <UsersThree size={18} weight="regular" />
-                      <span>{formatCompactNumber(agent.followers)}</span>
-                    </span>
+                    <div className={styles.cardBody}>
+                      <h2>
+                        <Link prefetch={false} href={`/agents/${agent.slug}`}>
+                          {agent.name}
+                        </Link>
+                      </h2>
+                      <p className={styles.role}>{agent.role}</p>
+                      <p className={styles.specialty}>{agent.specialty}</p>
+
+                      <div className={styles.cardMeta}>
+                        <span className={styles.metaItem}>
+                          <Eye size={18} weight="regular" />
+                          <span>{formatCompactNumber(agent.profileViews)}</span>
+                        </span>
+                        <span className={styles.metaItem}>
+                          <HeartStraight size={18} weight="regular" />
+                          <span>{formatCompactNumber(agent.likes)}</span>
+                        </span>
+                        <span className={styles.metaItem}>
+                          <UsersThree size={18} weight="regular" />
+                          <span>{formatCompactNumber(agent.followers)}</span>
+                        </span>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+
+              {totalPages > 1 && (
+                <div className={styles.paginationBar}>
+                  <button
+                    type="button"
+                    className={styles.paginationButton}
+                    onClick={() => setActivePage((prev) => Math.max(prev - 1, 0))}
+                    disabled={activePage === 0}
+                  >
+                    <CaretLeft size={16} weight="bold" />
+                    <span>Prev</span>
+                  </button>
+
+                  <div className={styles.paginationNumbers}>
+                    {Array.from({ length: totalPages }, (_, index) => {
+                      const active = index === activePage;
+                      return (
+                        <button
+                          key={`agent-pagination-${index}`}
+                          type="button"
+                          className={`${styles.paginationNumber} ${active ? styles.paginationNumberActive : ''}`}
+                          onClick={() => setActivePage(index)}
+                          aria-label={`Go to page ${index + 1}`}
+                          aria-current={active ? 'page' : undefined}
+                        >
+                          {index + 1}
+                        </button>
+                      );
+                    })}
                   </div>
-                </div>
-              </article>
-            ))}
-          </div>
 
-          {filteredAgents.length === 0 && (
+                  <button
+                    type="button"
+                    className={styles.paginationButton}
+                    onClick={() => setActivePage((prev) => Math.min(prev + 1, totalPages - 1))}
+                    disabled={activePage === totalPages - 1}
+                  >
+                    <span>Next</span>
+                    <CaretRight size={16} weight="bold" />
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
             <div className={styles.emptyState}>
               <h3>No agents match your search</h3>
               <p>Try a broader keyword such as a name, city, or specialty.</p>
