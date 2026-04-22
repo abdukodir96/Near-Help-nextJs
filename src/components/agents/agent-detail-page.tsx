@@ -1,12 +1,141 @@
 'use client';
 
+import { gql } from '@apollo/client';
+import { useApolloClient } from '@apollo/client/react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Briefcase, Eye, HeartStraight, MapPin, Star, UsersThree } from 'phosphor-react';
+import Cookies from 'js-cookie';
+import { useCallback, useEffect, useState } from 'react';
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Briefcase,
+  Eye,
+  Heart,
+  HeartStraight,
+  MapPin,
+  UsersThree,
+} from 'phosphor-react';
 import { serviceItems } from '@/components/services/services-data';
-import type { AgentItem } from './agents-data';
+import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
+import type { AgentItem, AgentReview } from './agents-data';
 import { AgentFollowButton } from './agent-follow-button';
 import styles from './agent-detail-page.module.scss';
+
+type ReviewReply = {
+  id: string;
+  author: string;
+  date: string;
+  message: string;
+  likes: number;
+  meLiked: boolean;
+  replyTo: string;
+  avatar: string;
+  backendId?: string;
+};
+
+type ReviewThreadItem = {
+  id: string;
+  author: string;
+  date: string;
+  message: string;
+  likes: number;
+  meLiked: boolean;
+  avatar: string;
+  backendId?: string;
+  replies: ReviewReply[];
+};
+
+type BackendCommentMember = {
+  _id: string;
+  memberNick: string;
+  memberFullName?: string | null;
+  memberImage?: string | null;
+};
+
+type BackendComment = {
+  _id: string;
+  commentContent: string;
+  parentCommentId?: string | null;
+  createdAt: string;
+  commentLikes?: number | null;
+  meLiked?: boolean | null;
+  memberData?: BackendCommentMember | null;
+};
+
+type ReviewFeedback = {
+  type: 'error' | 'success';
+  text: string;
+};
+
+const GET_COMMENTS = gql`
+  query GetComments($input: CommentsInquiry!) {
+    getComments(input: $input) {
+      list {
+        _id
+        commentContent
+        createdAt
+        commentLikes
+        meLiked
+        memberData {
+          _id
+          memberNick
+          memberFullName
+          memberImage
+        }
+      }
+      metaCounter {
+        total
+      }
+    }
+  }
+`;
+
+const GET_COMMENT_THREAD = gql`
+  query GetCommentThread($input: GetCommentThreadInput!) {
+    getCommentThread(input: $input) {
+      list {
+        _id
+        parentCommentId
+        commentContent
+        createdAt
+        commentLikes
+        meLiked
+        memberData {
+          _id
+          memberNick
+          memberFullName
+          memberImage
+        }
+      }
+    }
+  }
+`;
+
+const CREATE_COMMENT = gql`
+  mutation CreateComment($input: CommentInput!) {
+    createComment(input: $input) {
+      _id
+    }
+  }
+`;
+
+const CREATE_REPLY = gql`
+  mutation CreateReply($input: CreateReplyInput!) {
+    createReply(input: $input) {
+      _id
+    }
+  }
+`;
+
+const LIKE_TARGET_COMMENT = gql`
+  mutation LikeTargetComment($input: LikeTargetCommentInput!) {
+    likeTargetComment(input: $input) {
+      likeRefId
+      myFavorite
+    }
+  }
+`;
 
 const compactNumberFormatter = new Intl.NumberFormat('en', {
   notation: 'compact',
@@ -21,12 +150,462 @@ const reviewAvatars = [
   '/theme/images/testimonial/img-5.jpg',
 ] as const;
 
+const replyAvatars = [
+  '/theme/images/team/1.jpg',
+  '/theme/images/team/2.jpg',
+  '/theme/images/team/3.jpg',
+  '/theme/images/team/4.jpg',
+] as const;
+
+const GRAPHQL_ORIGIN = (process.env.NEXT_PUBLIC_GRAPHQL_URL ?? 'http://localhost:3007/graphql').replace(/\/graphql$/, '');
+
 const formatCompactNumber = (value: number) => compactNumberFormatter.format(value);
 
+const formatRelativeShort = (value: string | Date) => {
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return 'now';
+  }
+
+  const diffMs = Date.now() - date.getTime();
+  const minute = 60 * 1000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+  const week = 7 * day;
+  const month = 30 * day;
+  const year = 365 * day;
+
+  if (diffMs < minute) return 'now';
+  if (diffMs < hour) return `${Math.max(1, Math.floor(diffMs / minute))}m`;
+  if (diffMs < day) return `${Math.max(1, Math.floor(diffMs / hour))}h`;
+  if (diffMs < week) return `${Math.max(1, Math.floor(diffMs / day))}d`;
+  if (diffMs < month) return `${Math.max(1, Math.floor(diffMs / week))}w`;
+  if (diffMs < year) return `${Math.max(1, Math.floor(diffMs / month))}mo`;
+  return `${Math.max(1, Math.floor(diffMs / year))}y`;
+};
+
+const normalizeAssetUrl = (value: string | null | undefined, fallback: string) => {
+  if (!value) return fallback;
+  if (value.startsWith('http://') || value.startsWith('https://')) return value;
+  if (value.startsWith('/uploads/')) return `${GRAPHQL_ORIGIN}${value}`;
+  return value;
+};
+
+const getCommentAuthor = (memberData?: BackendCommentMember | null) => memberData?.memberFullName || memberData?.memberNick || 'NearHelp user';
+
+const toThreadReviews = (reviews: AgentReview[]): ReviewThreadItem[] =>
+  reviews.map((review, index) => ({
+    id: review.id,
+    author: review.author,
+    date: review.date,
+    message: review.message,
+    likes: Math.max(12, 96 - index * 18),
+    meLiked: false,
+    avatar: reviewAvatars[index % reviewAvatars.length],
+    replies: [],
+  }));
+
+const mapThreadReplies = (items: BackendComment[]): ReviewReply[] => {
+  const authorById = new Map<string, string>();
+
+  items.forEach((item) => {
+    authorById.set(item._id, getCommentAuthor(item.memberData));
+  });
+
+  return items.slice(1).map((item, index) => ({
+    id: item._id,
+    backendId: item._id,
+    author: getCommentAuthor(item.memberData),
+    date: formatRelativeShort(item.createdAt),
+    message: item.commentContent,
+    likes: item.commentLikes ?? 0,
+    meLiked: Boolean(item.meLiked),
+    replyTo: item.parentCommentId ? authorById.get(item.parentCommentId) || 'user' : 'user',
+    avatar: normalizeAssetUrl(item.memberData?.memberImage, replyAvatars[index % replyAvatars.length]),
+  }));
+};
+
 export const AgentDetailPageContent = ({ agent }: { agent: AgentItem }) => {
+  const client = useApolloClient();
+  const [reviews, setReviews] = useState<ReviewThreadItem[]>(() => toThreadReviews(agent.reviews));
+  const [draftReview, setDraftReview] = useState('');
+  const [showReviewError, setShowReviewError] = useState(false);
+  const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const [replyErrors, setReplyErrors] = useState<Record<string, boolean>>({});
+  const [replyTargets, setReplyTargets] = useState<Record<string, string>>({});
+  const [replyParentIds, setReplyParentIds] = useState<Record<string, string>>({});
+  const [collapsedReplies, setCollapsedReplies] = useState<Record<string, boolean>>({});
+  const [pendingLikeIds, setPendingLikeIds] = useState<string[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [feedback, setFeedback] = useState<ReviewFeedback | null>(null);
+
+  const backendReviewEnabled = Boolean(agent.backendMemberId);
+
   const relatedServices = agent.serviceSlugs
     .map((serviceSlug) => serviceItems.find((item) => item.slug === serviceSlug))
     .filter((service): service is (typeof serviceItems)[number] => Boolean(service));
+
+  const showAuthRequired = useCallback(() => {
+    setFeedback({
+      type: 'error',
+      text: 'Login qilgan foydalanuvchi review, reply va like yubora oladi.',
+    });
+  }, []);
+
+  const loadBackendReviews = useCallback(async () => {
+    if (!agent.backendMemberId) {
+      setReviews(toThreadReviews(agent.reviews));
+      return;
+    }
+
+    setReviewsLoading(true);
+
+    try {
+      const rootResponse = await client.query<{ getComments: { list: BackendComment[] } }>({
+        query: GET_COMMENTS,
+        variables: {
+          input: {
+            page: 1,
+            limit: 20,
+            sort: 'createdAt',
+            direction: 'DESC',
+            search: {
+              commentRefId: agent.backendMemberId,
+            },
+          },
+        },
+        fetchPolicy: 'network-only',
+      });
+
+      const rootComments = rootResponse.data?.getComments?.list ?? [];
+
+      const threadResponses = await Promise.all(
+        rootComments.map((rootComment) =>
+          client.query<{ getCommentThread: { list: BackendComment[] } }>({
+            query: GET_COMMENT_THREAD,
+            variables: {
+              input: {
+                rootCommentId: rootComment._id,
+                page: 1,
+                limit: 50,
+                sort: 'createdAt',
+                direction: 'ASC',
+              },
+            },
+            fetchPolicy: 'network-only',
+          }),
+        ),
+      );
+
+      const nextReviews: ReviewThreadItem[] = rootComments.map((rootComment, index) => {
+        const threadItems = threadResponses[index]?.data?.getCommentThread?.list ?? [rootComment];
+
+        return {
+          id: rootComment._id,
+          backendId: rootComment._id,
+          author: getCommentAuthor(rootComment.memberData),
+          date: formatRelativeShort(rootComment.createdAt),
+          message: rootComment.commentContent,
+          likes: rootComment.commentLikes ?? 0,
+          meLiked: Boolean(rootComment.meLiked),
+          avatar: normalizeAssetUrl(rootComment.memberData?.memberImage, reviewAvatars[index % reviewAvatars.length]),
+          replies: mapThreadReplies(threadItems),
+        };
+      });
+
+      setReviews(nextReviews);
+      setFeedback(null);
+    } catch (error) {
+      console.error('Failed to load agent reviews from backend:', error);
+      setReviews(toThreadReviews(agent.reviews));
+      setFeedback({
+        type: 'error',
+        text: 'Live reviewlarni yuklab bo‘lmadi. Hozircha lokal ko‘rinish ishlatilmoqda.',
+      });
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, [agent.backendMemberId, agent.reviews, client]);
+
+  useEffect(() => {
+    void loadBackendReviews();
+  }, [loadBackendReviews]);
+
+  const handleReviewSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const normalizedReview = draftReview.trim();
+
+    if (!normalizedReview) {
+      setShowReviewError(true);
+      return;
+    }
+
+    if (backendReviewEnabled && agent.backendMemberId) {
+      if (!Boolean(Cookies.get(ACCESS_TOKEN_KEY))) {
+        showAuthRequired();
+        return;
+      }
+
+      try {
+        await client.mutate({
+          mutation: CREATE_COMMENT,
+          variables: {
+            input: {
+              commentGroup: 'MEMBER',
+              commentContent: normalizedReview,
+              commentRefId: agent.backendMemberId,
+            },
+          },
+        });
+
+        setDraftReview('');
+        setShowReviewError(false);
+        setFeedback({ type: 'success', text: 'Review muvaffaqiyatli yuborildi.' });
+        await loadBackendReviews();
+        return;
+      } catch (error) {
+        console.error('Failed to create review:', error);
+        setFeedback({ type: 'error', text: 'Review yuborilmadi. Login holati yoki backend javobini tekshiring.' });
+        return;
+      }
+    }
+
+    const nextReview: ReviewThreadItem = {
+      id: `${agent.slug}-review-${Date.now()}`,
+      author: 'you_nearhelp',
+      date: 'now',
+      message: normalizedReview,
+      likes: 0,
+      meLiked: false,
+      avatar: reviewAvatars[0],
+      replies: [],
+    };
+
+    setReviews((currentReviews) => [nextReview, ...currentReviews]);
+    setDraftReview('');
+    setShowReviewError(false);
+    setFeedback({ type: 'success', text: 'Review lokal holatda qo‘shildi.' });
+  };
+
+  const openReplyForm = (reviewId: string, targetAuthor: string, parentCommentId?: string) => {
+    setActiveReplyId(reviewId);
+    setReplyTargets((currentTargets) => ({ ...currentTargets, [reviewId]: targetAuthor }));
+    setReplyParentIds((currentParents) => ({ ...currentParents, [reviewId]: parentCommentId ?? reviewId }));
+    setReplyErrors((currentErrors) => ({ ...currentErrors, [reviewId]: false }));
+    setCollapsedReplies((currentState) => ({ ...currentState, [reviewId]: false }));
+  };
+
+  const handleReplySubmit = async (event: React.FormEvent<HTMLFormElement>, reviewId: string) => {
+    event.preventDefault();
+
+    const normalizedReply = (replyDrafts[reviewId] ?? '').trim();
+    const replyTarget = replyTargets[reviewId];
+
+    if (!normalizedReply) {
+      setReplyErrors((currentErrors) => ({ ...currentErrors, [reviewId]: true }));
+      return;
+    }
+
+    if (backendReviewEnabled && reviews.find((review) => review.id === reviewId)?.backendId) {
+      if (!Boolean(Cookies.get(ACCESS_TOKEN_KEY))) {
+        showAuthRequired();
+        return;
+      }
+
+      try {
+        await client.mutate({
+          mutation: CREATE_REPLY,
+          variables: {
+            input: {
+              parentCommentId: replyParentIds[reviewId] ?? reviewId,
+              commentContent: normalizedReply,
+            },
+          },
+        });
+
+        setReplyDrafts((currentDrafts) => ({ ...currentDrafts, [reviewId]: '' }));
+        setReplyErrors((currentErrors) => ({ ...currentErrors, [reviewId]: false }));
+        setActiveReplyId(null);
+        setFeedback({ type: 'success', text: 'Reply yuborildi.' });
+        await loadBackendReviews();
+        return;
+      } catch (error) {
+        console.error('Failed to create reply:', error);
+        setFeedback({ type: 'error', text: 'Reply yuborilmadi. Login holati yoki backend javobini tekshiring.' });
+        return;
+      }
+    }
+
+    const nextReply: ReviewReply = {
+      id: `${reviewId}-reply-${Date.now()}`,
+      author: 'nearhelp_team',
+      date: 'now',
+      message: normalizedReply,
+      likes: 0,
+      meLiked: false,
+      replyTo: replyTarget || 'user',
+      avatar: replyAvatars[0],
+    };
+
+    setReviews((currentReviews) =>
+      currentReviews.map((review) =>
+        review.id === reviewId ? { ...review, replies: [...review.replies, nextReply] } : review,
+      ),
+    );
+    setReplyDrafts((currentDrafts) => ({ ...currentDrafts, [reviewId]: '' }));
+    setReplyErrors((currentErrors) => ({ ...currentErrors, [reviewId]: false }));
+    setActiveReplyId(null);
+    setFeedback({ type: 'success', text: 'Reply lokal holatda qo‘shildi.' });
+  };
+
+  const toggleReviewLikeOptimistic = (reviewId: string) => {
+    let nextLiked = false;
+
+    setReviews((currentReviews) =>
+      currentReviews.map((review) => {
+        if (review.id !== reviewId) return review;
+        nextLiked = !review.meLiked;
+        return {
+          ...review,
+          meLiked: !review.meLiked,
+          likes: review.likes + (review.meLiked ? -1 : 1),
+        };
+      }),
+    );
+
+    return nextLiked;
+  };
+
+  const revertReviewLike = (reviewId: string) => {
+    setReviews((currentReviews) =>
+      currentReviews.map((review) =>
+        review.id === reviewId
+          ? {
+              ...review,
+              meLiked: !review.meLiked,
+              likes: review.likes + (review.meLiked ? -1 : 1),
+            }
+          : review,
+      ),
+    );
+  };
+
+  const toggleReplyLikeOptimistic = (reviewId: string, replyId: string) => {
+    let nextLiked = false;
+
+    setReviews((currentReviews) =>
+      currentReviews.map((review) => {
+        if (review.id !== reviewId) return review;
+        return {
+          ...review,
+          replies: review.replies.map((reply) => {
+            if (reply.id !== replyId) return reply;
+            nextLiked = !reply.meLiked;
+            return {
+              ...reply,
+              meLiked: !reply.meLiked,
+              likes: reply.likes + (reply.meLiked ? -1 : 1),
+            };
+          }),
+        };
+      }),
+    );
+
+    return nextLiked;
+  };
+
+  const revertReplyLike = (reviewId: string, replyId: string) => {
+    setReviews((currentReviews) =>
+      currentReviews.map((review) => {
+        if (review.id !== reviewId) return review;
+        return {
+          ...review,
+          replies: review.replies.map((reply) =>
+            reply.id === replyId
+              ? {
+                  ...reply,
+                  meLiked: !reply.meLiked,
+                  likes: reply.likes + (reply.meLiked ? -1 : 1),
+                }
+              : reply,
+          ),
+        };
+      }),
+    );
+  };
+
+  const handleReviewLike = async (reviewId: string, backendCommentId?: string) => {
+    if (pendingLikeIds.includes(reviewId)) return;
+
+    if (!backendCommentId) {
+      toggleReviewLikeOptimistic(reviewId);
+      return;
+    }
+
+    if (!Boolean(Cookies.get(ACCESS_TOKEN_KEY))) {
+      showAuthRequired();
+      return;
+    }
+
+    toggleReviewLikeOptimistic(reviewId);
+    setPendingLikeIds((currentIds) => [...currentIds, reviewId]);
+
+    try {
+      await client.mutate({
+        mutation: LIKE_TARGET_COMMENT,
+        variables: {
+          input: {
+            targetCommentId: backendCommentId,
+          },
+        },
+      });
+      setFeedback(null);
+    } catch (error) {
+      console.error('Failed to toggle review like:', error);
+      revertReviewLike(reviewId);
+      setFeedback({ type: 'error', text: 'Review like holatini yangilab bo‘lmadi.' });
+    } finally {
+      setPendingLikeIds((currentIds) => currentIds.filter((id) => id !== reviewId));
+    }
+  };
+
+  const handleReplyLike = async (reviewId: string, replyId: string, backendCommentId?: string) => {
+    if (pendingLikeIds.includes(replyId)) return;
+
+    if (!backendCommentId) {
+      toggleReplyLikeOptimistic(reviewId, replyId);
+      return;
+    }
+
+    if (!Boolean(Cookies.get(ACCESS_TOKEN_KEY))) {
+      showAuthRequired();
+      return;
+    }
+
+    toggleReplyLikeOptimistic(reviewId, replyId);
+    setPendingLikeIds((currentIds) => [...currentIds, replyId]);
+
+    try {
+      await client.mutate({
+        mutation: LIKE_TARGET_COMMENT,
+        variables: {
+          input: {
+            targetCommentId: backendCommentId,
+          },
+        },
+      });
+      setFeedback(null);
+    } catch (error) {
+      console.error('Failed to toggle reply like:', error);
+      revertReplyLike(reviewId, replyId);
+      setFeedback({ type: 'error', text: 'Reply like holatini yangilab bo‘lmadi.' });
+    } finally {
+      setPendingLikeIds((currentIds) => currentIds.filter((id) => id !== replyId));
+    }
+  };
 
   return (
     <main className={styles.page}>
@@ -36,7 +615,7 @@ export const AgentDetailPageContent = ({ agent }: { agent: AgentItem }) => {
             <div className={styles.portraitPanel}>
               <div className={styles.portraitFrame}>
                 <div className={styles.portraitWrap}>
-                  <Image src={agent.image} alt={agent.name} width={900} height={1120} className={styles.portrait} priority />
+                  <Image src={agent.image} alt={agent.name} fill sizes="(max-width: 1180px) 100vw, 48vw" className={styles.portrait} priority />
                 </div>
               </div>
             </div>
@@ -205,40 +784,182 @@ export const AgentDetailPageContent = ({ agent }: { agent: AgentItem }) => {
           <div className={styles.sectionHeader}>
             <p className={styles.eyebrow}>Client Reviews</p>
             <h2>What customers say</h2>
+            {backendReviewEnabled ? (
+              <p className={styles.liveReviewsNote}>This section is synced with backend comments, replies, and likes.</p>
+            ) : (
+              <p className={styles.liveReviewsNote}>This agent currently uses local showcase reviews until backend member mapping is attached.</p>
+            )}
+            {reviewsLoading ? <p className={styles.reviewState}>Live reviewlar yuklanmoqda...</p> : null}
+            {feedback ? (
+              <p className={`${styles.reviewFeedback} ${feedback.type === 'error' ? styles.reviewFeedbackError : styles.reviewFeedbackSuccess}`}>
+                {feedback.text}
+              </p>
+            ) : null}
           </div>
 
           <div className={styles.reviewList}>
-            {agent.reviews.map((review, index) => (
-              <article key={review.id} className={styles.reviewCard}>
-                <div className={styles.reviewTop}>
-                  <div className={styles.reviewStars}>
-                    {Array.from({ length: review.rating }, (_, starIndex) => (
-                      <Star key={`${review.id}-star-${starIndex}`} size={16} weight="fill" />
-                    ))}
-                  </div>
-                </div>
+            {reviews.map((review) => {
+              const areRepliesCollapsed = collapsedReplies[review.id] ?? false;
+              const reviewLikePending = pendingLikeIds.includes(review.id);
 
-                <p className={styles.reviewMessage}>{review.message}</p>
-
-                <div className={styles.reviewMeta}>
-                  <div className={styles.reviewAuthor}>
-                    <div className={styles.reviewAvatarWrap}>
-                      <Image
-                        src={reviewAvatars[index % reviewAvatars.length]}
-                        alt={review.author}
-                        width={72}
-                        height={72}
-                        className={styles.reviewAvatar}
-                      />
+              return (
+                <article key={review.id} className={styles.reviewThread}>
+                  <div className={styles.commentRow}>
+                    <div className={styles.commentAvatarWrap}>
+                      <Image src={review.avatar} alt={review.author} fill sizes="72px" className={styles.commentAvatar} unoptimized />
                     </div>
-                    <div className={styles.reviewIdentity}>
-                      <strong>{review.author}</strong>
-                      <span>{review.date}</span>
+
+                    <div className={styles.commentBody}>
+                      <div className={styles.commentTop}>
+                        <p className={styles.commentText}>
+                          <strong>{review.author}</strong> {review.message}
+                        </p>
+                        <button
+                          type="button"
+                          className={`${styles.commentLikeButton} ${review.meLiked ? styles.commentLikeButtonLiked : ''}`}
+                          aria-label="Like review"
+                          onClick={() => handleReviewLike(review.id, review.backendId)}
+                          disabled={reviewLikePending}
+                        >
+                          <Heart size={24} weight={review.meLiked ? 'fill' : 'regular'} />
+                        </button>
+                      </div>
+
+                      <div className={styles.commentMeta}>
+                        <span>{review.date}</span>
+                        <span>{formatCompactNumber(review.likes)} likes</span>
+                        <button type="button" className={styles.inlineReplyButton} onClick={() => openReplyForm(review.id, review.author, review.backendId ?? review.id)}>
+                          Reply
+                        </button>
+                      </div>
+
+                      {review.replies.length > 0 && !areRepliesCollapsed ? (
+                        <div className={styles.replyList}>
+                          {review.replies.map((reply) => {
+                            const replyLikePending = pendingLikeIds.includes(reply.id);
+
+                            return (
+                              <div key={reply.id} className={styles.replyRow}>
+                                <div className={styles.replyAvatarWrap}>
+                                  <Image src={reply.avatar} alt={reply.author} fill sizes="56px" className={styles.replyAvatar} unoptimized />
+                                </div>
+
+                                <div className={styles.replyBody}>
+                                  <div className={styles.commentTop}>
+                                    <p className={styles.replyText}>
+                                      <strong>{reply.author}</strong>{' '}
+                                      <span className={styles.replyMention}>@{reply.replyTo}</span> {reply.message}
+                                    </p>
+                                    <button
+                                      type="button"
+                                      className={`${styles.commentLikeButton} ${reply.meLiked ? styles.commentLikeButtonLiked : ''}`}
+                                      aria-label="Like reply"
+                                      onClick={() => handleReplyLike(review.id, reply.id, reply.backendId)}
+                                      disabled={replyLikePending}
+                                    >
+                                      <Heart size={22} weight={reply.meLiked ? 'fill' : 'regular'} />
+                                    </button>
+                                  </div>
+
+                                  <div className={styles.commentMeta}>
+                                    <span>{reply.date}</span>
+                                    <span>{formatCompactNumber(reply.likes)} likes</span>
+                                    <button
+                                      type="button"
+                                      className={styles.inlineReplyButton}
+                                      onClick={() => openReplyForm(review.id, reply.author, reply.backendId ?? review.backendId ?? review.id)}
+                                    >
+                                      Reply
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : null}
+
+                      {review.replies.length > 0 ? (
+                        <button
+                          type="button"
+                          className={styles.toggleRepliesButton}
+                          onClick={() =>
+                            setCollapsedReplies((currentState) => ({
+                              ...currentState,
+                              [review.id]: !areRepliesCollapsed,
+                            }))
+                          }
+                        >
+                          <span className={styles.toggleRepliesLine} />
+                          <span>{areRepliesCollapsed ? `View replies (${review.replies.length})` : 'Hide replies'}</span>
+                        </button>
+                      ) : null}
+
+                      {activeReplyId === review.id ? (
+                        <form onSubmit={(event) => handleReplySubmit(event, review.id)} className={styles.replyForm}>
+                          <label htmlFor={`reply-${review.id}`} className={styles.replyLabel}>
+                            Replying to @{replyTargets[review.id] || review.author}
+                          </label>
+                          <textarea
+                            id={`reply-${review.id}`}
+                            name={`reply-${review.id}`}
+                            value={replyDrafts[review.id] ?? ''}
+                            onChange={(event) => {
+                              const nextValue = event.target.value;
+                              setReplyDrafts((currentDrafts) => ({ ...currentDrafts, [review.id]: nextValue }));
+                              if (replyErrors[review.id] && nextValue.trim()) {
+                                setReplyErrors((currentErrors) => ({ ...currentErrors, [review.id]: false }));
+                              }
+                            }}
+                            className={styles.replyTextarea}
+                            placeholder="Write your reply here"
+                          />
+                          {replyErrors[review.id] ? <p className={styles.replyError}>Please write a reply before submitting.</p> : null}
+                          <div className={styles.replyActions}>
+                            <button type="button" className={styles.replyCancelButton} onClick={() => setActiveReplyId(null)}>
+                              Cancel
+                            </button>
+                            <button type="submit" className={styles.replySubmitButton}>
+                              <span>Post Reply</span>
+                              <ArrowUpRight size={20} weight="regular" />
+                            </button>
+                          </div>
+                        </form>
+                      ) : null}
                     </div>
                   </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
+          </div>
+
+          <div className={styles.reviewComposer}>
+            <h3>Leave A Review</h3>
+            <form onSubmit={handleReviewSubmit} className={styles.reviewForm}>
+              <label htmlFor="agent-review" className={styles.reviewLabel}>
+                Review
+              </label>
+              <textarea
+                id="agent-review"
+                name="review"
+                value={draftReview}
+                onChange={(event) => {
+                  setDraftReview(event.target.value);
+                  if (showReviewError && event.target.value.trim()) {
+                    setShowReviewError(false);
+                  }
+                }}
+                className={styles.reviewTextarea}
+                placeholder="Write your review here"
+              />
+              {showReviewError ? <p className={styles.reviewError}>Please write a review before submitting.</p> : null}
+              <div className={styles.reviewSubmitRow}>
+                <button type="submit" className={styles.reviewSubmitButton}>
+                  <span>Submit Review</span>
+                  <ArrowUpRight size={28} weight="regular" />
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </section>
