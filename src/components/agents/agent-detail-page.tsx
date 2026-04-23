@@ -5,6 +5,7 @@ import { useApolloClient } from '@apollo/client/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
+import Swal from 'sweetalert2';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ArrowRight,
@@ -247,10 +248,13 @@ export const AgentDetailPageContent = ({ agent }: { agent: AgentItem }) => {
     .map((serviceSlug) => serviceItems.find((item) => item.slug === serviceSlug))
     .filter((service): service is (typeof serviceItems)[number] => Boolean(service));
 
-  const showAuthRequired = useCallback(() => {
-    setFeedback({
-      type: 'error',
-      text: 'Login qilgan foydalanuvchi review, reply va like yubora oladi.',
+  const showAuthRequired = useCallback(async (actionLabel: string) => {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Login required',
+      text: `Please log in to ${actionLabel}.`,
+      confirmButtonColor: '#0052da',
+      confirmButtonText: 'OK',
     });
   }, []);
 
@@ -322,7 +326,7 @@ export const AgentDetailPageContent = ({ agent }: { agent: AgentItem }) => {
       setReviews(toThreadReviews(agent.reviews));
       setFeedback({
         type: 'error',
-        text: 'Live reviewlarni yuklab bo‘lmadi. Hozircha lokal ko‘rinish ishlatilmoqda.',
+        text: 'Live reviews could not be loaded. Local showcase reviews are being used for now.',
       });
     } finally {
       setReviewsLoading(false);
@@ -336,6 +340,11 @@ export const AgentDetailPageContent = ({ agent }: { agent: AgentItem }) => {
   const handleReviewSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    if (!Boolean(Cookies.get(ACCESS_TOKEN_KEY))) {
+      await showAuthRequired('submit a review');
+      return;
+    }
+
     const normalizedReview = draftReview.trim();
 
     if (!normalizedReview) {
@@ -344,11 +353,6 @@ export const AgentDetailPageContent = ({ agent }: { agent: AgentItem }) => {
     }
 
     if (backendReviewEnabled && agent.backendMemberId) {
-      if (!Boolean(Cookies.get(ACCESS_TOKEN_KEY))) {
-        showAuthRequired();
-        return;
-      }
-
       try {
         await client.mutate({
           mutation: CREATE_COMMENT,
@@ -363,12 +367,12 @@ export const AgentDetailPageContent = ({ agent }: { agent: AgentItem }) => {
 
         setDraftReview('');
         setShowReviewError(false);
-        setFeedback({ type: 'success', text: 'Review muvaffaqiyatli yuborildi.' });
+        setFeedback({ type: 'success', text: 'Your review has been submitted successfully.' });
         await loadBackendReviews();
         return;
       } catch (error) {
         console.error('Failed to create review:', error);
-        setFeedback({ type: 'error', text: 'Review yuborilmadi. Login holati yoki backend javobini tekshiring.' });
+        setFeedback({ type: 'error', text: 'Your review could not be submitted. Please check your login session and try again.' });
         return;
       }
     }
@@ -387,10 +391,15 @@ export const AgentDetailPageContent = ({ agent }: { agent: AgentItem }) => {
     setReviews((currentReviews) => [nextReview, ...currentReviews]);
     setDraftReview('');
     setShowReviewError(false);
-    setFeedback({ type: 'success', text: 'Review lokal holatda qo‘shildi.' });
+    setFeedback({ type: 'success', text: 'Your review has been added locally.' });
   };
 
-  const openReplyForm = (reviewId: string, targetAuthor: string, parentCommentId?: string) => {
+  const openReplyForm = async (reviewId: string, targetAuthor: string, parentCommentId?: string) => {
+    if (!Boolean(Cookies.get(ACCESS_TOKEN_KEY))) {
+      await showAuthRequired('reply to a review');
+      return;
+    }
+
     setActiveReplyId(reviewId);
     setReplyTargets((currentTargets) => ({ ...currentTargets, [reviewId]: targetAuthor }));
     setReplyParentIds((currentParents) => ({ ...currentParents, [reviewId]: parentCommentId ?? reviewId }));
@@ -401,6 +410,11 @@ export const AgentDetailPageContent = ({ agent }: { agent: AgentItem }) => {
   const handleReplySubmit = async (event: React.FormEvent<HTMLFormElement>, reviewId: string) => {
     event.preventDefault();
 
+    if (!Boolean(Cookies.get(ACCESS_TOKEN_KEY))) {
+      await showAuthRequired('reply to a review');
+      return;
+    }
+
     const normalizedReply = (replyDrafts[reviewId] ?? '').trim();
     const replyTarget = replyTargets[reviewId];
 
@@ -410,11 +424,6 @@ export const AgentDetailPageContent = ({ agent }: { agent: AgentItem }) => {
     }
 
     if (backendReviewEnabled && reviews.find((review) => review.id === reviewId)?.backendId) {
-      if (!Boolean(Cookies.get(ACCESS_TOKEN_KEY))) {
-        showAuthRequired();
-        return;
-      }
-
       try {
         await client.mutate({
           mutation: CREATE_REPLY,
@@ -429,12 +438,12 @@ export const AgentDetailPageContent = ({ agent }: { agent: AgentItem }) => {
         setReplyDrafts((currentDrafts) => ({ ...currentDrafts, [reviewId]: '' }));
         setReplyErrors((currentErrors) => ({ ...currentErrors, [reviewId]: false }));
         setActiveReplyId(null);
-        setFeedback({ type: 'success', text: 'Reply yuborildi.' });
+        setFeedback({ type: 'success', text: 'Your reply has been submitted successfully.' });
         await loadBackendReviews();
         return;
       } catch (error) {
         console.error('Failed to create reply:', error);
-        setFeedback({ type: 'error', text: 'Reply yuborilmadi. Login holati yoki backend javobini tekshiring.' });
+        setFeedback({ type: 'error', text: 'Your reply could not be submitted. Please check your login session and try again.' });
         return;
       }
     }
@@ -458,7 +467,7 @@ export const AgentDetailPageContent = ({ agent }: { agent: AgentItem }) => {
     setReplyDrafts((currentDrafts) => ({ ...currentDrafts, [reviewId]: '' }));
     setReplyErrors((currentErrors) => ({ ...currentErrors, [reviewId]: false }));
     setActiveReplyId(null);
-    setFeedback({ type: 'success', text: 'Reply lokal holatda qo‘shildi.' });
+    setFeedback({ type: 'success', text: 'Your reply has been added locally.' });
   };
 
   const toggleReviewLikeOptimistic = (reviewId: string) => {
@@ -540,13 +549,13 @@ export const AgentDetailPageContent = ({ agent }: { agent: AgentItem }) => {
   const handleReviewLike = async (reviewId: string, backendCommentId?: string) => {
     if (pendingLikeIds.includes(reviewId)) return;
 
-    if (!backendCommentId) {
-      toggleReviewLikeOptimistic(reviewId);
+    if (!Boolean(Cookies.get(ACCESS_TOKEN_KEY))) {
+      await showAuthRequired('like a review');
       return;
     }
 
-    if (!Boolean(Cookies.get(ACCESS_TOKEN_KEY))) {
-      showAuthRequired();
+    if (!backendCommentId) {
+      toggleReviewLikeOptimistic(reviewId);
       return;
     }
 
@@ -566,7 +575,7 @@ export const AgentDetailPageContent = ({ agent }: { agent: AgentItem }) => {
     } catch (error) {
       console.error('Failed to toggle review like:', error);
       revertReviewLike(reviewId);
-      setFeedback({ type: 'error', text: 'Review like holatini yangilab bo‘lmadi.' });
+      setFeedback({ type: 'error', text: 'Review like status could not be updated.' });
     } finally {
       setPendingLikeIds((currentIds) => currentIds.filter((id) => id !== reviewId));
     }
@@ -575,13 +584,13 @@ export const AgentDetailPageContent = ({ agent }: { agent: AgentItem }) => {
   const handleReplyLike = async (reviewId: string, replyId: string, backendCommentId?: string) => {
     if (pendingLikeIds.includes(replyId)) return;
 
-    if (!backendCommentId) {
-      toggleReplyLikeOptimistic(reviewId, replyId);
+    if (!Boolean(Cookies.get(ACCESS_TOKEN_KEY))) {
+      await showAuthRequired('like a reply');
       return;
     }
 
-    if (!Boolean(Cookies.get(ACCESS_TOKEN_KEY))) {
-      showAuthRequired();
+    if (!backendCommentId) {
+      toggleReplyLikeOptimistic(reviewId, replyId);
       return;
     }
 
@@ -601,7 +610,7 @@ export const AgentDetailPageContent = ({ agent }: { agent: AgentItem }) => {
     } catch (error) {
       console.error('Failed to toggle reply like:', error);
       revertReplyLike(reviewId, replyId);
-      setFeedback({ type: 'error', text: 'Reply like holatini yangilab bo‘lmadi.' });
+      setFeedback({ type: 'error', text: 'Reply like status could not be updated.' });
     } finally {
       setPendingLikeIds((currentIds) => currentIds.filter((id) => id !== replyId));
     }
@@ -789,7 +798,7 @@ export const AgentDetailPageContent = ({ agent }: { agent: AgentItem }) => {
             ) : (
               <p className={styles.liveReviewsNote}>This agent currently uses local showcase reviews until backend member mapping is attached.</p>
             )}
-            {reviewsLoading ? <p className={styles.reviewState}>Live reviewlar yuklanmoqda...</p> : null}
+            {reviewsLoading ? <p className={styles.reviewState}>Loading live reviews...</p> : null}
             {feedback ? (
               <p className={`${styles.reviewFeedback} ${feedback.type === 'error' ? styles.reviewFeedbackError : styles.reviewFeedbackSuccess}`}>
                 {feedback.text}
