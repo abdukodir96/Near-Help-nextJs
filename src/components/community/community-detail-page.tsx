@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ChatCenteredText, Eye, Heart, NotePencil, PaperPlaneTilt, Sparkle } from 'phosphor-react';
-import { type FormEvent, useEffect, useState } from 'react';
+import { type FormEvent, useEffect, useRef, useState } from 'react';
 import Swal from 'sweetalert2';
 import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
 import { communityCategories, type CommunityPost } from './community-data';
@@ -20,6 +20,18 @@ const authorAvatars: Record<string, string> = {
   'NearHelp Team': '/theme/images/blog-details/author.jpg',
   Joon: '/theme/images/blog-details/comments-author/img-3.jpg',
   Mina: '/theme/images/testimonial/img-2.jpg',
+};
+
+const authorAgentSlugs: Record<string, string> = {
+  Martin: 'shelia-lawrence',
+  Neo: 'mattie-washington',
+  PNU: 'elijah-foster',
+  Soomin: 'winifred-harmon',
+  'Ara Kim': 'grace-kim',
+  'Yuna Park': 'shelia-lawrence',
+  'NearHelp Team': 'henry-barton',
+  Joon: 'owen-park',
+  Mina: 'grace-kim',
 };
 
 const formatArticleDate = (post: CommunityPost) => {
@@ -117,6 +129,7 @@ const createInitialComments = (post: CommunityPost): CommunityComment[] =>
 export function CommunityDetailPageContent({ post }: { post: CommunityPost }) {
   const activeCategory = communityCategories.find((category) => category.key === post.category) ?? communityCategories[0];
   const authorAvatar = authorAvatars[post.author] ?? '/theme/images/blog-details/author.jpg';
+  const authorAgentSlug = authorAgentSlugs[post.author] ?? 'mattie-washington';
   const [likeCount, setLikeCount] = useState(post.likes);
   const [viewCount, setViewCount] = useState(post.views);
   const [liked, setLiked] = useState(false);
@@ -124,6 +137,7 @@ export function CommunityDetailPageContent({ post }: { post: CommunityPost }) {
   const [commentDraft, setCommentDraft] = useState('');
   const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const commentsSectionRef = useRef<HTMLElement | null>(null);
 
   const totalCommentCount = comments.reduce((total, comment) => total + 1 + comment.replies.length, 0);
 
@@ -150,6 +164,10 @@ export function CommunityDetailPageContent({ post }: { post: CommunityPost }) {
       confirmButtonColor: '#0052da',
       confirmButtonText: 'OK',
     });
+  };
+
+  const handleCommentsClick = () => {
+    commentsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const handleLikeClick = async () => {
@@ -356,10 +374,17 @@ export function CommunityDetailPageContent({ post }: { post: CommunityPost }) {
               <div className={styles.titleBlock}>
                 <h2>{post.title}</h2>
                 <div className={styles.authorRow}>
-                  <div className={styles.avatarWrap}>
-                    <Image src={authorAvatar} alt={post.author} fill sizes="48px" className={styles.avatar} />
-                  </div>
-                  <strong>{post.author}</strong>
+                  <Link
+                    prefetch={false}
+                    href={'/agents/' + authorAgentSlug}
+                    className={styles.authorLink}
+                    aria-label={'View ' + post.author + ' agent profile'}
+                  >
+                    <div className={styles.avatarWrap}>
+                      <Image src={authorAvatar} alt={post.author} fill sizes="48px" className={styles.avatar} />
+                    </div>
+                    <strong>{post.author}</strong>
+                  </Link>
                   <span>{formatArticleDate(post)}</span>
                 </div>
               </div>
@@ -379,10 +404,15 @@ export function CommunityDetailPageContent({ post }: { post: CommunityPost }) {
                   <Eye size={28} weight="fill" />
                   {viewCount}
                 </span>
-                <span>
+                <button
+                  type="button"
+                  className={styles.statButton}
+                  aria-label="Scroll to community comments"
+                  onClick={handleCommentsClick}
+                >
                   <ChatCenteredText size={28} weight="fill" />
                   {totalCommentCount}
-                </span>
+                </button>
               </div>
             </header>
 
@@ -401,7 +431,7 @@ export function CommunityDetailPageContent({ post }: { post: CommunityPost }) {
             </div>
           </article>
 
-          <section className={styles.commentsSection}>
+          <section className={styles.commentsSection} ref={commentsSectionRef}>
             <div className={styles.commentsHeader}>
               <div>
                 <p className={styles.commentsEyebrow}>Community comments</p>
