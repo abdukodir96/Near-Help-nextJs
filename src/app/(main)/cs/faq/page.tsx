@@ -1,5 +1,5 @@
-import { PagePlaceholder } from '@/components/shared/page-placeholder';
+import { CsCenterPage } from '@/components/cs/cs-center-page';
 
 export default function FaqPage() {
-  return <PagePlaceholder eyebrow="CS / FAQ" title="FAQ page" description="This screen will render FAQ items from the notice module filtered by FAQ category." />;
+  return <CsCenterPage initialTab="faq" />;
 }

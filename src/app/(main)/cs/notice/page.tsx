@@ -1,5 +1,5 @@
-import { PagePlaceholder } from '@/components/shared/page-placeholder';
+import { CsCenterPage } from '@/components/cs/cs-center-page';
 
 export default function NoticePage() {
-  return <PagePlaceholder eyebrow="CS / Notice" title="Notice page" description="This screen will connect to public notice listing and detail flow." />;
+  return <CsCenterPage initialTab="notice" />;
 }

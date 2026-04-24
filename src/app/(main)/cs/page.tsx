@@ -1,12 +1,5 @@
-import { PagePlaceholder } from '@/components/shared/page-placeholder';
+import { CsCenterPage } from '@/components/cs/cs-center-page';
 
 export default function CsPage() {
-  return (
-    <PagePlaceholder
-      eyebrow="CS"
-      title="Customer support hub"
-      description="This page will direct users to notices and FAQ content from the backend."
-      links={[{ href: '/cs/notice', label: 'Notice' }, { href: '/cs/faq', label: 'FAQ' }]}
-    />
-  );
+  return <CsCenterPage initialTab="notice" />;
 }
