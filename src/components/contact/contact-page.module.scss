@@ -11,7 +11,7 @@ $line: #e9edf5;
 }
 
 .container {
-  width: min(100%, 1280px);
+  width: min(100%, 1440px);
   margin: 0 auto;
   padding: 0 24px;
 
@@ -27,37 +27,37 @@ $line: #e9edf5;
 }
 
 .infoCardGrid {
-  width: min(100%, 720px);
+  width: min(100%, 1040px);
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
+  gap: 22px;
 
   @media (max-width: 991px) {
     grid-template-columns: 1fr;
-    width: min(100%, 460px);
+    width: min(100%, 520px);
   }
 }
 
 .infoCard {
-  min-height: 250px;
-  padding: 34px 24px;
+  min-height: 290px;
+  padding: 42px 28px 36px;
   background: $white;
   border: 1px solid $line;
-  box-shadow: 0 20px 55px rgba(37, 48, 65, 0.08);
+  box-shadow: 0 22px 60px rgba(37, 48, 65, 0.08);
   text-align: center;
 
   h2 {
-    margin: 20px 0 14px;
-    font-size: 1.9rem;
+    margin: 24px 0 16px;
+    font-size: 2.2rem;
     font-weight: 800;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.04em;
   }
 }
 
 .infoIcon {
-  width: 64px;
-  height: 64px;
+  width: 84px;
+  height: 84px;
   margin: 0 auto;
   border-radius: 999px;
   display: inline-flex;
@@ -69,33 +69,33 @@ $line: #e9edf5;
 
 .infoLines {
   display: grid;
-  gap: 8px;
+  gap: 10px;
 
   p {
     margin: 0;
-    font-size: 0.96rem;
-    line-height: 1.7;
+    font-size: 1.02rem;
+    line-height: 1.85;
     color: $text;
     word-break: break-word;
   }
 }
 
 .formIntro {
-  width: min(100%, 720px);
-  margin: 70px auto 28px;
+  width: min(100%, 840px);
+  margin: 88px auto 42px;
   text-align: center;
 
   h1 {
     margin: 0;
-    font-size: clamp(2.4rem, 4vw, 3.6rem);
+    font-size: clamp(2.8rem, 4.6vw, 4.2rem);
     font-weight: 800;
-    letter-spacing: -0.05em;
+    letter-spacing: -0.06em;
   }
 
   p {
-    margin: 16px auto 0;
-    max-width: 560px;
-    font-size: 1rem;
+    margin: 18px auto 0;
+    max-width: 660px;
+    font-size: 1.08rem;
     line-height: 1.9;
     color: $text;
   }
@@ -104,22 +104,26 @@ $line: #e9edf5;
 .formCardWrap {
   position: relative;
   z-index: 2;
-  margin-bottom: -120px;
+  margin-bottom: -300px;
 }
 
 .formCard {
-  width: min(100%, 720px);
+  width: min(100%, 1280px);
   margin: 0 auto;
-  padding: 24px 22px 26px;
+  padding: 56px 40px 52px;
   background: $white;
   border: 1px solid $line;
   box-shadow: 0 28px 70px rgba(37, 48, 65, 0.12);
+
+  @media (max-width: 991px) {
+    padding: 32px 24px 34px;
+  }
 }
 
 .inputGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px 14px;
+  gap: 24px 20px;
 
   @media (max-width: 767px) {
     grid-template-columns: 1fr;
@@ -133,10 +137,12 @@ $line: #e9edf5;
   border: 1px solid $line;
   background: $white;
   color: $dark;
-  padding: 16px 18px;
-  font-size: 0.98rem;
+  padding: 20px 28px;
+  font-size: 1.06rem;
   line-height: 1.6;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 
   &:focus {
     outline: none;
@@ -149,40 +155,50 @@ $line: #e9edf5;
   }
 }
 
+.formCard input,
+.formCard select {
+  min-height: 64px;
+}
+
 .formCard select {
   appearance: none;
   background-image:
     linear-gradient(45deg, transparent 50%, #9aa3b1 50%),
     linear-gradient(135deg, #9aa3b1 50%, transparent 50%);
   background-position:
-    calc(100% - 22px) calc(50% - 3px),
-    calc(100% - 14px) calc(50% - 3px);
-  background-size: 8px 8px, 8px 8px;
+    calc(100% - 26px) calc(50% - 4px),
+    calc(100% - 18px) calc(50% - 4px);
+  background-size:
+    9px 9px,
+    9px 9px;
   background-repeat: no-repeat;
 }
 
 .formCard textarea {
-  margin-top: 18px;
-  min-height: 190px;
+  margin-top: 24px;
+  min-height: 240px;
   resize: vertical;
 }
 
 .submitWrap {
   display: flex;
   justify-content: center;
-  margin-top: 18px;
+  margin-top: 32px;
 
   button {
-    min-width: 154px;
-    min-height: 52px;
+    min-width: 220px;
+    min-height: 72px;
     border: none;
-    border-radius: 12px;
+    border-radius: 10px;
     background: $blue;
     color: $white;
-    font-size: 1rem;
+    font-size: 1.2rem;
     font-weight: 700;
     cursor: pointer;
-    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    transition:
+      transform 0.2s ease,
+      background 0.2s ease,
+      box-shadow 0.2s ease;
     box-shadow: 0 18px 36px rgba(0, 82, 218, 0.18);
 
     &:hover {
@@ -196,12 +212,12 @@ $line: #e9edf5;
   position: relative;
   z-index: 1;
   width: 100%;
-  padding-top: 170px;
+  padding-top: 120px;
 }
 
 .mapFrame {
   width: 100%;
-  height: 520px;
+  height: 560px;
   border: 0;
   display: block;
 

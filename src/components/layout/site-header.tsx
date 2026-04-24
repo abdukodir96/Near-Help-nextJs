@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { CaretDown, Clock, List, PhoneCall, X } from 'phosphor-react';
 import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
 
 const mainLinks = [
@@ -24,30 +24,70 @@ export const SiteHeader = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showTopbar, setShowTopbar] = useState(true);
+  const lastScrollYRef = useRef(0);
+  const lastToggleAtRef = useRef(0);
+  const showTopbarRef = useRef(true);
+  const frameRef = useRef<number | null>(null);
 
   useEffect(() => {
-    let lastScrollY = window.scrollY;
+    const syncTopbar = (next: boolean, now: number) => {
+      if (showTopbarRef.current === next) {
+        return;
+      }
 
-    const handleScroll = () => {
+      showTopbarRef.current = next;
+      lastToggleAtRef.current = now;
+      setShowTopbar(next);
+    };
+
+    const updateHeaderState = () => {
       const currentScrollY = window.scrollY;
-      const scrollingUp = currentScrollY < lastScrollY;
-      const delta = Math.abs(currentScrollY - lastScrollY);
+      const lastScrollY = lastScrollYRef.current;
+      const delta = currentScrollY - lastScrollY;
+      const absDelta = Math.abs(delta);
+      const now = performance.now();
 
       setIsScrolled(currentScrollY > 32);
 
       if (currentScrollY <= 24) {
-        setShowTopbar(true);
-      } else if (delta > 6) {
-        setShowTopbar(scrollingUp);
+        syncTopbar(true, now);
+        lastScrollYRef.current = currentScrollY;
+        frameRef.current = null;
+        return;
       }
 
-      lastScrollY = currentScrollY;
+      const canToggle = now - lastToggleAtRef.current > 420;
+
+      if (canToggle && absDelta > 10) {
+        if (delta > 0 && currentScrollY > 140) {
+          syncTopbar(false, now);
+        } else if (delta < 0) {
+          syncTopbar(true, now);
+        }
+      }
+
+      lastScrollYRef.current = currentScrollY;
+      frameRef.current = null;
     };
 
-    handleScroll();
+    const handleScroll = () => {
+      if (frameRef.current !== null) {
+        return;
+      }
+
+      frameRef.current = window.requestAnimationFrame(updateHeaderState);
+    };
+
+    lastScrollYRef.current = window.scrollY;
+    updateHeaderState();
     window.addEventListener('scroll', handleScroll, { passive: true });
 
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (frameRef.current !== null) {
+        window.cancelAnimationFrame(frameRef.current);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -63,7 +103,7 @@ export const SiteHeader = () => {
       }`}
     >
       <div
-        className={`hidden overflow-hidden bg-[#253041] text-white transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:block ${
+        className={`hidden overflow-hidden bg-[#253041] text-white transition-[max-height,opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:block ${
           showTopbar ? 'max-h-28 translate-y-0 opacity-100' : 'pointer-events-none max-h-0 -translate-y-6 opacity-0'
         }`}
         aria-hidden={!showTopbar}
@@ -97,7 +137,7 @@ export const SiteHeader = () => {
       <div
         className={`mx-auto flex max-w-[1280px] items-center justify-between gap-6 px-6 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:px-10 ${
           isScrolled ? 'py-3.5' : 'py-5'
-        } ${showTopbar ? 'translate-y-0' : '-translate-y-1'}`}
+        }`}
       >
         <Link prefetch={false} href="/" className="flex items-center" aria-label={common('brand')}>
           <Image
