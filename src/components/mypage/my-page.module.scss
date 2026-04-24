@@ -1,0 +1,401 @@
+$page-bg: #ffffff;
+$white: #ffffff;
+$dark: #1f2937;
+$muted: #6b7280;
+$line: #d8dee8;
+$blue: #0052da;
+$black: #050505;
+$orange: #ef5a3c;
+
+.page {
+  background: $page-bg;
+  color: $dark;
+}
+
+.container {
+  width: min(100%, 1860px);
+  margin: 0 auto;
+  padding: 36px 28px 72px;
+
+  @media (max-width: 767px) {
+    padding: 24px 16px 48px;
+  }
+}
+
+.wrapper {
+  border: 1px solid $line;
+  border-radius: 28px;
+  padding: 54px 26px 56px;
+  background: $white;
+
+  @media (max-width: 1199px) {
+    padding: 34px 18px 36px;
+  }
+}
+
+.hero {
+  margin: 0 0 40px 420px;
+
+  h1 {
+    margin: 0;
+    font-size: clamp(2.6rem, 4vw, 4.25rem);
+    font-weight: 800;
+    letter-spacing: -0.06em;
+    line-height: 1.05;
+  }
+
+  p {
+    margin: 12px 0 0;
+    font-size: 1.15rem;
+    color: $muted;
+    line-height: 1.75;
+  }
+
+  @media (max-width: 1199px) {
+    margin-left: 0;
+  }
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: 390px minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+
+  @media (max-width: 1199px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sidebarCard,
+.mainCard {
+  border: 1px solid $line;
+  border-radius: 24px;
+  background: $white;
+  box-shadow: 0 16px 48px rgba(31, 41, 55, 0.06);
+}
+
+.sidebarCard {
+  padding: 34px 36px 30px;
+
+  @media (max-width: 767px) {
+    padding: 24px 18px 22px;
+  }
+}
+
+.profileSummary {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding-bottom: 28px;
+}
+
+.summaryAvatarWrap {
+  position: relative;
+  width: 106px;
+  height: 106px;
+  flex: 0 0 106px;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.summaryAvatar {
+  object-fit: cover;
+}
+
+.summaryInfo {
+  display: grid;
+  gap: 8px;
+
+  h2 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+  }
+}
+
+.summaryPhone {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.15rem;
+  color: $dark;
+}
+
+.roleBadge {
+  display: inline-flex;
+  width: fit-content;
+  color: $orange;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sidebarSections {
+  display: grid;
+  gap: 34px;
+}
+
+.sidebarSection {
+  h3 {
+    margin: 0 0 18px;
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: #3d4350;
+    text-transform: uppercase;
+  }
+}
+
+.sidebarMenu {
+  display: grid;
+  gap: 10px;
+}
+
+.sidebarLink,
+.sidebarAction {
+  min-height: 58px;
+  border-radius: 18px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: $dark;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    border-color: rgba(0, 82, 218, 0.15);
+    background: #f7faff;
+    transform: translateY(-1px);
+  }
+}
+
+.sidebarLinkMain {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sidebarLinkIcon,
+.sidebarActionIcon {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: $black;
+}
+
+.sidebarLinkActive {
+  background: $black;
+  color: $white;
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.16);
+
+  .sidebarLinkIcon {
+    color: $white;
+  }
+
+  &:hover {
+    background: $black;
+    color: $white;
+    border-color: $black;
+  }
+}
+
+.mainCard {
+  padding: 34px 44px 38px;
+
+  @media (max-width: 767px) {
+    padding: 24px 16px 24px;
+  }
+}
+
+.profileForm {
+  display: grid;
+  gap: 28px;
+}
+
+.photoSection {
+  h2 {
+    margin: 0 0 24px;
+    font-size: 2.1rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+  }
+}
+
+.photoRow {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 28px;
+  align-items: center;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.photoPreviewWrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 0.78;
+  overflow: hidden;
+  border-radius: 28px;
+  background: #eef2f9;
+}
+
+.photoPreview {
+  object-fit: cover;
+}
+
+.uploadColumn {
+  display: grid;
+  gap: 18px;
+  align-content: center;
+
+  p {
+    margin: 0;
+    font-size: 1rem;
+    color: $muted;
+    line-height: 1.7;
+  }
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.uploadButton {
+  min-height: 70px;
+  width: fit-content;
+  min-width: 320px;
+  padding: 0 32px;
+  border-radius: 18px;
+  border: 1px solid rgba(31, 41, 55, 0.45);
+  background: $white;
+  color: $dark;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: $blue;
+    color: $blue;
+    box-shadow: 0 18px 34px rgba(0, 82, 218, 0.1);
+  }
+
+  @media (max-width: 767px) {
+    min-width: 100%;
+  }
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px 24px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: grid;
+  gap: 12px;
+
+  span {
+    font-size: 1rem;
+    font-weight: 800;
+    color: $dark;
+  }
+
+  input {
+    width: 100%;
+    min-height: 78px;
+    border-radius: 18px;
+    border: 1px solid $line;
+    background: $white;
+    padding: 0 22px;
+    font-size: 1.1rem;
+    color: $dark;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: rgba(0, 82, 218, 0.35);
+      box-shadow: 0 0 0 4px rgba(0, 82, 218, 0.08);
+    }
+  }
+}
+
+.fullWidthField {
+  input {
+    width: 100%;
+  }
+}
+
+.submitRow {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 6px;
+
+  @media (max-width: 767px) {
+    justify-content: stretch;
+  }
+}
+
+.submitButton {
+  min-width: 250px;
+  min-height: 78px;
+  border: none;
+  border-radius: 18px;
+  background: $black;
+  color: $white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.14);
+
+  &:hover {
+    background: #151515;
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 767px) {
+    width: 100%;
+  }
+}

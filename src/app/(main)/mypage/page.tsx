@@ -1,5 +1,5 @@
-import { PagePlaceholder } from '@/components/shared/page-placeholder';
+import { MyPage } from '@/components/mypage/my-page';
 
-export default function MyPage() {
-  return <PagePlaceholder eyebrow="My Page" title="Dashboard page" description="This will become the authenticated member dashboard with summaries and quick actions." />;
+export default function MyPageRoute() {
+  return <MyPage />;
 }
