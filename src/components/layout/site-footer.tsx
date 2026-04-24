@@ -9,6 +9,8 @@ import {
   PhoneCall,
   TwitterLogo,
 } from 'phosphor-react';
+import { useState, type FormEvent } from 'react';
+import Swal from 'sweetalert2';
 
 const popularSearchLinks = [
   { href: '/services', label: 'Emergency plumbing' },
@@ -22,7 +24,7 @@ const quickLinks = [
   { href: '/services', label: 'Our Services' },
   { href: '/agents', label: 'Agents' },
   { href: '/community', label: 'Community' },
-  { href: '/cs', label: 'Contact Support' },
+  { href: '/contact', label: 'Contact' },
   { href: '/cs/faq', label: 'FAQs' },
 ] as const;
 
@@ -40,7 +42,35 @@ const socialLinks = [
   { href: '#', label: 'Twitter', icon: TwitterLogo },
 ] as const;
 
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export const SiteFooter = () => {
+  const [email, setEmail] = useState('');
+
+  const handleSubscribe = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const normalizedEmail = email.trim();
+
+    if (!emailPattern.test(normalizedEmail)) {
+      void Swal.fire({
+        icon: 'error',
+        title: 'Invalid email',
+        text: 'Please enter a valid email address before subscribing.',
+        confirmButtonColor: '#0052da',
+      });
+      return;
+    }
+
+    void Swal.fire({
+      icon: 'success',
+      title: 'Subscribed successfully',
+      text: 'You have been added to the NearHelp update list.',
+      confirmButtonColor: '#0052da',
+    });
+    setEmail('');
+  };
+
   return (
     <footer className="bg-[#1b1d23] text-white">
       <div className="mx-auto max-w-[1280px] px-6 py-16 lg:px-10 lg:py-20">
@@ -102,9 +132,15 @@ export const SiteFooter = () => {
           <div className="space-y-14">
             <div>
               <h3 className="text-[1.8rem] font-extrabold tracking-tight text-white">Keep Yourself Up To Date</h3>
-              <form className="mt-6 flex flex-col gap-3 rounded-[1.75rem] bg-white/5 p-3 shadow-[0_20px_60px_rgba(0,0,0,0.18)] sm:flex-row sm:items-center">
+              <form
+                onSubmit={handleSubscribe}
+                className="mt-6 flex flex-col gap-3 rounded-[1.75rem] bg-white/5 p-3 shadow-[0_20px_60px_rgba(0,0,0,0.18)] sm:flex-row sm:items-center"
+              >
                 <input
                   type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  autoComplete="email"
                   placeholder="Your Email"
                   className="min-h-[4.6rem] flex-1 rounded-[1.3rem] border border-transparent bg-transparent px-6 text-lg text-white placeholder:text-white/35 focus:border-[#0052da] focus:outline-none"
                 />
