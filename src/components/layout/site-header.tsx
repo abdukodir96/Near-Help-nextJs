@@ -195,6 +195,7 @@ export const SiteHeader = () => {
 
         <nav className="hidden items-center gap-3 xl:flex">
           {mainLinks.map((link) => {
+            if (link.key === 'mypage' && !isLoggedIn) return null;
             const active = pathname === link.href;
             return (
               <Link
@@ -275,6 +276,7 @@ export const SiteHeader = () => {
         <div className="border-t border-slate-200 bg-white px-6 py-5 xl:hidden">
           <div className="flex flex-col gap-2">
             {mainLinks.map((link) => {
+              if (link.key === 'mypage' && !isLoggedIn) return null;
               const active = pathname === link.href;
               return (
                 <Link
