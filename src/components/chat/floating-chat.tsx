@@ -5,10 +5,17 @@ import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
 import { useRouter } from 'next/navigation';
 import { X, PaperPlaneTilt, Sparkle, ChatCircleText } from 'phosphor-react';
+import { useMutation, useQuery } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
+import {
+  CREATE_AI_CHAT_SESSION,
+  SEND_AI_CHAT_MESSAGE,
+  GET_AI_CHAT_SESSIONS,
+} from '@/components/ai/ai-queries';
+import type { AiChatSession, AiChatSendResult, AiChatSessionsResult } from '@/components/ai/ai-types';
 import styles from './floating-chat.module.scss';
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 type ChatMessage = {
   id: string;
@@ -39,31 +46,57 @@ const initialMessages: ChatMessage[] = [
 // ── WS URL ────────────────────────────────────────────────────────────────────
 
 const WS_CHAT_URL = 'ws://localhost:3007/ws/chat';
-const WS_AI_URL   = 'ws://localhost:3007/ws/ai';
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export const FloatingChat = () => {
-  const router = useRouter();
+  const router    = useRouter();
   const isLoggedIn = !!Cookies.get(ACCESS_TOKEN_KEY);
 
-  const [chatOpen, setChatOpen]   = useState(false);
-  const [aiOpen,   setAiOpen]     = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [aiOpen,   setAiOpen]   = useState(false);
 
   // Community chat state
-  const [messages, setMessages]     = useState<ChatMessage[]>(initialMessages);
-  const [chatDraft, setChatDraft]   = useState('');
+  const [messages,   setMessages]   = useState<ChatMessage[]>(initialMessages);
+  const [chatDraft,  setChatDraft]  = useState('');
   const chatWsRef  = useRef<WebSocket | null>(null);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   // AI chat state
-  const [aiMessages, setAiMessages]   = useState<AiMessage[]>([]);
-  const [aiDraft,    setAiDraft]      = useState('');
-  const [aiTyping,   setAiTyping]     = useState(false);
-  const aiWsRef  = useRef<WebSocket | null>(null);
+  const [aiMessages,   setAiMessages]   = useState<AiMessage[]>([]);
+  const [aiDraft,      setAiDraft]      = useState('');
+  const [aiTyping,     setAiTyping]     = useState(false);
+  const [aiSessionId,  setAiSessionId]  = useState<string | null>(null);
   const aiEndRef = useRef<HTMLDivElement | null>(null);
 
-  // ── WebSocket: community chat ───────────────────────────────────────────────
+  // ── AI GraphQL ────────────────────────────────────────────────────────────────
+
+  const { data: sessionsData, refetch: refetchSessions } = useQuery<{ getAiChatSessions: AiChatSessionsResult }>(
+    GET_AI_CHAT_SESSIONS,
+    { skip: !aiOpen || !isLoggedIn, fetchPolicy: 'network-only' },
+  );
+
+  const [createSession] = useMutation<{ createAiChatSession: AiChatSession }>(CREATE_AI_CHAT_SESSION);
+  const [sendAiMessage] = useMutation<{ sendAiChatMessage: AiChatSendResult }>(SEND_AI_CHAT_MESSAGE);
+
+  // Auto-pick or create session when AI panel opens
+  useEffect(() => {
+    if (!aiOpen || !isLoggedIn || aiSessionId) return;
+
+    const sessions = sessionsData?.getAiChatSessions?.list ?? [];
+    if (sessions.length > 0) {
+      setAiSessionId(sessions[0]._id);
+    } else if (sessionsData) {
+      // Sessions loaded but empty — create one
+      createSession({ variables: { input: {} } }).then(({ data }) => {
+        if (data?.createAiChatSession) {
+          setAiSessionId(data.createAiChatSession._id);
+        }
+      }).catch(() => null);
+    }
+  }, [aiOpen, isLoggedIn, sessionsData, aiSessionId]);
+
+  // ── WebSocket: community chat ──────────────────────────────────────────────
 
   useEffect(() => {
     if (!chatOpen || !isLoggedIn) return;
@@ -78,59 +111,20 @@ export const FloatingChat = () => {
           ...prev,
           { id: Date.now().toString(), author: data.author, text: data.text, time: nowTime() },
         ]);
-      } catch {
-        /* ignore malformed frames */
-      }
+      } catch { /* ignore malformed frames */ }
     };
 
-    ws.onerror = () => { /* silently fail — backend may not be up yet */ };
+    ws.onerror = () => { /* silently fail */ };
 
-    return () => {
-      ws.close();
-      chatWsRef.current = null;
-    };
+    return () => { ws.close(); chatWsRef.current = null; };
   }, [chatOpen, isLoggedIn]);
 
-  // ── WebSocket: AI chat ──────────────────────────────────────────────────────
+  // ── Auto-scroll ────────────────────────────────────────────────────────────
 
-  useEffect(() => {
-    if (!aiOpen || !isLoggedIn) return;
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+  useEffect(() => { aiEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [aiMessages, aiTyping]);
 
-    const ws = new WebSocket(WS_AI_URL);
-    aiWsRef.current = ws;
-
-    ws.onmessage = (event) => {
-      setAiTyping(false);
-      try {
-        const data = JSON.parse(event.data) as { text: string };
-        setAiMessages((prev) => [
-          ...prev,
-          { id: Date.now().toString(), role: 'ai', text: data.text, time: nowTime() },
-        ]);
-      } catch {
-        /* ignore */
-      }
-    };
-
-    ws.onerror = () => { setAiTyping(false); };
-
-    return () => {
-      ws.close();
-      aiWsRef.current = null;
-    };
-  }, [aiOpen, isLoggedIn]);
-
-  // ── Auto-scroll ─────────────────────────────────────────────────────────────
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  useEffect(() => {
-    aiEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [aiMessages, aiTyping]);
-
-  // ── Auth guard ───────────────────────────────────────────────────────────────
+  // ── Auth guard ────────────────────────────────────────────────────────────
 
   const requireLogin = async () => {
     const result = await Swal.fire({
@@ -146,22 +140,17 @@ export const FloatingChat = () => {
     if (result.isConfirmed) router.push('/auth/login');
   };
 
-  // ── Send: community ──────────────────────────────────────────────────────────
+  // ── Send: community ────────────────────────────────────────────────────────
 
   const sendChat = async () => {
     if (!isLoggedIn) { await requireLogin(); return; }
     const text = chatDraft.trim();
     if (!text) return;
 
-    const msg: ChatMessage = {
-      id: Date.now().toString(),
-      author: 'You',
-      text,
-      time: nowTime(),
-      mine: true,
-    };
-
-    setMessages((prev) => [...prev, msg]);
+    setMessages((prev) => [
+      ...prev,
+      { id: Date.now().toString(), author: 'You', text, time: nowTime(), mine: true },
+    ]);
     setChatDraft('');
 
     if (chatWsRef.current?.readyState === WebSocket.OPEN) {
@@ -169,45 +158,60 @@ export const FloatingChat = () => {
     }
   };
 
-  // ── Send: AI ─────────────────────────────────────────────────────────────────
+  // ── Send: AI (GraphQL) ────────────────────────────────────────────────────
 
   const sendAi = async () => {
     if (!isLoggedIn) { await requireLogin(); return; }
     const text = aiDraft.trim();
-    if (!text) return;
+    if (!text || aiTyping) return;
 
+    let sessionId = aiSessionId;
+
+    // Create session on first message if none exists
+    if (!sessionId) {
+      try {
+        const { data } = await createSession({ variables: { input: {} } });
+        if (!data?.createAiChatSession) return;
+        sessionId = data.createAiChatSession._id;
+        setAiSessionId(sessionId);
+        await refetchSessions();
+      } catch {
+        return;
+      }
+    }
+
+    const tempId = `temp-${Date.now()}`;
     setAiMessages((prev) => [
       ...prev,
-      { id: Date.now().toString(), role: 'user', text, time: nowTime() },
+      { id: tempId, role: 'user', text, time: nowTime() },
     ]);
     setAiDraft('');
     setAiTyping(true);
 
-    if (aiWsRef.current?.readyState === WebSocket.OPEN) {
-      aiWsRef.current.send(JSON.stringify({ text }));
-    } else {
-      // Fallback mock reply when backend is not connected
-      setTimeout(() => {
-        setAiTyping(false);
+    try {
+      const { data } = await sendAiMessage({
+        variables: { input: { sessionId, message: text } },
+      });
+
+      if (data?.sendAiChatMessage) {
         setAiMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now().toString(),
-            role: 'ai',
-            text: 'I am the NearHelp AI assistant. The AI backend will be connected soon!',
-            time: nowTime(),
-          },
+          ...prev.filter((m) => m.id !== tempId),
+          { id: data.sendAiChatMessage.userMessage._id,      role: 'user', text: data.sendAiChatMessage.userMessage.content,      time: nowTime() },
+          { id: data.sendAiChatMessage.assistantMessage._id, role: 'ai',   text: data.sendAiChatMessage.assistantMessage.content, time: nowTime() },
         ]);
-      }, 1200);
+      }
+    } catch {
+      setAiMessages((prev) => prev.filter((m) => m.id !== tempId));
+    } finally {
+      setAiTyping(false);
     }
   };
 
-  const handleKeyDown = (
-    e: React.KeyboardEvent,
-    send: () => void,
-  ) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } };
+  const handleKeyDown = (e: React.KeyboardEvent, send: () => void) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send(); }
+  };
 
-  // ── Render ────────────────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <>
@@ -252,7 +256,7 @@ export const FloatingChat = () => {
               type="button"
               className={styles.sendBtn}
               disabled={!chatDraft.trim()}
-              onClick={sendChat}
+              onClick={() => void sendChat()}
             >
               <PaperPlaneTilt size={20} weight="fill" />
             </button>
@@ -262,7 +266,10 @@ export const FloatingChat = () => {
 
       {/* AI Chat Panel */}
       {aiOpen && (
-        <div className={`${styles.panel} ${chatOpen ? styles.panelShifted : ''}`} style={chatOpen ? { right: 420 } : undefined}>
+        <div
+          className={`${styles.panel} ${chatOpen ? styles.panelShifted : ''}`}
+          style={chatOpen ? { right: 420 } : undefined}
+        >
           <div className={styles.panelHeader}>
             <div className={styles.panelTitle}>
               <h3>AI Assistant</h3>
@@ -276,7 +283,9 @@ export const FloatingChat = () => {
           <div className={styles.messageList}>
             {aiMessages.length === 0 && (
               <div className={styles.messageBubble}>
-                <p className={styles.messageText}>Hi! I&apos;m the NearHelp AI assistant. Ask me anything about our services.</p>
+                <p className={styles.messageText}>
+                  Hi! I&apos;m the NearHelp AI assistant. Ask me anything about our services.
+                </p>
               </div>
             )}
             {aiMessages.map((msg) => (
@@ -302,12 +311,13 @@ export const FloatingChat = () => {
               value={aiDraft}
               onChange={(e) => setAiDraft(e.target.value)}
               onKeyDown={(e) => handleKeyDown(e, sendAi)}
+              disabled={aiTyping}
             />
             <button
               type="button"
               className={`${styles.sendBtn} ${styles.sendBtnAi}`}
-              disabled={!aiDraft.trim()}
-              onClick={sendAi}
+              disabled={!aiDraft.trim() || aiTyping}
+              onClick={() => void sendAi()}
             >
               <PaperPlaneTilt size={20} weight="fill" />
             </button>
@@ -320,7 +330,7 @@ export const FloatingChat = () => {
         <button
           type="button"
           className={`${styles.floatBtn} ${styles.aiBtn}`}
-          onClick={() => { setAiOpen((p) => !p); }}
+          onClick={() => setAiOpen((p) => !p)}
         >
           <Sparkle size={22} weight="fill" />
           AI Chat
@@ -329,7 +339,7 @@ export const FloatingChat = () => {
         <button
           type="button"
           className={`${styles.floatBtn} ${styles.chatBtn}`}
-          onClick={() => { setChatOpen((p) => !p); }}
+          onClick={() => setChatOpen((p) => !p)}
         >
           <ChatCircleText size={22} weight="fill" />
           Chat
