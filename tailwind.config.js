@@ -8,6 +8,15 @@ module.exports = {
   ],
   theme: {
     extend: {
+      keyframes: {
+        aiPulse: {
+          '0%':   { transform: 'scale(1)',    opacity: '1' },
+          '100%': { transform: 'scale(1.6)', opacity: '0' },
+        },
+      },
+      animation: {
+        aiPulse: 'aiPulse 2s ease-out infinite',
+      },
       colors: {
         brand: {
           ink: '#0f172a',

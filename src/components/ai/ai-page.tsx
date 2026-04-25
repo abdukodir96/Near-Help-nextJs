@@ -1,0 +1,413 @@
+'use client';
+
+import Link from 'next/link';
+import { useState } from 'react';
+import { useMutation } from '@apollo/client/react';
+import {
+  Sparkle,
+  CurrencyKrw,
+  MagnifyingGlass,
+  ListChecks,
+  CalendarCheck,
+  ArrowRight,
+} from 'phosphor-react';
+import {
+  ESTIMATE_PRICE,
+  SEMANTIC_SEARCH,
+  GET_RECOMMENDATIONS,
+  BOOKING_ASSISTANT,
+} from './ai-queries';
+import {
+  SERVICE_CATEGORIES,
+  type PriceEstimate,
+  type ServiceResult,
+  type BookingAssistantResult,
+} from './ai-types';
+import styles from './ai-page.module.scss';
+
+type TabKey = 'price' | 'search' | 'recommend' | 'assistant';
+
+const tabs: { key: TabKey; label: string; icon: React.ReactNode }[] = [
+  { key: 'price',     label: 'Price Estimate',      icon: <CurrencyKrw size={18} weight="bold" /> },
+  { key: 'search',    label: 'Semantic Search',      icon: <MagnifyingGlass size={18} weight="bold" /> },
+  { key: 'recommend', label: 'Recommendations',      icon: <ListChecks size={18} weight="bold" /> },
+  { key: 'assistant', label: 'Booking Assistant',    icon: <CalendarCheck size={18} weight="bold" /> },
+];
+
+const formatKRW = (n: number) =>
+  new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 }).format(n);
+
+// ── Service card ──────────────────────────────────────────────────────────────
+
+const ServiceCard = ({ item }: { item: ServiceResult }) => (
+  <div className={styles.serviceCard}>
+    <div className={styles.serviceCardCat}>{item.category}</div>
+    <div className={styles.serviceCardTitle}>{item.title}</div>
+    {(item.reason || item.description) && (
+      <p className={styles.serviceCardReason}>{item.reason ?? item.description}</p>
+    )}
+    <div className={styles.serviceCardPrice}>{item.priceLabel}</div>
+    <div className={styles.scoreBar}>
+      <span style={{ width: `${Math.round(item.score * 100)}%` }} />
+    </div>
+  </div>
+);
+
+// ── Main component ────────────────────────────────────────────────────────────
+
+export const AiPage = () => {
+  const [activeTab, setActiveTab] = useState<TabKey>('assistant');
+
+  // ── Price estimate state ──────────────────────────────────────────────────
+  const [priceForm, setPriceForm] = useState({ category: '', area: '', problem: '' });
+  const [priceResult, setPriceResult] = useState<PriceEstimate | null>(null);
+
+  // ── Semantic search state ─────────────────────────────────────────────────
+  const [searchQuery, setSearchQuery]   = useState('');
+  const [searchResults, setSearchResults] = useState<ServiceResult[]>([]);
+
+  // ── Recommendations state ─────────────────────────────────────────────────
+  const [recForm, setRecForm] = useState({ problem: '', location: '' });
+  const [recResults, setRecResults] = useState<ServiceResult[]>([]);
+
+  // ── Booking assistant state ───────────────────────────────────────────────
+  const [assistForm, setAssistForm] = useState({ category: '', area: '', problem: '', location: '' });
+  const [assistResult, setAssistResult] = useState<BookingAssistantResult | null>(null);
+
+  // ── Mutations ──────────────────────────────────────────────────────────────
+
+  const [estimatePrice,    { loading: priceLoading }]  = useMutation(ESTIMATE_PRICE);
+  const [semanticSearch,   { loading: searchLoading }] = useMutation(SEMANTIC_SEARCH);
+  const [getRecommend,     { loading: recLoading }]    = useMutation(GET_RECOMMENDATIONS);
+  const [bookingAssistant, { loading: assistLoading }] = useMutation(BOOKING_ASSISTANT);
+
+  // ── Handlers ───────────────────────────────────────────────────────────────
+
+  const handlePriceSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { data } = await estimatePrice({
+      variables: {
+        input: {
+          category: priceForm.category,
+          area: parseFloat(priceForm.area) || 0,
+          problem: priceForm.problem,
+        },
+      },
+    }).catch(() => ({ data: null }));
+    if (data?.estimatePrice) setPriceResult(data.estimatePrice);
+  };
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { data } = await semanticSearch({
+      variables: { input: { query: searchQuery, limit: 6 } },
+    }).catch(() => ({ data: null }));
+    if (data?.semanticSearch) setSearchResults(data.semanticSearch);
+  };
+
+  const handleRecommend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { data } = await getRecommend({
+      variables: { input: recForm },
+    }).catch(() => ({ data: null }));
+    if (data?.getRecommendations) setRecResults(data.getRecommendations);
+  };
+
+  const handleAssistant = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { data } = await bookingAssistant({
+      variables: {
+        input: {
+          category: assistForm.category,
+          area: parseFloat(assistForm.area) || 0,
+          problem: assistForm.problem,
+          location: assistForm.location,
+        },
+      },
+    }).catch(() => ({ data: null }));
+    if (data?.bookingAssistant) setAssistResult(data.bookingAssistant);
+  };
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+
+  return (
+    <div className={styles.page}>
+      <div className={styles.hero}>
+        <p className={styles.heroEyebrow}>AI Assistant</p>
+        <h1 className={styles.heroTitle}>
+          <Sparkle size={36} weight="fill" style={{ verticalAlign: 'middle', marginRight: 10 }} />
+          NearHelp AI
+        </h1>
+        <p className={styles.heroSub}>
+          Get instant price estimates, semantic service search, and AI-powered booking recommendations.
+        </p>
+      </div>
+
+      <div className={styles.container}>
+        {/* Tabs */}
+        <div className={styles.tabs}>
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              className={`${styles.tab} ${activeTab === tab.key ? styles.tabActive : ''}`}
+              onClick={() => setActiveTab(tab.key)}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Price Estimate ── */}
+        {activeTab === 'price' && (
+          <div className={styles.card}>
+            <h2 className={styles.cardTitle}>Price Estimation</h2>
+            <p className={styles.cardSub}>
+              Get an AI-powered price estimate in KRW based on service type, area, and problem description.
+            </p>
+            <form className={styles.form} onSubmit={handlePriceSubmit}>
+              <div className={styles.row}>
+                <div className={styles.fieldGroup}>
+                  <label className={styles.label}>Service Category*</label>
+                  <select
+                    className={styles.select}
+                    value={priceForm.category}
+                    onChange={(e) => setPriceForm((p) => ({ ...p, category: e.target.value }))}
+                    required
+                  >
+                    <option value="">Select category</option>
+                    {SERVICE_CATEGORIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label className={styles.label}>Area (m²)</label>
+                  <input
+                    type="number"
+                    className={styles.input}
+                    placeholder="e.g. 85"
+                    min={0}
+                    value={priceForm.area}
+                    onChange={(e) => setPriceForm((p) => ({ ...p, area: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className={styles.fieldGroup}>
+                <label className={styles.label}>Problem Description*</label>
+                <textarea
+                  className={styles.textarea}
+                  placeholder="Describe the issue in detail..."
+                  value={priceForm.problem}
+                  onChange={(e) => setPriceForm((p) => ({ ...p, problem: e.target.value }))}
+                  required
+                />
+              </div>
+              <button type="submit" className={styles.submitBtn} disabled={priceLoading}>
+                {priceLoading ? 'Estimating...' : 'Get Price Estimate'}
+                {!priceLoading && <ArrowRight size={18} weight="bold" />}
+              </button>
+            </form>
+
+            {priceLoading && <div className={styles.spinner}>Analyzing your request...</div>}
+
+            {priceResult && (
+              <div className={styles.result}>
+                <div className={styles.priceCard}>
+                  <p className={styles.priceLabel}>Estimated Price Range</p>
+                  <p className={styles.priceRange}>
+                    {formatKRW(priceResult.minPrice)} – {formatKRW(priceResult.maxPrice)}
+                  </p>
+                  <p className={styles.priceReasoning}>{priceResult.reasoning}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Semantic Search ── */}
+        {activeTab === 'search' && (
+          <div className={styles.card}>
+            <h2 className={styles.cardTitle}>Semantic Service Search</h2>
+            <p className={styles.cardSub}>
+              Describe your problem in natural language and AI will find the most relevant services using vector embeddings.
+            </p>
+            <form className={styles.form} onSubmit={handleSearch}>
+              <div className={styles.searchRow}>
+                <input
+                  type="text"
+                  className={styles.searchInput}
+                  placeholder="e.g. water leaking from ceiling after rain..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  required
+                />
+                <button type="submit" className={styles.submitBtn} style={{ minWidth: 160 }} disabled={searchLoading}>
+                  {searchLoading ? 'Searching...' : 'Search'}
+                  {!searchLoading && <MagnifyingGlass size={18} weight="bold" />}
+                </button>
+              </div>
+            </form>
+
+            {searchLoading && <div className={styles.spinner}>Searching with AI...</div>}
+
+            {searchResults.length > 0 && (
+              <div className={styles.result}>
+                <p className={styles.resultHeading}>{searchResults.length} services found</p>
+                <div className={styles.serviceGrid}>
+                  {searchResults.map((s) => <ServiceCard key={s.serviceId} item={s} />)}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Recommendations ── */}
+        {activeTab === 'recommend' && (
+          <div className={styles.card}>
+            <h2 className={styles.cardTitle}>AI Service Recommendations</h2>
+            <p className={styles.cardSub}>
+              Get personalized service recommendations based on your specific problem and location.
+            </p>
+            <form className={styles.form} onSubmit={handleRecommend}>
+              <div className={styles.fieldGroup}>
+                <label className={styles.label}>Problem Description*</label>
+                <textarea
+                  className={styles.textarea}
+                  placeholder="Describe your home issue in detail..."
+                  value={recForm.problem}
+                  onChange={(e) => setRecForm((p) => ({ ...p, problem: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className={styles.fieldGroup}>
+                <label className={styles.label}>Location</label>
+                <input
+                  type="text"
+                  className={styles.input}
+                  placeholder="e.g. Seoul, Gangnam-gu"
+                  value={recForm.location}
+                  onChange={(e) => setRecForm((p) => ({ ...p, location: e.target.value }))}
+                />
+              </div>
+              <button type="submit" className={styles.submitBtn} disabled={recLoading}>
+                {recLoading ? 'Analyzing...' : 'Get Recommendations'}
+                {!recLoading && <ListChecks size={18} weight="bold" />}
+              </button>
+            </form>
+
+            {recLoading && <div className={styles.spinner}>AI is finding the best services...</div>}
+
+            {recResults.length > 0 && (
+              <div className={styles.result}>
+                <p className={styles.resultHeading}>Top {recResults.length} recommendations</p>
+                <div className={styles.serviceGrid}>
+                  {recResults.map((s) => <ServiceCard key={s.serviceId} item={s} />)}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Booking Assistant ── */}
+        {activeTab === 'assistant' && (
+          <div className={styles.card}>
+            <h2 className={styles.cardTitle}>AI Booking Assistant</h2>
+            <p className={styles.cardSub}>
+              Get a complete booking package — price estimate and top service recommendations in one step.
+            </p>
+            <form className={styles.form} onSubmit={handleAssistant}>
+              <div className={styles.row}>
+                <div className={styles.fieldGroup}>
+                  <label className={styles.label}>Service Category</label>
+                  <select
+                    className={styles.select}
+                    value={assistForm.category}
+                    onChange={(e) => setAssistForm((p) => ({ ...p, category: e.target.value }))}
+                  >
+                    <option value="">Select category (optional)</option>
+                    {SERVICE_CATEGORIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label className={styles.label}>Area (m²)</label>
+                  <input
+                    type="number"
+                    className={styles.input}
+                    placeholder="e.g. 85"
+                    min={0}
+                    value={assistForm.area}
+                    onChange={(e) => setAssistForm((p) => ({ ...p, area: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className={styles.fieldGroup}>
+                <label className={styles.label}>Problem Description*</label>
+                <textarea
+                  className={styles.textarea}
+                  placeholder="Describe your problem in detail..."
+                  value={assistForm.problem}
+                  onChange={(e) => setAssistForm((p) => ({ ...p, problem: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className={styles.fieldGroup}>
+                <label className={styles.label}>Location</label>
+                <input
+                  type="text"
+                  className={styles.input}
+                  placeholder="e.g. Seoul, Mapo-gu"
+                  value={assistForm.location}
+                  onChange={(e) => setAssistForm((p) => ({ ...p, location: e.target.value }))}
+                />
+              </div>
+              <button type="submit" className={styles.submitBtn} disabled={assistLoading}>
+                {assistLoading ? 'AI is working...' : 'Ask AI Assistant'}
+                {!assistLoading && <Sparkle size={18} weight="fill" />}
+              </button>
+            </form>
+
+            {assistLoading && <div className={styles.spinner}>AI is preparing your booking plan...</div>}
+
+            {assistResult && (
+              <div className={styles.result}>
+                {assistResult.summary && (
+                  <div className={styles.summary}>{assistResult.summary}</div>
+                )}
+                <div className={styles.priceCard}>
+                  <p className={styles.priceLabel}>Estimated Price Range</p>
+                  <p className={styles.priceRange}>
+                    {formatKRW(assistResult.priceEstimate.minPrice)} – {formatKRW(assistResult.priceEstimate.maxPrice)}
+                  </p>
+                  <p className={styles.priceReasoning}>{assistResult.priceEstimate.reasoning}</p>
+                </div>
+                {assistResult.recommendations.length > 0 && (
+                  <>
+                    <p className={styles.resultHeading}>Recommended Services</p>
+                    <div className={styles.serviceGrid}>
+                      {assistResult.recommendations.map((s) => <ServiceCard key={s.serviceId} item={s} />)}
+                    </div>
+                  </>
+                )}
+                <div style={{ marginTop: 24, textAlign: 'center' }}>
+                  <Link href="/booking" style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                    background: '#0052da', color: '#fff', padding: '14px 32px',
+                    borderRadius: 14, fontWeight: 800, textDecoration: 'none',
+                    fontSize: '0.97rem',
+                  }}>
+                    <CalendarCheck size={20} weight="bold" />
+                    Book Now
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};

@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { CaretDown, Clock, List, PhoneCall, SignOut, UserCircle, X } from 'phosphor-react';
+import { CaretDown, Clock, List, PhoneCall, SignOut, Sparkle, UserCircle, X } from 'phosphor-react';
 import { useTranslations } from 'next-intl';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -218,6 +218,19 @@ export const SiteHeader = () => {
         </nav>
 
         <div className="hidden items-center gap-4 xl:flex">
+          {/* AI Help button */}
+          <Link
+            href="/ai"
+            className={`relative inline-flex items-center gap-2 overflow-visible rounded-full bg-gradient-to-r from-[#1a237e] to-[#0052da] font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(0,82,218,0.4)] ${
+              isScrolled ? 'min-h-[3.65rem] px-5 text-base' : 'min-h-[4.25rem] px-6 text-[1.05rem]'
+            }`}
+          >
+            <Sparkle size={20} weight="fill" />
+            <span>AI Help</span>
+            <span className="absolute inset-0 rounded-full border-2 border-white/40 animate-[aiPulse_2s_ease-out_infinite]" />
+            <span className="absolute inset-0 rounded-full border-2 border-white/20 animate-[aiPulse_2s_ease-out_infinite_1s]" />
+          </Link>
+
           {isLoggedIn ? (
             <div className="relative" ref={dropdownRef}>
               <button

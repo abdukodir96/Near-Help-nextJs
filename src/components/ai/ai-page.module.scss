@@ -1,0 +1,395 @@
+$white: #ffffff;
+$dark: #1a202c;
+$muted: #6b7280;
+$line: #e5e7eb;
+$blue: #0052da;
+$bg: #f5f7fb;
+$card: #ffffff;
+$ai-gradient: linear-gradient(135deg, #1a237e 0%, #3949ab 50%, #0052da 100%);
+
+// ── Page ────────────────────────────────────────────────────────────────────
+
+.page {
+  min-height: 100vh;
+  background: $bg;
+  padding-bottom: 80px;
+}
+
+// ── Hero ─────────────────────────────────────────────────────────────────────
+
+.hero {
+  background: $ai-gradient;
+  padding: 72px 24px 80px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 60% 40%, rgba(255,255,255,0.06) 0%, transparent 70%);
+  }
+}
+
+.heroEyebrow {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+  margin: 0 0 16px;
+}
+
+.heroTitle {
+  font-size: clamp(2.6rem, 5vw, 4.25rem);
+  font-weight: 900;
+  color: $white;
+  margin: 0 0 20px;
+  letter-spacing: -0.04em;
+}
+
+.heroSub {
+  font-size: 1.15rem;
+  color: rgba(255,255,255,0.7);
+  margin: 0;
+  max-width: 600px;
+  margin-inline: auto;
+  line-height: 1.75;
+}
+
+// ── Container ────────────────────────────────────────────────────────────────
+
+.container {
+  max-width: 1100px;
+  margin: -40px auto 0;
+  padding: 0 24px;
+  position: relative;
+  z-index: 1;
+}
+
+// ── Tabs ─────────────────────────────────────────────────────────────────────
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  background: $white;
+  border-radius: 16px;
+  padding: 6px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.tab {
+  flex: 1;
+  min-width: 140px;
+  height: 54px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: $muted;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.2s, color 0.2s;
+
+  &:hover { background: $bg; color: $dark; }
+}
+
+.tabActive {
+  background: $ai-gradient;
+  color: $white;
+  box-shadow: 0 6px 18px rgba(0, 82, 218, 0.3);
+}
+
+// ── Card ─────────────────────────────────────────────────────────────────────
+
+.card {
+  background: $white;
+  border-radius: 24px;
+  padding: 36px 40px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+  border: 1px solid $line;
+
+  @media (max-width: 600px) { padding: 24px 20px; }
+}
+
+.cardTitle {
+  font-size: 1.7rem;
+  font-weight: 900;
+  color: $dark;
+  margin: 0 0 8px;
+  letter-spacing: -0.03em;
+}
+
+.cardSub {
+  font-size: 1.05rem;
+  color: $muted;
+  margin: 0 0 32px;
+  line-height: 1.7;
+}
+
+// ── Form ─────────────────────────────────────────────────────────────────────
+
+.form { display: flex; flex-direction: column; gap: 20px; }
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  @media (max-width: 600px) { grid-template-columns: 1fr; }
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: $dark;
+}
+
+.input,
+.select,
+.textarea {
+  border: 1.5px solid $line;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  color: $dark;
+  outline: none;
+  background: $bg;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+
+  &::placeholder { color: #b0b8c4; }
+  &:focus { border-color: $blue; background: $white; }
+}
+
+.input, .select { height: 62px; padding: 0 18px; }
+
+.select {
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%236b7280' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+}
+
+.textarea {
+  padding: 14px 16px;
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+// ── Submit button ─────────────────────────────────────────────────────────────
+
+.submitBtn {
+  height: 64px;
+  border-radius: 16px;
+  border: none;
+  background: $ai-gradient;
+  color: $white;
+  font-size: 1.1rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 8px 24px rgba(0,82,218,0.25);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 32px rgba(0,82,218,0.35);
+  }
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+}
+
+// ── Result ────────────────────────────────────────────────────────────────────
+
+.result {
+  margin-top: 28px;
+  animation: fadeIn 0.35s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.priceCard {
+  background: $ai-gradient;
+  border-radius: 18px;
+  padding: 28px 32px;
+  color: $white;
+  margin-bottom: 24px;
+}
+
+.priceLabel {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin: 0 0 10px;
+}
+
+.priceRange {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  margin: 0 0 12px;
+}
+
+.priceReasoning {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  line-height: 1.65;
+  margin: 0;
+}
+
+.resultHeading {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: $dark;
+  margin: 0 0 16px;
+}
+
+.serviceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.serviceCard {
+  border: 1.5px solid $line;
+  border-radius: 16px;
+  padding: 20px;
+  background: $bg;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:hover { border-color: $blue; box-shadow: 0 8px 24px rgba(0,82,218,0.1); }
+}
+
+.serviceCardTitle {
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: $dark;
+  margin: 0 0 6px;
+}
+
+.serviceCardCat {
+  display: inline-flex;
+  background: rgba(0,82,218,0.1);
+  color: $blue;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 3px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.serviceCardReason {
+  font-size: 0.97rem;
+  color: $muted;
+  line-height: 1.55;
+  margin: 0 0 10px;
+}
+
+.serviceCardPrice {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: $dark;
+}
+
+.scoreBar {
+  height: 4px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  margin-top: 12px;
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: $ai-gradient;
+  }
+}
+
+.summary {
+  background: #eff4ff;
+  border: 1px solid rgba(0,82,218,0.15);
+  border-radius: 16px;
+  padding: 22px 28px;
+  margin-bottom: 24px;
+  font-size: 1.05rem;
+  color: $dark;
+  line-height: 1.7;
+}
+
+// ── Search ────────────────────────────────────────────────────────────────────
+
+.searchRow {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+
+  @media (max-width: 600px) { flex-direction: column; }
+}
+
+.searchInput {
+  flex: 1;
+  height: 64px;
+  border: 1.5px solid $line;
+  border-radius: 14px;
+  padding: 0 22px;
+  font-size: 1.08rem;
+  color: $dark;
+  background: $bg;
+  outline: none;
+  transition: border-color 0.2s;
+
+  &::placeholder { color: #b0b8c4; }
+  &:focus { border-color: $blue; background: $white; }
+}
+
+// ── Loading spinner ───────────────────────────────────────────────────────────
+
+.spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px;
+  color: $muted;
+  font-size: 0.93rem;
+
+  &::before {
+    content: '';
+    width: 22px;
+    height: 22px;
+    border: 3px solid $line;
+    border-top-color: $blue;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
