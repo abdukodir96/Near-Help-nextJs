@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { serviceItems } from './services-data';
 import { ServiceViewTracker } from './service-view-tracker';
+import { ServiceComments } from './service-comments';
 import styles from './service-detail-page.module.scss';
 
 export const ServiceDetailPageContent = ({ slug }: { slug: string }) => {
@@ -59,6 +60,8 @@ export const ServiceDetailPageContent = ({ slug }: { slug: string }) => {
                 </ul>
               </div>
             </div>
+
+            <ServiceComments serviceSlug={service.slug} initialComments={service.comments} />
           </article>
 
           <aside className={styles.sidebar}>

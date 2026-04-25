@@ -1,0 +1,263 @@
+$blue: #0052da;
+$dark: #253041;
+$muted: #5f6778;
+$line: #e8edf5;
+$white: #ffffff;
+$red: #e03131;
+$bg: #f5f8fe;
+
+.section {
+  margin-top: 48px;
+  padding-top: 40px;
+  border-top: 1px solid $line;
+}
+
+.heading {
+  margin: 0 0 28px;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: $dark;
+}
+
+// ── Comment form ────────────────────────────────────────────────────────────
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 44px;
+
+  label {
+    font-size: 1rem;
+    font-weight: 700;
+    color: $dark;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 110px;
+    border: 1.5px solid $line;
+    border-radius: 16px;
+    padding: 16px 18px;
+    font-size: 0.97rem;
+    color: $dark;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+
+    &::placeholder { color: #adb5bd; }
+    &:focus { border-color: $blue; }
+  }
+
+  button[type='submit'] {
+    align-self: flex-end;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 50px;
+    padding: 0 28px;
+    border-radius: 14px;
+    border: none;
+    background: $blue;
+    color: $white;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+
+    &:hover {
+      background: #0246b7;
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(0, 82, 218, 0.22);
+    }
+  }
+}
+
+// ── Comment list ────────────────────────────────────────────────────────────
+
+.list { display: flex; flex-direction: column; gap: 0; }
+
+.commentItem {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 18px;
+  padding: 28px 0;
+  border-bottom: 1px solid $line;
+
+  &:last-child { border-bottom: none; }
+}
+
+// ── Avatar ──────────────────────────────────────────────────────────────────
+
+.avatarWrap {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #e9ecef;
+  flex-shrink: 0;
+}
+
+.replyAvatarWrap {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #e9ecef;
+  flex-shrink: 0;
+}
+
+.avatar { object-fit: cover; }
+
+// ── Comment content ─────────────────────────────────────────────────────────
+
+.content {
+  position: relative;
+  min-width: 0;
+
+  p {
+    margin: 6px 0 0;
+    color: $muted;
+    line-height: 1.75;
+    font-size: 0.97rem;
+  }
+}
+
+.meta {
+  strong {
+    font-size: 1rem;
+    font-weight: 800;
+    color: $dark;
+  }
+}
+
+.heartBtn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: $muted;
+  padding: 4px;
+  display: inline-flex;
+  transition: color 0.2s, transform 0.15s;
+
+  &:hover { color: $red; transform: scale(1.15); }
+}
+
+.heartActive { color: $red !important; }
+
+// ── Actions row ─────────────────────────────────────────────────────────────
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 12px;
+
+  span {
+    font-size: 0.88rem;
+    color: $muted;
+    font-weight: 500;
+  }
+}
+
+.replyBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: $muted;
+  padding: 0;
+  transition: color 0.2s;
+
+  &:hover { color: $blue; }
+}
+
+// ── Reply form ──────────────────────────────────────────────────────────────
+
+.replyForm {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  textarea {
+    width: 100%;
+    min-height: 80px;
+    border: 1.5px solid $line;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 0.93rem;
+    color: $dark;
+    resize: vertical;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+
+    &::placeholder { color: #adb5bd; }
+    &:focus { border-color: $blue; }
+  }
+}
+
+.replyFormActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+
+  button {
+    height: 38px;
+    padding: 0 18px;
+    border-radius: 10px;
+    border: none;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+
+    &[type='button'] {
+      background: #f0f2f8;
+      color: $muted;
+      &:hover { background: #e2e6f0; }
+    }
+
+    &[type='submit'] {
+      background: $blue;
+      color: $white;
+      &:hover { background: #0246b7; transform: translateY(-1px); }
+    }
+  }
+}
+
+// ── Reply list ──────────────────────────────────────────────────────────────
+
+.replyList {
+  margin-top: 20px;
+  padding-left: 22px;
+  border-left: 3px solid $line;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.replyItem {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 14px;
+  padding: 20px 0;
+  border-bottom: 1px solid $line;
+
+  &:last-child { border-bottom: none; }
+}
+
+// ── Mention ─────────────────────────────────────────────────────────────────
+
+.mention {
+  color: $blue;
+  font-weight: 700;
+}
