@@ -139,7 +139,7 @@ export const SiteHeader = () => {
           isScrolled ? 'py-3.5' : 'py-5'
         }`}
       >
-        <Link prefetch={false} href="/" className="flex items-center" aria-label={common('brand')}>
+        <Link href="/" className="flex items-center" aria-label={common('brand')}>
           <Image
             src="/branding/near-help.png"
             alt={common('brand')}
@@ -158,7 +158,6 @@ export const SiteHeader = () => {
             return (
               <Link
                 key={link.href}
-                prefetch={false}
                 href={link.href}
                 className={`group relative px-3 py-2 text-[1.15rem] font-semibold transition-colors duration-300 ${
                   active ? 'text-[#0052da]' : 'text-[#253041] hover:text-[#0052da]'
@@ -177,7 +176,6 @@ export const SiteHeader = () => {
 
         <div className="hidden items-center gap-4 xl:flex">
           <Link
-            prefetch={false}
             href="/#booking"
             className={`inline-flex min-w-[11rem] items-center justify-center bg-[#0052da] px-7 text-lg font-semibold text-white transition-all duration-500 hover:-translate-y-0.5 hover:bg-[#0246b7] hover:shadow-[0_18px_30px_rgba(0,82,218,0.24)] ${
               isScrolled ? 'min-h-[3.65rem] rounded-[1.35rem]' : 'min-h-[4.25rem] rounded-2xl'
@@ -205,7 +203,6 @@ export const SiteHeader = () => {
               return (
                 <Link
                   key={link.href}
-                  prefetch={false}
                   href={link.href}
                   onClick={() => setIsOpen(false)}
                   className={`rounded-2xl px-4 py-3 text-base font-semibold transition ${
@@ -227,11 +224,10 @@ export const SiteHeader = () => {
                 className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-500"
               />
             </div>
-            <Link prefetch={false} href="/auth/login" className="text-sm font-semibold text-[#253041]">
+            <Link href="/auth/login" className="text-sm font-semibold text-[#253041]">
               {t('login')}
             </Link>
             <Link
-              prefetch={false}
               href="/auth/signup"
               className="rounded-full bg-[#0052da] px-5 py-2 text-sm font-semibold text-white"
             >
