@@ -17,7 +17,8 @@ const mainLinks = [
   { href: '/agents', key: 'agents' },
   { href: '/community', key: 'community' },
   { href: '/cs', key: 'cs' },
-  { href: '/mypage', key: 'mypage' },
+  { href: '/messages', key: 'messages', authOnly: true },
+  { href: '/mypage', key: 'mypage', authOnly: true },
 ] as const;
 
 export const SiteHeader = () => {
@@ -195,7 +196,7 @@ export const SiteHeader = () => {
 
         <nav className="hidden items-center gap-3 xl:flex">
           {mainLinks.map((link) => {
-            if (link.key === 'mypage' && !isLoggedIn) return null;
+            if ('authOnly' in link && link.authOnly && !isLoggedIn) return null;
             const active = pathname === link.href;
             return (
               <Link
@@ -276,7 +277,7 @@ export const SiteHeader = () => {
         <div className="border-t border-slate-200 bg-white px-6 py-5 xl:hidden">
           <div className="flex flex-col gap-2">
             {mainLinks.map((link) => {
-              if (link.key === 'mypage' && !isLoggedIn) return null;
+              if ('authOnly' in link && link.authOnly && !isLoggedIn) return null;
               const active = pathname === link.href;
               return (
                 <Link

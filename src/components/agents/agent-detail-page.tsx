@@ -640,7 +640,7 @@ export const AgentDetailPageContent = ({ agent }: { agent: AgentItem }) => {
 
               <div className={styles.actionRow}>
                 <AgentFollowButton />
-                <Link prefetch={false} href="/#booking" className={styles.bookButton}>
+                <Link prefetch={false} href="/booking" className={styles.bookButton}>
                   Book this agent
                 </Link>
               </div>

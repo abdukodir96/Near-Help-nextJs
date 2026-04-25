@@ -96,7 +96,7 @@ export const ServiceDetailPageContent = ({ slug }: { slug: string }) => {
             <div className={styles.sideCard}>
               <p className={styles.sideLabel}>Response timing</p>
               <h4>{service.responseTime}</h4>
-              <Link prefetch={false} href="/#booking" className={styles.ctaButton}>
+              <Link prefetch={false} href={`/booking?service=${service.slug}`} className={styles.ctaButton}>
                 Book this service
               </Link>
             </div>

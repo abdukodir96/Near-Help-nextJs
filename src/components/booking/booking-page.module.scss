@@ -1,0 +1,163 @@
+$bg: #1e2535;
+$card: #252d3d;
+$input-bg: #2e3954;
+$white: #ffffff;
+$muted: rgba(255, 255, 255, 0.5);
+$label: rgba(255, 255, 255, 0.85);
+$blue: #4a6cf7;
+$blue-hover: #3a5ce5;
+$eyebrow: #7b9cc4;
+
+// ── Page ────────────────────────────────────────────────────────────────────
+
+.page {
+  min-height: 100vh;
+  background: $bg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+}
+
+// ── Card ─────────────────────────────────────────────────────────────────────
+
+.card {
+  width: 100%;
+  max-width: 900px;
+  background: $card;
+  border-radius: 24px;
+  padding: 64px 60px 72px;
+
+  @media (max-width: 767px) { padding: 40px 24px 48px; }
+}
+
+// ── Heading ───────────────────────────────────────────────────────────────────
+
+.eyebrow {
+  margin: 0 0 14px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: $eyebrow;
+}
+
+.heading {
+  margin: 0 0 48px;
+  text-align: center;
+  font-size: clamp(1.9rem, 4vw, 3rem);
+  font-weight: 900;
+  color: $white;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+// ── Form ─────────────────────────────────────────────────────────────────────
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+
+  @media (max-width: 600px) { grid-template-columns: 1fr; }
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.label {
+  font-size: 0.93rem;
+  font-weight: 600;
+  color: $label;
+}
+
+.input,
+.select,
+.textarea {
+  background: $input-bg;
+  border: 1.5px solid transparent;
+  border-radius: 10px;
+  color: $white;
+  font-size: 0.97rem;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+
+  &::placeholder { color: $muted; }
+  &:focus { border-color: $blue; }
+}
+
+.input,
+.select {
+  height: 58px;
+  padding: 0 18px;
+}
+
+.select {
+  appearance: none;
+  cursor: pointer;
+
+  option { background: $card; color: $white; }
+}
+
+.selectWrap {
+  position: relative;
+
+  svg {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: $muted;
+  }
+}
+
+.textarea {
+  padding: 16px 18px;
+  min-height: 160px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+// ── Submit ────────────────────────────────────────────────────────────────────
+
+.submitWrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.submitBtn {
+  min-width: 260px;
+  height: 64px;
+  border-radius: 14px;
+  border: none;
+  background: $blue;
+  color: $white;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+
+  &:hover {
+    background: $blue-hover;
+    transform: translateY(-2px);
+    box-shadow: 0 14px 32px rgba(74, 108, 247, 0.35);
+  }
+
+  &:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+}
