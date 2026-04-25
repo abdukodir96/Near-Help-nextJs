@@ -2,10 +2,13 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { CaretDown, Clock, List, PhoneCall, X } from 'phosphor-react';
+import { CaretDown, Clock, List, PhoneCall, SignOut, UserCircle, X } from 'phosphor-react';
 import { useTranslations } from 'next-intl';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import Cookies from 'js-cookie';
+import Swal from 'sweetalert2';
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/auth/tokens';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
 
 const mainLinks = [
@@ -21,9 +24,14 @@ export const SiteHeader = () => {
   const t = useTranslations('navigation');
   const common = useTranslations('common');
   const pathname = usePathname();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showTopbar, setShowTopbar] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const userImage = '/theme/images/team/2.jpg';
   const lastScrollYRef = useRef(0);
   const lastToggleAtRef = useRef(0);
   const showTopbarRef = useRef(true);
@@ -93,6 +101,39 @@ export const SiteHeader = () => {
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    const checkAuth = () => setIsLoggedIn(!!Cookies.get(ACCESS_TOKEN_KEY));
+    checkAuth();
+    window.addEventListener('focus', checkAuth);
+    return () => window.removeEventListener('focus', checkAuth);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleLogout = async () => {
+    setShowDropdown(false);
+    Cookies.remove(ACCESS_TOKEN_KEY);
+    Cookies.remove(REFRESH_TOKEN_KEY);
+    setIsLoggedIn(false);
+    await Swal.fire({
+      icon: 'success',
+      title: 'Logged out',
+      text: 'You have been successfully logged out.',
+      confirmButtonColor: '#0052da',
+      timer: 1500,
+      showConfirmButton: false,
+    });
+    router.push('/');
+  };
 
   return (
     <header
@@ -175,14 +216,49 @@ export const SiteHeader = () => {
         </nav>
 
         <div className="hidden items-center gap-4 xl:flex">
-          <Link
-            href="/#booking"
-            className={`inline-flex min-w-[11rem] items-center justify-center bg-[#0052da] px-7 text-lg font-semibold text-white transition-all duration-500 hover:-translate-y-0.5 hover:bg-[#0246b7] hover:shadow-[0_18px_30px_rgba(0,82,218,0.24)] ${
-              isScrolled ? 'min-h-[3.65rem] rounded-[1.35rem]' : 'min-h-[4.25rem] rounded-2xl'
-            }`}
-          >
-            GET FREE QUOTE
-          </Link>
+          {isLoggedIn ? (
+            <div className="relative" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setShowDropdown((prev) => !prev)}
+                className={`relative overflow-hidden rounded-full border-2 border-[#0052da]/30 transition-all duration-300 hover:border-[#0052da] hover:shadow-[0_8px_24px_rgba(0,82,218,0.25)] ${
+                  isScrolled ? 'h-[3.2rem] w-[3.2rem]' : 'h-[3.7rem] w-[3.7rem]'
+                }`}
+                aria-label="User menu"
+              >
+                <Image
+                  src={userImage}
+                  alt="My profile"
+                  fill
+                  sizes="60px"
+                  className="object-cover"
+                />
+              </button>
+
+              {showDropdown && (
+                <div className="absolute right-0 top-[calc(100%+10px)] z-50 min-w-[160px] rounded-2xl border border-slate-200 bg-white py-2 shadow-[0_16px_48px_rgba(0,0,0,0.14)]">
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-3 px-5 py-3 text-[0.97rem] font-semibold text-[#253041] transition hover:bg-slate-50"
+                  >
+                    <SignOut size={20} weight="regular" className="text-[#0052da]" />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link
+              href="/auth/login"
+              className={`inline-flex items-center gap-2.5 border border-[#0052da]/20 bg-[#0052da] px-5 font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#0246b7] hover:shadow-[0_12px_28px_rgba(0,82,218,0.3)] ${
+                isScrolled ? 'min-h-[3.65rem] rounded-[1.35rem] text-base' : 'min-h-[4.25rem] rounded-2xl text-[1.05rem]'
+              }`}
+            >
+              <UserCircle size={26} weight="regular" />
+              <span>Login / Register</span>
+            </Link>
+          )}
         </div>
 
         <button

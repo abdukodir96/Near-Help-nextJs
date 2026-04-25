@@ -1,0 +1,216 @@
+$blue: #0052da;
+$dark: #1a202c;
+$muted: #6b7280;
+$line: #e5e7eb;
+$white: #ffffff;
+$error: #ef4444;
+
+// ── Layout ──────────────────────────────────────────────────────────────────
+
+.page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ── Form side ───────────────────────────────────────────────────────────────
+
+.formSide {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 48px;
+  background: $white;
+
+  @media (max-width: 600px) { padding: 48px 24px; }
+}
+
+.formBox {
+  width: 100%;
+  max-width: 460px;
+}
+
+// ── Brand ────────────────────────────────────────────────────────────────────
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.brandLogo {
+  width: auto;
+  height: 90px;
+  object-fit: contain;
+}
+
+.brandName {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: $dark;
+  letter-spacing: -0.03em;
+}
+
+// ── Heading ──────────────────────────────────────────────────────────────────
+
+.heading {
+  margin: 0 0 12px;
+  font-size: 2.6rem;
+  font-weight: 900;
+  color: $dark;
+  letter-spacing: -0.04em;
+}
+
+.subheading {
+  margin: 0 0 40px;
+  font-size: 1.08rem;
+  color: $muted;
+  line-height: 1.6;
+}
+
+// ── Form fields ──────────────────────────────────────────────────────────────
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: $dark;
+}
+
+.input {
+  height: 62px;
+  border: 1.5px solid $line;
+  border-radius: 14px;
+  padding: 0 22px;
+  font-size: 1.08rem;
+  color: $dark;
+  background: $white;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+
+  &::placeholder { color: #b0b8c4; }
+  &:focus { border-color: $blue; }
+}
+
+// ── Remember row ─────────────────────────────────────────────────────────────
+
+.rememberRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.checkLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.05rem;
+  color: $dark;
+  cursor: pointer;
+
+  input[type='checkbox'] {
+    width: 20px;
+    height: 20px;
+    accent-color: $blue;
+    cursor: pointer;
+  }
+}
+
+.forgotLink {
+  font-size: 1.05rem;
+  color: $muted;
+  text-decoration: none;
+  transition: color 0.2s;
+
+  &:hover { color: $blue; }
+}
+
+// ── Submit button ─────────────────────────────────────────────────────────────
+
+.submitBtn {
+  margin-top: 8px;
+  height: 64px;
+  width: 100%;
+  border-radius: 16px;
+  border: none;
+  background: $blue;
+  color: $white;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+
+  &:hover {
+    background: #0246b7;
+    transform: translateY(-2px);
+    box-shadow: 0 14px 32px rgba(0, 82, 218, 0.28);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+// ── Footer link ───────────────────────────────────────────────────────────────
+
+.footerText {
+  margin-top: 44px;
+  text-align: center;
+  font-size: 1.08rem;
+  color: $muted;
+
+  a {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: $dark;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    margin-left: 8px;
+    letter-spacing: -0.02em;
+    transition: color 0.2s;
+
+    &:hover { color: $blue; }
+  }
+}
+
+// ── Image side ────────────────────────────────────────────────────────────────
+
+.imageSide {
+  position: relative;
+  overflow: hidden;
+
+  @media (max-width: 900px) { display: none; }
+}
+
+.bgImage {
+  object-fit: cover;
+}
