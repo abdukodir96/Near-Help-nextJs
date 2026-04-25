@@ -1,5 +1,5 @@
-import { PagePlaceholder } from '@/components/shared/page-placeholder';
+import { MyArticles } from '@/components/mypage/my-articles';
 
 export default function MyArticlesPage() {
-  return <PagePlaceholder eyebrow="My Page / Articles" title="My articles page" description="This screen will connect to authored community content and write/update actions." />;
+  return <MyArticles />;
 }

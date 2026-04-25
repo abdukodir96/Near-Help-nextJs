@@ -12,14 +12,14 @@ import styles from './community-detail-page.module.scss';
 
 const authorAvatars: Record<string, string> = {
   Martin: '/theme/images/team/4.jpg',
-  Neo: '/theme/images/blog/blog-avater/img-1.jpg',
-  PNU: '/theme/images/blog/blog-avater/img-2.jpg',
-  Soomin: '/theme/images/blog/blog-avater/img-3.jpg',
-  'Ara Kim': '/theme/images/blog-details/comments-author/img-1.jpg',
-  'Yuna Park': '/theme/images/blog-details/comments-author/img-2.jpg',
-  'NearHelp Team': '/theme/images/blog-details/author.jpg',
-  Joon: '/theme/images/blog-details/comments-author/img-3.jpg',
-  Mina: '/theme/images/testimonial/img-2.jpg',
+  Neo: '/theme/images/team/1.jpg',
+  PNU: '/theme/images/team/3.jpg',
+  Soomin: '/theme/images/team/2.jpg',
+  'Ara Kim': '/theme/images/team/1.jpg',
+  'Yuna Park': '/theme/images/team/3.jpg',
+  'NearHelp Team': '/theme/images/team/2.jpg',
+  Joon: '/theme/images/team/1.jpg',
+  Mina: '/theme/images/team/3.jpg',
 };
 
 const authorAgentSlugs: Record<string, string> = {
@@ -76,14 +76,14 @@ const communityCommentTemplates: CommunityCommentTemplate[] = [
     author: 'Yujin Park',
     date: '2 days ago',
     message: 'This helped me understand which service option fits a same-day repair. Clear examples make the booking flow easier.',
-    avatar: '/theme/images/blog-details/comments-author/img-1.jpg',
+    avatar: '/theme/images/team/1.jpg',
     likes: 96,
     replies: [
       {
         author: 'NearHelp Team',
         date: '1 day ago',
         message: 'Thanks for sharing this. We are preparing clearer booking guidance for each service option.',
-        avatar: '/theme/images/blog-details/author.jpg',
+        avatar: '/theme/images/team/2.jpg',
         likes: 14,
       },
     ],
@@ -92,7 +92,7 @@ const communityCommentTemplates: CommunityCommentTemplate[] = [
     author: 'Noah Kim',
     date: '6 days ago',
     message: 'I like that homeowners can compare real repair experiences before choosing an agent.',
-    avatar: '/theme/images/blog-details/comments-author/img-2.jpg',
+    avatar: '/theme/images/team/3.jpg',
     likes: 78,
     replies: [],
   },
@@ -100,7 +100,7 @@ const communityCommentTemplates: CommunityCommentTemplate[] = [
     author: 'Eunji Han',
     date: '9 days ago',
     message: 'The article feels practical. It would be useful to add estimated response times for each service option later.',
-    avatar: '/theme/images/blog-details/comments-author/img-3.jpg',
+    avatar: '/theme/images/team/4.jpg',
     likes: 60,
     replies: [
       {
