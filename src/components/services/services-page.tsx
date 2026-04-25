@@ -29,7 +29,7 @@ import {
   type ServiceOption,
   type ServicePriceBand,
 } from './services-data';
-import { getLikedServices, getViewedServices, recordServiceLike, recordServiceView } from './service-interactions';
+import { getLikedServices, getViewedServices, toggleServiceLike, recordServiceView } from './service-interactions';
 import styles from './services-page.module.scss';
 
 const ITEMS_PER_PAGE = 6;
@@ -274,11 +274,16 @@ export const ServicesPageContent = () => {
       return;
     }
 
-    if (!recordServiceLike(slug)) {
-      return;
-    }
-
-    setLikedServices((current) => ({ ...current, [slug]: true }));
+    const nowLiked = toggleServiceLike(slug);
+    setLikedServices((current) => {
+      const next = { ...current };
+      if (nowLiked) {
+        next[slug] = true;
+      } else {
+        delete next[slug];
+      }
+      return next;
+    });
   };
 
   const currentSortLabel = sortChoices.find((choice) => choice.value === selectedSort)?.label ?? 'New';

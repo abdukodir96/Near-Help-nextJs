@@ -43,12 +43,13 @@ export const recordServiceView = (slug: string) => {
   return true;
 };
 
-export const recordServiceLike = (slug: string) => {
+export const toggleServiceLike = (slug: string): boolean => {
   const liked = readLookup(LIKED_SERVICES_KEY);
   if (liked[slug]) {
+    delete liked[slug];
+    writeLookup(LIKED_SERVICES_KEY, liked);
     return false;
   }
-
   liked[slug] = true;
   writeLookup(LIKED_SERVICES_KEY, liked);
   return true;

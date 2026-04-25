@@ -1,5 +1,6 @@
 import { SiteFooter } from '@/components/layout/site-footer';
 import { SiteHeader } from '@/components/layout/site-header';
+import { FloatingChat } from '@/components/chat/floating-chat';
 
 export const MainShell = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -7,6 +8,7 @@ export const MainShell = ({ children }: { children: React.ReactNode }) => {
       <SiteHeader />
       <div>{children}</div>
       <SiteFooter />
+      <FloatingChat />
     </div>
   );
 };
