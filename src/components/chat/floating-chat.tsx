@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
 import { useRouter } from 'next/navigation';
-import { X, PaperPlaneTilt, Robot, ChatCircleText } from 'phosphor-react';
+import { X, PaperPlaneTilt, Sparkle, ChatCircleText } from 'phosphor-react';
 import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
 import styles from './floating-chat.module.scss';
 
@@ -319,7 +319,7 @@ export const FloatingChat = () => {
           className={`${styles.floatBtn} ${styles.aiBtn}`}
           onClick={() => { setAiOpen((p) => !p); }}
         >
-          <Robot size={22} weight="fill" />
+          <Sparkle size={22} weight="fill" />
           AI Chat
         </button>
 
