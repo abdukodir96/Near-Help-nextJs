@@ -1,5 +1,5 @@
-import { PagePlaceholder } from '@/components/shared/page-placeholder';
+import { MyServices } from '@/components/mypage/my-services';
 
 export default function MyServicesPage() {
-  return <PagePlaceholder eyebrow="My Page / Services" title="Agent services page" description="This screen will connect to getAgentServices and service management tools." />;
+  return <MyServices />;
 }
