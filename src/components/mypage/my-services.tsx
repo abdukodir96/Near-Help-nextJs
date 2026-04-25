@@ -51,7 +51,7 @@ const sidebarSections: SidebarSection[] = [
   {
     title: 'Manage Services',
     items: [
-      { label: 'Add Service', href: '/services', icon: AddCircleOutlineRounded },
+      { label: 'Add Service', href: '/mypage/services/new', icon: AddCircleOutlineRounded },
       { label: 'My Services', href: '/mypage/services', icon: HomeWorkOutlined },
       { label: 'My Favorites', href: '/mypage/favorites', icon: FavoriteBorderRounded },
       { label: 'Recently Visited', href: '/mypage/recent', icon: HistoryOutlined },
@@ -75,6 +75,8 @@ const sidebarSections: SidebarSection[] = [
   },
 ];
 
+type ServiceStatus = 'ACTIVE' | 'INACTIVE';
+
 const myServiceRows = serviceItems.map((service, index) => ({
   ...service,
   datePublished: [
@@ -87,7 +89,7 @@ const myServiceRows = serviceItems.map((service, index) => ({
     '22 June, 2024',
     '08 August, 2024',
   ][index] ?? '01 January, 2024',
-  status: 'ACTIVE' as const,
+  status: 'ACTIVE' as ServiceStatus,
   views: [2, 1, 1, 2, 3, 1, 4, 2][index] ?? 1,
 }));
 
@@ -114,23 +116,30 @@ export const MyServices = () => {
     router.push('/auth/login');
   };
 
+  const handleEdit = (slug: string) => {
+    router.push(`/mypage/services/edit/${slug}`);
+  };
+
   const handleDelete = async (slug: string) => {
     const result = await Swal.fire({
       icon: 'warning',
-      title: 'Delete service?',
-      text: 'This action cannot be undone.',
+      title: 'Are you sure to delete this service?',
+      text: 'The service will be deactivated and hidden from listings.',
       showCancelButton: true,
       confirmButtonColor: '#ef5a3c',
       cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, delete it',
+      confirmButtonText: 'OK',
+      cancelButtonText: 'Cancel',
     });
 
     if (result.isConfirmed) {
-      setRows((prev) => prev.filter((r) => r.slug !== slug));
+      setRows((prev) =>
+        prev.map((r) => (r.slug === slug ? { ...r, status: 'INACTIVE' as ServiceStatus } : r)),
+      );
       await Swal.fire({
         icon: 'success',
-        title: 'Deleted',
-        text: 'The service has been removed.',
+        title: 'Service deactivated',
+        text: 'The service status has been changed to Inactive.',
         confirmButtonColor: '#0052da',
       });
     }
@@ -184,10 +193,12 @@ export const MyServices = () => {
                               onClick={handleLogout}
                               className={styles.sidebarAction}
                             >
-                              <span className={styles.sidebarActionIcon}>
-                                <Icon fontSize="small" />
+                              <span className={styles.sidebarLinkMain}>
+                                <span className={styles.sidebarActionIcon}>
+                                  <Icon fontSize="small" />
+                                </span>
+                                <span>{item.label}</span>
                               </span>
-                              <span>{item.label}</span>
                             </button>
                           );
                         }
@@ -248,7 +259,9 @@ export const MyServices = () => {
                         </td>
                         <td className={styles.colDate}>{row.datePublished}</td>
                         <td className={styles.colStatus}>
-                          <span className={styles.statusBadge}>{row.status}</span>
+                          <span className={`${styles.statusBadge} ${row.status === 'INACTIVE' ? styles.statusInactive : ''}`}>
+                            {row.status}
+                          </span>
                         </td>
                         <td className={styles.colView}>{row.views}</td>
                         <td className={styles.colAction}>
@@ -257,6 +270,7 @@ export const MyServices = () => {
                               type="button"
                               className={styles.editBtn}
                               aria-label={`Edit ${row.title}`}
+                              onClick={() => handleEdit(row.slug)}
                             >
                               <ModeEditOutlined fontSize="small" />
                             </button>
@@ -279,12 +293,12 @@ export const MyServices = () => {
               <div className={styles.pagination}>
                 <button
                   type="button"
-                  className={styles.pageArrow}
+                  className={styles.pagePrev}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  aria-label="Previous page"
                 >
                   <NavigateBeforeRounded fontSize="small" />
+                  <span>Prev</span>
                 </button>
 
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
@@ -300,11 +314,11 @@ export const MyServices = () => {
 
                 <button
                   type="button"
-                  className={styles.pageArrow}
+                  className={styles.pageNext}
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  aria-label="Next page"
                 >
+                  <span>Next</span>
                   <NavigateNextRounded fontSize="small" />
                 </button>
               </div>

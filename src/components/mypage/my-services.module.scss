@@ -352,6 +352,11 @@ $orange: #ef5a3c;
   text-transform: uppercase;
 }
 
+.statusInactive {
+  background: #f1f3f5;
+  color: #868e96;
+}
+
 // ── Action buttons ─────────────────────────────────────────────────────────
 
 .actionButtons {
@@ -404,49 +409,62 @@ $orange: #ef5a3c;
 
 // ── Pagination ─────────────────────────────────────────────────────────────
 
+$pagination-bg: #f0f2f8;
+$pagination-blue: #3b5bdb;
+
 .pagination {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   padding: 28px 24px 8px;
 }
 
-.pageArrow {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: 1px solid $line;
-  background: $white;
+.pagePrev,
+.pageNext {
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 999px;
+  border: none;
+  background: $pagination-bg;
+  color: $muted;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
+  font-size: 0.97rem;
+  font-weight: 600;
   cursor: pointer;
-  color: $dark;
   transition:
     background 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.15s ease;
+    color 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
 
   &:hover:not(:disabled) {
-    border-color: $dark;
+    background: darken(#f0f2f8, 5%);
+    color: $dark;
     transform: translateY(-1px);
   }
 
   &:disabled {
-    opacity: 0.35;
+    opacity: 0.4;
     cursor: not-allowed;
   }
 }
 
-.pageBtn {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: 1px solid $line;
-  background: $white;
+.pageNext {
   color: $dark;
-  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.pageBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: $pagination-bg;
+  color: $dark;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   display: inline-flex;
@@ -454,21 +472,20 @@ $orange: #ef5a3c;
   justify-content: center;
   transition:
     background 0.2s ease,
-    border-color 0.2s ease,
     color 0.2s ease,
-    transform 0.15s ease;
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
 
   &:hover:not(.pageBtnActive) {
-    border-color: $dark;
+    background: darken(#f0f2f8, 5%);
     transform: translateY(-1px);
   }
 }
 
 .pageBtnActive {
-  background: $orange;
-  border-color: $orange;
+  background: $pagination-blue;
   color: $white;
-  box-shadow: 0 8px 20px rgba(239, 90, 60, 0.3);
+  box-shadow: 0 8px 20px rgba(59, 91, 219, 0.35);
 }
 
 // ── Total count ────────────────────────────────────────────────────────────

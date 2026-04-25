@@ -222,10 +222,12 @@ export const MyPage = () => {
                               onClick={handleLogout}
                               className={styles.sidebarAction}
                             >
-                              <span className={styles.sidebarActionIcon}>
-                                <Icon fontSize="small" />
+                              <span className={styles.sidebarLinkMain}>
+                                <span className={styles.sidebarActionIcon}>
+                                  <Icon fontSize="small" />
+                                </span>
+                                <span>{item.label}</span>
                               </span>
-                              <span>{item.label}</span>
                             </button>
                           );
                         }
