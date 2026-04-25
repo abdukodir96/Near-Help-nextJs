@@ -32,7 +32,7 @@ import {
 import { getLikedServices, getViewedServices, toggleServiceLike, recordServiceView } from './service-interactions';
 import styles from './services-page.module.scss';
 
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 4;
 const compactNumberFormatter = new Intl.NumberFormat('en', {
   notation: 'compact',
   maximumFractionDigits: 1,

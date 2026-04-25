@@ -226,7 +226,10 @@ export const FloatingChat = () => {
 
           <div className={styles.messageList}>
             {messages.map((msg) => (
-              <div key={msg.id} className={styles.messageBubble}>
+              <div
+                key={msg.id}
+                className={`${styles.messageBubble} ${msg.mine ? styles.aiBubble : styles.userBubble}`}
+              >
                 <div className={styles.messageTop}>
                   <span className={styles.messageAuthor}>{msg.author}</span>
                   <span className={styles.messageTime}>{msg.time}</span>
@@ -279,7 +282,7 @@ export const FloatingChat = () => {
             {aiMessages.map((msg) => (
               <div
                 key={msg.id}
-                className={`${styles.messageBubble} ${msg.role === 'ai' ? styles.aiBubble : styles.userBubble}`}
+                className={`${styles.messageBubble} ${msg.role === 'user' ? styles.aiBubble : styles.userBubble}`}
               >
                 <div className={styles.messageTop}>
                   <span className={styles.messageAuthor}>{msg.role === 'ai' ? 'AI Assistant' : 'You'}</span>

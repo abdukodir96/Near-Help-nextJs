@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { useMutation } from '@apollo/client/react';
+import { useState, useRef, useEffect } from 'react';
+import { useMutation, useQuery, useLazyQuery } from '@apollo/client/react';
+import Cookies from 'js-cookie';
 import {
   Sparkle,
   CurrencyKrw,
@@ -16,22 +17,32 @@ import {
   SEMANTIC_SEARCH,
   GET_RECOMMENDATIONS,
   BOOKING_ASSISTANT,
+  CREATE_AI_CHAT_SESSION,
+  SEND_AI_CHAT_MESSAGE,
+  GET_AI_CHAT_SESSIONS,
+  GET_AI_CHAT_MESSAGES,
 } from './ai-queries';
 import {
   SERVICE_CATEGORIES,
   type PriceEstimate,
   type ServiceResult,
   type BookingAssistantResult,
+  type AiChatSession,
+  type AiChatMessage,
+  type AiChatSendResult,
+  type AiChatSessionsResult,
+  type AiChatMessagesResult,
 } from './ai-types';
+import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
 import styles from './ai-page.module.scss';
 
 type TabKey = 'price' | 'search' | 'recommend' | 'assistant';
 
 const tabs: { key: TabKey; label: string; icon: React.ReactNode }[] = [
-  { key: 'price',     label: 'Price Estimate',      icon: <CurrencyKrw size={18} weight="bold" /> },
-  { key: 'search',    label: 'Semantic Search',      icon: <MagnifyingGlass size={18} weight="bold" /> },
-  { key: 'recommend', label: 'Recommendations',      icon: <ListChecks size={18} weight="bold" /> },
-  { key: 'assistant', label: 'Booking Assistant',    icon: <CalendarCheck size={18} weight="bold" /> },
+  { key: 'price',     label: 'Price Estimate',   icon: <CurrencyKrw size={18} weight="bold" /> },
+  { key: 'search',    label: 'Semantic Search',   icon: <MagnifyingGlass size={18} weight="bold" /> },
+  { key: 'recommend', label: 'Recommendations',   icon: <ListChecks size={18} weight="bold" /> },
+  { key: 'assistant', label: 'Booking Assistant', icon: <CalendarCheck size={18} weight="bold" /> },
 ];
 
 const formatKRW = (n: number) =>
@@ -63,25 +74,137 @@ export const AiPage = () => {
   const [priceResult, setPriceResult] = useState<PriceEstimate | null>(null);
 
   // ── Semantic search state ─────────────────────────────────────────────────
-  const [searchQuery, setSearchQuery]   = useState('');
+  const [searchQuery, setSearchQuery]     = useState('');
   const [searchResults, setSearchResults] = useState<ServiceResult[]>([]);
 
   // ── Recommendations state ─────────────────────────────────────────────────
-  const [recForm, setRecForm] = useState({ problem: '', location: '' });
+  const [recForm, setRecForm]       = useState({ problem: '', location: '' });
   const [recResults, setRecResults] = useState<ServiceResult[]>([]);
 
   // ── Booking assistant state ───────────────────────────────────────────────
-  const [assistForm, setAssistForm] = useState({ category: '', area: '', problem: '', location: '' });
+  const [assistForm, setAssistForm]     = useState({ category: '', area: '', problem: '', location: '' });
   const [assistResult, setAssistResult] = useState<BookingAssistantResult | null>(null);
 
-  // ── Mutations ──────────────────────────────────────────────────────────────
+  // ── AI Chat state ─────────────────────────────────────────────────────────
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [localMessages, setLocalMessages]     = useState<AiChatMessage[]>([]);
+  const [chatInput, setChatInput]             = useState('');
+  const [isThinking, setIsThinking]           = useState(false);
+  const chatEndRef                            = useRef<HTMLDivElement>(null);
+  const isLoggedIn                            = Boolean(Cookies.get(ACCESS_TOKEN_KEY));
 
-  const [estimatePrice,    { loading: priceLoading }]  = useMutation(ESTIMATE_PRICE);
-  const [semanticSearch,   { loading: searchLoading }] = useMutation(SEMANTIC_SEARCH);
-  const [getRecommend,     { loading: recLoading }]    = useMutation(GET_RECOMMENDATIONS);
-  const [bookingAssistant, { loading: assistLoading }] = useMutation(BOOKING_ASSISTANT);
+  // ── Mutations ─────────────────────────────────────────────────────────────
 
-  // ── Handlers ───────────────────────────────────────────────────────────────
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [estimatePrice,    { loading: priceLoading }]  = useMutation<any>(ESTIMATE_PRICE);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [semanticSearch,   { loading: searchLoading }] = useMutation<any>(SEMANTIC_SEARCH);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [getRecommend,     { loading: recLoading }]    = useMutation<any>(GET_RECOMMENDATIONS);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [bookingAssistant, { loading: assistLoading }] = useMutation<any>(BOOKING_ASSISTANT);
+  const [createSession] = useMutation<{ createAiChatSession: AiChatSession }>(CREATE_AI_CHAT_SESSION);
+  const [sendAiMessage] = useMutation<{ sendAiChatMessage: AiChatSendResult }>(SEND_AI_CHAT_MESSAGE);
+
+  // ── Chat queries ──────────────────────────────────────────────────────────
+
+  const { data: sessionsData, refetch: refetchSessions } = useQuery<{ getAiChatSessions: AiChatSessionsResult }>(GET_AI_CHAT_SESSIONS, {
+    skip: activeTab !== 'chat' || !isLoggedIn,
+    fetchPolicy: 'network-only',
+  });
+
+  const [loadMessages, { data: messagesData }] = useLazyQuery<{ getAiChatMessages: AiChatMessagesResult }>(GET_AI_CHAT_MESSAGES, {
+    fetchPolicy: 'network-only',
+  });
+
+  useEffect(() => {
+    if (messagesData?.getAiChatMessages?.list) {
+      setLocalMessages(messagesData.getAiChatMessages.list);
+    }
+  }, [messagesData]);
+
+  const sessions: AiChatSession[] = sessionsData?.getAiChatSessions?.list ?? [];
+
+  // Auto-select first session when sessions load
+  useEffect(() => {
+    if (sessions.length > 0 && !activeSessionId) {
+      handleSelectSession(sessions[0]._id);
+    }
+  }, [sessions]);
+
+  // Auto-scroll to bottom on new messages
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [localMessages, isThinking]);
+
+  // ── Chat handlers ─────────────────────────────────────────────────────────
+
+  const handleSelectSession = (sessionId: string) => {
+    setActiveSessionId(sessionId);
+    setLocalMessages([]);
+    loadMessages({ variables: { input: { sessionId } } });
+  };
+
+  const handleNewSession = async () => {
+    const { data } = await createSession({ variables: { input: {} } });
+    if (data?.createAiChatSession) {
+      setLocalMessages([]);
+      setActiveSessionId(data.createAiChatSession._id);
+      await refetchSessions();
+    }
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const text = chatInput.trim();
+    if (!text || isThinking) return;
+
+    let sessionId = activeSessionId;
+    if (!sessionId) {
+      const { data } = await createSession({ variables: { input: {} } });
+      if (!data?.createAiChatSession) return;
+      sessionId = data.createAiChatSession._id;
+      setActiveSessionId(sessionId);
+      await refetchSessions();
+    }
+
+    setChatInput('');
+    setIsThinking(true);
+
+    const tempId = `temp-${Date.now()}`;
+    setLocalMessages((prev) => [
+      ...prev,
+      { _id: tempId, sessionId: sessionId!, memberId: '', role: 'USER', content: text, createdAt: new Date().toISOString() },
+    ]);
+
+    try {
+      const { data } = await sendAiMessage({
+        variables: { input: { sessionId, message: text } },
+      });
+
+      if (data?.sendAiChatMessage) {
+        setLocalMessages((prev) => [
+          ...prev.filter((m) => m._id !== tempId),
+          data.sendAiChatMessage.userMessage,
+          data.sendAiChatMessage.assistantMessage,
+        ]);
+        await refetchSessions();
+      }
+    } catch {
+      setLocalMessages((prev) => prev.filter((m) => m._id !== tempId));
+    } finally {
+      setIsThinking(false);
+    }
+  };
+
+  const handleChatKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      void handleSendMessage(e as unknown as React.FormEvent);
+    }
+  };
+
+  // ── Other handlers ────────────────────────────────────────────────────────
 
   const handlePriceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -196,7 +319,7 @@ export const AiPage = () => {
     }
   };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <div className={styles.page}>
@@ -474,6 +597,111 @@ export const AiPage = () => {
               </div>
             )}
           </div>
+        )}
+
+        {/* ── AI Chat ── */}
+        {activeTab === 'chat' && (
+          <>
+            {!isLoggedIn ? (
+              <div className={styles.card}>
+                <div className={styles.chatLoginPrompt}>
+                  <ChatTeardropDots size={52} weight="duotone" color="#0052da" />
+                  <h3>Login to use AI Chat</h3>
+                  <p>Start a conversation with NearHelp AI. Ask anything about home services, prices, bookings — in Korean, English, or Uzbek.</p>
+                  <Link href="/login" className={styles.loginLink}>
+                    <ArrowRight size={18} weight="bold" />
+                    Go to Login
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.chatWrap}>
+                {/* Sidebar */}
+                <aside className={styles.chatSidebar}>
+                  <button type="button" className={styles.newChatBtn} onClick={handleNewSession}>
+                    <Plus size={14} weight="bold" style={{ marginRight: 4 }} />
+                    New Chat
+                  </button>
+
+                  {sessions.map((session) => (
+                    <div
+                      key={session._id}
+                      className={`${styles.sessionItem} ${activeSessionId === session._id ? styles.sessionItemActive : ''}`}
+                      onClick={() => handleSelectSession(session._id)}
+                    >
+                      <div className={styles.sessionTitle}>
+                        {session.title ?? 'New Chat'}
+                      </div>
+                      <div className={styles.sessionMeta}>
+                        {session.messageCount} messages
+                      </div>
+                    </div>
+                  ))}
+                </aside>
+
+                {/* Chat main */}
+                <div className={styles.chatMain}>
+                  <div className={styles.messages}>
+                    {localMessages.length === 0 && !isThinking && (
+                      <div className={styles.chatEmpty}>
+                        <Sparkle size={44} weight="duotone" color="rgba(0,82,218,0.25)" />
+                        <p>Ask NearHelp AI anything</p>
+                      </div>
+                    )}
+
+                    {localMessages.map((msg) => (
+                      <div
+                        key={msg._id}
+                        className={`${styles.msgRow} ${msg.role === 'USER' ? styles.msgRowUser : ''}`}
+                      >
+                        {msg.role === 'ASSISTANT' && (
+                          <div className={styles.aiAvatar}>
+                            <Sparkle size={16} weight="fill" />
+                          </div>
+                        )}
+                        <div className={`${styles.bubble} ${msg.role === 'USER' ? styles.bubbleUser : styles.bubbleAI}`}>
+                          {msg.content}
+                        </div>
+                      </div>
+                    ))}
+
+                    {isThinking && (
+                      <div className={styles.msgRow}>
+                        <div className={styles.aiAvatar}>
+                          <Sparkle size={16} weight="fill" />
+                        </div>
+                        <div className={styles.thinkingDots}>
+                          <span /><span /><span />
+                        </div>
+                      </div>
+                    )}
+
+                    <div ref={chatEndRef} />
+                  </div>
+
+                  <form className={styles.chatInputArea} onSubmit={handleSendMessage}>
+                    <input
+                      className={styles.chatInput}
+                      placeholder="Ask anything about home services..."
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyDown={handleChatKeyDown}
+                      disabled={isThinking}
+                      autoComplete="off"
+                    />
+                    <button
+                      type="submit"
+                      className={styles.sendBtn}
+                      disabled={isThinking || !chatInput.trim()}
+                    >
+                      <PaperPlaneRight size={18} weight="fill" />
+                      Send
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
