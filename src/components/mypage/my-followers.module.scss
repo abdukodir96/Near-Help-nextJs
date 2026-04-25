@@ -1,0 +1,420 @@
+$white: #ffffff;
+$dark: #1f2937;
+$muted: #6b7280;
+$line: #d8dee8;
+$blue: #0052da;
+$black: #050505;
+$orange: #ef5a3c;
+$green: #4caf50;
+$pagination-blue: #3b5bdb;
+$pagination-bg: #f0f2f8;
+
+// ── Page shell ─────────────────────────────────────────────────────────────
+
+.page {
+  background: $white;
+  color: $dark;
+}
+
+.container {
+  width: min(100%, 1860px);
+  margin: 0 auto;
+  padding: 36px 28px 72px;
+
+  @media (max-width: 767px) {
+    padding: 24px 16px 48px;
+  }
+}
+
+.wrapper {
+  border: 1px solid $line;
+  border-radius: 28px;
+  padding: 54px 26px 56px;
+  background: $white;
+
+  @media (max-width: 1199px) {
+    padding: 34px 18px 36px;
+  }
+}
+
+.hero {
+  margin: 0 0 40px 420px;
+
+  h1 {
+    margin: 0;
+    font-size: clamp(2.6rem, 4vw, 4.25rem);
+    font-weight: 800;
+    letter-spacing: -0.06em;
+    line-height: 1.05;
+  }
+
+  @media (max-width: 1199px) {
+    margin-left: 0;
+  }
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: 390px minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+
+  @media (max-width: 1199px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ── Sidebar ────────────────────────────────────────────────────────────────
+
+.sidebarCard {
+  border: 1px solid $line;
+  border-radius: 24px;
+  background: $white;
+  box-shadow: 0 16px 48px rgba(31, 41, 55, 0.06);
+  padding: 34px 36px 30px;
+}
+
+.profileSummary {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding-bottom: 28px;
+}
+
+.summaryAvatarWrap {
+  position: relative;
+  width: 106px;
+  height: 106px;
+  flex: 0 0 106px;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.summaryAvatar { object-fit: cover; }
+
+.summaryInfo {
+  display: grid;
+  gap: 8px;
+
+  h2 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+  }
+}
+
+.summaryPhone {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.15rem;
+}
+
+.roleBadge {
+  display: inline-flex;
+  width: fit-content;
+  color: $orange;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sidebarSections { display: grid; gap: 34px; }
+
+.sidebarSection {
+  h3 {
+    margin: 0 0 18px;
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: #3d4350;
+    text-transform: uppercase;
+  }
+}
+
+.sidebarMenu { display: grid; gap: 10px; }
+
+.sidebarLink,
+.sidebarAction {
+  min-height: 58px;
+  border-radius: 18px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: $dark;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+
+  &:hover {
+    border-color: rgba(0, 82, 218, 0.15);
+    background: #f7faff;
+    transform: translateY(-1px);
+  }
+}
+
+.sidebarLinkMain {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sidebarLinkIcon,
+.sidebarActionIcon {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: $black;
+}
+
+.sidebarLinkActive {
+  background: $black;
+  color: $white;
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.16);
+
+  .sidebarLinkIcon { color: $white; }
+
+  &:hover { background: $black; border-color: $black; }
+}
+
+// ── Main area ──────────────────────────────────────────────────────────────
+
+.mainArea {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+// ── Table ──────────────────────────────────────────────────────────────────
+
+.tableWrap {
+  border: 1px solid $line;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tableHead {
+  background: #f4f6fa;
+
+  th {
+    padding: 18px 28px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: $dark;
+    text-align: left;
+  }
+}
+
+.tableRow {
+  border-top: 1px solid $line;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #fafbfc;
+  }
+
+  td {
+    padding: 22px 28px;
+    vertical-align: middle;
+  }
+}
+
+// ── Columns ────────────────────────────────────────────────────────────────
+
+.colName    { width: 26%; }
+.colDetails { width: 54%; }
+.colSub     { width: 20%; text-align: right; }
+
+// ── Name cell ──────────────────────────────────────────────────────────────
+
+.nameCell {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.avatarWrap {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  flex: 0 0 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #e9ecef;
+}
+
+.avatarImg { object-fit: cover; }
+
+.avatarFallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatarIcon {
+  font-size: 2.8rem !important;
+  color: #adb5bd;
+}
+
+.followerName {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: $dark;
+}
+
+// ── Details cell ───────────────────────────────────────────────────────────
+
+.detailsCell {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.detailItem {
+  font-size: 0.97rem;
+  color: $muted;
+  font-weight: 400;
+
+  strong {
+    color: $dark;
+    font-weight: 700;
+  }
+}
+
+.detailLikes {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.97rem;
+  font-weight: 700;
+  color: $dark;
+
+  svg {
+    color: #e03131;
+    font-size: 1.1rem !important;
+  }
+}
+
+// ── Follow button ──────────────────────────────────────────────────────────
+
+.followBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 110px;
+  height: 42px;
+  border-radius: 10px;
+  border: none;
+  background: $green;
+  color: $white;
+  font-size: 0.97rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+
+  &:hover {
+    background: darken(#4caf50, 8%);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
+  }
+}
+
+.followingBtn {
+  background: #e9ecef;
+  color: $muted;
+
+  &:hover {
+    background: #dee2e6;
+    box-shadow: none;
+    color: $dark;
+  }
+}
+
+// ── Pagination ─────────────────────────────────────────────────────────────
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.pagePrev,
+.pageNext {
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 999px;
+  border: none;
+  background: $pagination-bg;
+  color: $muted;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.97rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, transform 0.15s;
+
+  &:hover:not(:disabled) {
+    background: darken(#f0f2f8, 5%);
+    color: $dark;
+    transform: translateY(-1px);
+  }
+
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+.pageNext { color: $dark; font-weight: 700; }
+
+.pageBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: $pagination-bg;
+  color: $dark;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+
+  &:hover:not(.pageBtnActive) {
+    background: darken(#f0f2f8, 5%);
+    transform: translateY(-1px);
+  }
+}
+
+.pageBtnActive {
+  background: $pagination-blue;
+  color: $white;
+  box-shadow: 0 8px 20px rgba(59, 91, 219, 0.35);
+}
+
+// ── Total count ────────────────────────────────────────────────────────────
+
+.totalCount {
+  margin: 0;
+  text-align: center;
+  font-size: 0.97rem;
+  color: $muted;
+}

@@ -98,7 +98,30 @@ export const MyFavorites = () => {
     router.push('/auth/login');
   };
 
+  const checkAuth = async () => {
+    const token = Cookies.get(ACCESS_TOKEN_KEY);
+    if (!token) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Login required',
+        text: 'You need to be logged in to perform this action.',
+        confirmButtonText: 'Go to Login',
+        showCancelButton: true,
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#0052da',
+        cancelButtonColor: '#6b7280',
+      }).then((result) => {
+        if (result.isConfirmed) router.push('/auth/login');
+      });
+      return false;
+    }
+    return true;
+  };
+
   const handleUnfavorite = async (slug: string) => {
+    const authed = await checkAuth();
+    if (!authed) return;
+
     const result = await Swal.fire({
       icon: 'warning',
       title: 'Remove from favorites?',

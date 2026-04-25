@@ -1,5 +1,5 @@
-import { PagePlaceholder } from '@/components/shared/page-placeholder';
+import { MyRecent } from '@/components/mypage/my-recent';
 
 export default function MyRecentPage() {
-  return <PagePlaceholder eyebrow="My Page / Recent" title="Recent visits page" description="This page will connect to getVisited for recently viewed services." />;
+  return <MyRecent />;
 }
