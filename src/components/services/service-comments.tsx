@@ -128,7 +128,7 @@ export function ServiceComments({ serviceSlug, initialComments }: { serviceSlug:
   const totalCount = comments.reduce((t, c) => t + 1 + c.replies.length, 0);
 
   return (
-    <section className={styles.section}>
+    <section id="comments" className={styles.section}>
       <h2 className={styles.heading}>{totalCount} comment{totalCount !== 1 ? 's' : ''}</h2>
 
       <form className={styles.form} onSubmit={handleSubmit}>

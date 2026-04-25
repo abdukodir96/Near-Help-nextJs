@@ -16,6 +16,9 @@ import {
   X,
 } from 'phosphor-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Cookies from 'js-cookie';
+import Swal from 'sweetalert2';
+import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
 import {
   locationOptions,
   priceRangeOptions,
@@ -65,7 +68,6 @@ export const ServicesPageContent = () => {
   const [selectedSort, setSelectedSort] = useState<ServiceSort>('RECENT');
   const [currentPage, setCurrentPage] = useState(1);
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
-  const [activeCommentsSlug, setActiveCommentsSlug] = useState<string | null>(null);
   const [viewedServices, setViewedServices] = useState<Record<string, true>>({});
   const [likedServices, setLikedServices] = useState<Record<string, true>>({});
 
@@ -161,7 +163,6 @@ export const ServicesPageContent = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-    setActiveCommentsSlug(null);
   }, [searchTerm, selectedLocations, selectedServiceTypes, selectedServiceOptions, selectedPriceRange, selectedSort]);
 
   useEffect(() => {
@@ -189,7 +190,6 @@ export const ServicesPageContent = () => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsSortMenuOpen(false);
-        setActiveCommentsSlug(null);
       }
     };
 
@@ -257,7 +257,23 @@ export const ServicesPageContent = () => {
     setViewedServices((current) => ({ ...current, [slug]: true }));
   };
 
-  const handleLikeService = (slug: string) => {
+  const handleLikeService = async (slug: string) => {
+    if (!Cookies.get(ACCESS_TOKEN_KEY)) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Login required',
+        text: 'You need to be logged in to like a service.',
+        confirmButtonText: 'Go to Login',
+        showCancelButton: true,
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#0052da',
+        cancelButtonColor: '#6b7280',
+      }).then((result) => {
+        if (result.isConfirmed) router.push('/auth/login');
+      });
+      return;
+    }
+
     if (!recordServiceLike(slug)) {
       return;
     }
@@ -445,7 +461,6 @@ export const ServicesPageContent = () => {
               {visibleServices.map((service) => {
                 const viewed = Boolean(viewedServices[service.slug]);
                 const liked = Boolean(likedServices[service.slug]);
-                const commentsOpen = activeCommentsSlug === service.slug;
                 const totalViews = service.baseViews + (viewed ? 1 : 0);
                 const totalLikes = service.baseLikes + (liked ? 1 : 0);
 
@@ -501,39 +516,18 @@ export const ServicesPageContent = () => {
                             <span>{formatCompactNumber(totalLikes)}</span>
                           </button>
 
-                          <button
-                            type="button"
-                            className={`${styles.statButton} ${commentsOpen ? styles.statButtonActive : ''}`}
-                            aria-expanded={commentsOpen}
-                            aria-controls={`service-comments-${service.slug}`}
-                            aria-label={`Show comments for ${service.title}`}
-                            onClick={() => setActiveCommentsSlug((current) => (current === service.slug ? null : service.slug))}
+                          <Link
+                            prefetch={false}
+                            href={`/services/${service.slug}#comments`}
+                            className={styles.statButton}
+                            aria-label={`Go to comments for ${service.title}`}
                           >
                             <ChatCircleText size={22} weight="regular" />
                             <span>{formatCompactNumber(service.comments.length)}</span>
-                          </button>
+                          </Link>
                         </div>
                       </div>
 
-                      {commentsOpen && (
-                        <div id={`service-comments-${service.slug}`} className={styles.commentsPanel}>
-                          <div className={styles.commentsHeader}>
-                            <h3>Recent comments</h3>
-                            <span>{service.comments.length} total</span>
-                          </div>
-                          <div className={styles.commentsList}>
-                            {service.comments.map((comment) => (
-                              <article key={comment.id} className={styles.commentItem}>
-                                <div className={styles.commentMeta}>
-                                  <strong>{comment.author}</strong>
-                                  <span>{comment.date}</span>
-                                </div>
-                                <p>{comment.message}</p>
-                              </article>
-                            ))}
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </article>
                 );
