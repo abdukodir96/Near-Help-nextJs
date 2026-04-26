@@ -35,17 +35,30 @@ export const BookingPage = () => {
 
     setLoading(true);
 
+    const selectedService = serviceItems.find((s) => s.slug === service);
+
     await Swal.fire({
       icon: 'success',
-      title: 'Appointment requested!',
-      text: 'We will contact you shortly to confirm your booking.',
-      confirmButtonColor: '#4a6cf7',
-      timer: 2000,
-      showConfirmButton: false,
+      title: 'Appointment Requested!',
+      html: `
+        <div style="text-align:left;font-size:0.95rem;line-height:1.8">
+          <b>Name:</b> ${name}<br/>
+          <b>Email:</b> ${email}<br/>
+          <b>Phone:</b> ${phone}<br/>
+          <b>Service:</b> ${selectedService?.title ?? service}<br/>
+          ${message ? `<b>Message:</b> ${message}` : ''}
+        </div>
+      `,
+      confirmButtonColor: '#0052da',
+      confirmButtonText: 'OK',
     });
 
+    setName('');
+    setEmail('');
+    setPhone('');
+    setService('');
+    setMessage('');
     setLoading(false);
-    router.push('/services');
   };
 
   return (
@@ -126,7 +139,7 @@ export const BookingPage = () => {
 
           <div className={styles.submitWrap}>
             <button type="submit" className={styles.submitBtn} disabled={loading}>
-              Get an Appointment
+              Get a Booking
             </button>
           </div>
         </form>

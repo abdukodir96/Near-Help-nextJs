@@ -1,0 +1,362 @@
+$dark: #1a202c;
+$muted: #6b7280;
+$line: #e5e7eb;
+$blue: #0052da;
+$white: #ffffff;
+$bg: #f8fafc;
+
+.page { background: $white; }
+
+// ── Layout ────────────────────────────────────────────────────────────────────
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 48px;
+  align-items: start;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ── Main content ──────────────────────────────────────────────────────────────
+
+.main {}
+
+// ── Hero image ────────────────────────────────────────────────────────────────
+
+.heroWrap {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #e9ecef;
+  margin-bottom: 0;
+}
+
+.heroImage {
+  object-fit: cover;
+  object-position: center top;
+}
+
+// ── Info banner ───────────────────────────────────────────────────────────────
+
+.infoBanner {
+  background: #253041;
+  border-radius: 0 0 8px 8px;
+  padding: 24px 32px;
+  margin-bottom: 36px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  text-align: center;
+
+  @media (max-width: 600px) { grid-template-columns: 1fr; }
+}
+
+.infoItem {
+  p {
+    margin: 0 0 6px;
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.55);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+  strong {
+    font-size: 1rem;
+    font-weight: 800;
+    color: $white;
+  }
+}
+
+// ── Body ──────────────────────────────────────────────────────────────────────
+
+.title {
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 900;
+  color: $blue;
+  letter-spacing: -0.03em;
+  margin: 0 0 20px;
+}
+
+.desc {
+  font-size: 0.97rem;
+  color: $muted;
+  line-height: 1.9;
+  margin: 0 0 18px;
+}
+
+// ── Gallery ───────────────────────────────────────────────────────────────────
+
+.gallery {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 36px 0 44px;
+
+  @media (max-width: 500px) { grid-template-columns: 1fr; }
+}
+
+.galleryImgWrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #e9ecef;
+}
+
+.galleryImg {
+  object-fit: cover;
+  object-position: center center;
+}
+
+// ── Section heading ───────────────────────────────────────────────────────────
+
+.sectionTitle {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: $dark;
+  margin: 0 0 24px;
+  letter-spacing: -0.03em;
+
+  &::after {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 3px;
+    background: $blue;
+    margin-top: 10px;
+    border-radius: 2px;
+  }
+}
+
+// ── Work process ──────────────────────────────────────────────────────────────
+
+.processGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 44px;
+
+  @media (max-width: 640px) { grid-template-columns: 1fr; }
+}
+
+.processCard {
+  background: $bg;
+  border-radius: 12px;
+  padding: 24px 20px;
+  border: 1px solid $line;
+}
+
+.processIcon {
+  font-size: 1.6rem;
+  margin-bottom: 14px;
+  display: block;
+}
+
+.processCard h3 {
+  font-size: 0.97rem;
+  font-weight: 800;
+  color: $dark;
+  margin: 0 0 10px;
+}
+
+.processCard p {
+  font-size: 0.85rem;
+  color: $muted;
+  line-height: 1.7;
+  margin: 0;
+}
+
+// ── Benefits ──────────────────────────────────────────────────────────────────
+
+.benefitList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.benefitItem {
+  padding: 16px 0;
+  border-bottom: 1px solid $line;
+  font-size: 0.93rem;
+  color: $muted;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  &::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: $blue;
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+}
+
+// ── Sidebar ───────────────────────────────────────────────────────────────────
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  position: sticky;
+  top: 100px;
+}
+
+.sideWidget {
+  background: $white;
+  border: 1px solid $line;
+  border-radius: 12px;
+  padding: 24px 24px 20px;
+}
+
+.widgetTitle {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: $dark;
+  margin: 0 0 16px;
+  padding-bottom: 12px;
+  border-bottom: 3px solid $blue;
+  display: inline-block;
+}
+
+// Services list
+.servicesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.serviceLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid $line;
+  font-size: 0.93rem;
+  font-weight: 600;
+  color: $dark;
+  text-decoration: none;
+  transition: color 0.2s;
+
+  &::before {
+    content: '›';
+    color: $blue;
+    font-size: 1.2rem;
+    font-weight: 900;
+  }
+
+  &:hover { color: $blue; }
+  &:last-child { border-bottom: none; }
+}
+
+// Newsletter
+.newsletterSub {
+  font-size: 0.88rem;
+  color: $muted;
+  margin: 0 0 14px;
+}
+
+.newsletterInput {
+  width: 100%;
+  height: 44px;
+  border: 1.5px solid $line;
+  border-radius: 8px;
+  padding: 0 14px;
+  font-size: 0.9rem;
+  color: $dark;
+  margin-bottom: 10px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+
+  &::placeholder { color: #b0b8c4; }
+  &:focus { border-color: $blue; }
+}
+
+.newsletterBtn {
+  width: 100%;
+  height: 44px;
+  background: $blue;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.93rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-bottom: 10px;
+
+  &:hover { background: #0246b7; }
+}
+
+.newsletterNote {
+  font-size: 0.78rem;
+  color: $muted;
+
+  strong { color: $dark; }
+}
+
+// Instagram grid
+.instagramGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.instagramImg {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+// Help card
+.helpCard {
+  background: #253041;
+  border-radius: 12px;
+  padding: 28px 24px;
+}
+
+.helpTitle {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: $white;
+  margin: 0 0 16px;
+  letter-spacing: -0.03em;
+}
+
+.helpDesc {
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.75;
+  margin: 0 0 20px;
+}
+
+.helpBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border: 1.5px solid rgba(255,255,255,0.35);
+  border-radius: 8px;
+  color: $white;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: border-color 0.2s, background 0.2s;
+
+  &:hover {
+    border-color: $white;
+    background: rgba(255,255,255,0.08);
+  }
+}

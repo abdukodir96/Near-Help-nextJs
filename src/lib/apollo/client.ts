@@ -7,7 +7,7 @@ import { getMainDefinition } from '@apollo/client/utilities';
 import { createClient } from 'graphql-ws';
 import Cookies from 'js-cookie';
 import UploadHttpLink from 'apollo-upload-client/UploadHttpLink.mjs';
-import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/auth/tokens';
 
 const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_URL ?? 'http://localhost:3007/graphql';
 const WS_URL      = process.env.NEXT_PUBLIC_WS_URL      ?? 'ws://localhost:3007/graphql';
@@ -28,12 +28,24 @@ export const createApolloClient = () => {
     };
   });
 
-  const errorLink = onError(({ error }) => {
-    if (CombinedGraphQLErrors.is(error)) {
-      console.error('GraphQL errors:', error.errors);
-      return;
+  const errorLink = onError(({ graphQLErrors, networkError }) => {
+    if (graphQLErrors) {
+      for (const err of graphQLErrors) {
+        const msg = err.message ?? '';
+        if (
+          msg.includes('expired') ||
+          msg.includes('invalid token') ||
+          msg.includes('not provided') ||
+          msg.includes('Unauthorized')
+        ) {
+          Cookies.remove(ACCESS_TOKEN_KEY);
+          Cookies.remove(REFRESH_TOKEN_KEY);
+        } else {
+          console.error('GraphQL error:', msg);
+        }
+      }
     }
-    console.error('Network error:', error);
+    if (networkError) console.error('Network error:', networkError);
   });
 
   const wsLink = typeof window !== 'undefined'

@@ -145,7 +145,7 @@ export function CommunityPageContent() {
               <p className={styles.eyebrow}>{activeCategoryData.heading}</p>
               <h1>{activeCategoryData.description}</h1>
             </div>
-            <button type="button" className={styles.writeButton} onClick={() => router.push('/community/write')}>
+            <button type="button" className={styles.writeButton} onClick={() => router.push('/community/write')} >
               <NotePencil size={18} weight="bold" />
               Write
             </button>

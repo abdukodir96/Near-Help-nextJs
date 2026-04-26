@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import Swal from 'sweetalert2';
 import {
   ArrowRight,
   Buildings,
@@ -101,38 +102,7 @@ const statItems = [
   },
 ] as const;
 
-const projectItems = [
-  {
-    image: "/theme/images/projects/img-1.jpg",
-    title: "Luxury bathroom refresh",
-    category: "Remodeling",
-  },
-  {
-    image: "/theme/images/projects/img-2.jpg",
-    title: "Kitchen pipe rerouting",
-    category: "Plumbing",
-  },
-  {
-    image: "/theme/images/projects/img-3.jpg",
-    title: "Whole-home line upgrade",
-    category: "Water line repair",
-  },
-  {
-    image: "/theme/images/projects/img-8.jpg",
-    title: "Gas appliance installation",
-    category: "Gas line services",
-  },
-  {
-    image: "/theme/images/projects/img-9.jpg",
-    title: "After-remodel deep cleaning",
-    category: "Cleaning",
-  },
-  {
-    image: "/theme/images/projects/img-7.jpg",
-    title: "Basement utility rebuild",
-    category: "Basement plumbing",
-  },
-] as const;
+import { projectItems } from '@/components/projects/projects-data';
 
 const agentItems = [
   {
@@ -336,10 +306,48 @@ const bookingCategoryOptions: ReadonlyArray<{
 ];
 
 export const LandingPage = () => {
-  const [selectedCategory, setSelectedCategory] = useState<
-    BookingCategory | ""
-  >("");
+  const [selectedCategory,     setSelectedCategory]     = useState<BookingCategory | "">("");
   const [selectedServiceOption, setSelectedServiceOption] = useState("");
+  const [bookingName,    setBookingName]    = useState('');
+  const [bookingEmail,   setBookingEmail]   = useState('');
+  const [bookingMessage, setBookingMessage] = useState('');
+
+  const handleBookingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!bookingName.trim() || !bookingEmail.trim() || !selectedCategory || !selectedServiceOption) {
+      void Swal.fire({
+        icon: 'warning',
+        title: 'Missing fields',
+        text: 'Please fill in all required fields before submitting.',
+        confirmButtonColor: '#0052da',
+        confirmButtonText: 'OK',
+      });
+      return;
+    }
+
+    await Swal.fire({
+      icon: 'success',
+      title: 'Appointment Requested!',
+      html: `
+        <div style="text-align:left;font-size:0.95rem;line-height:1.8">
+          <b>Name:</b> ${bookingName}<br/>
+          <b>Email:</b> ${bookingEmail}<br/>
+          <b>Category:</b> ${selectedCategory}<br/>
+          <b>Option:</b> ${selectedServiceOption}<br/>
+          ${bookingMessage ? `<b>Message:</b> ${bookingMessage}` : ''}
+        </div>
+      `,
+      confirmButtonColor: '#0052da',
+      confirmButtonText: 'OK',
+    });
+
+    setBookingName('');
+    setBookingEmail('');
+    setBookingMessage('');
+    setSelectedCategory('');
+    setSelectedServiceOption('');
+  };
 
   return (
     <main className={styles.page}>
@@ -371,7 +379,7 @@ export const LandingPage = () => {
             <div className={styles.heroActions}>
               <Link
                 prefetch={false}
-                href="#booking"
+                href="/booking"
                 className={styles.primaryButton}
               >
                 BOOK ONLINE
@@ -466,16 +474,20 @@ export const LandingPage = () => {
             {serviceItems.map((item) => (
               <article key={item.title} className={styles.serviceCard}>
                 <div className={styles.serviceImageWrap}>
-                  <Image
-                    src={item.image}
-                    alt={item.title}
-                    width={520}
-                    height={360}
-                    className={styles.serviceImage}
-                  />
+                  <Link prefetch={false} href="/services" style={{ display: 'block', cursor: 'pointer' }}>
+                    <Image
+                      src={item.image}
+                      alt={item.title}
+                      width={520}
+                      height={360}
+                      className={styles.serviceImage}
+                    />
+                  </Link>
                 </div>
                 <div className={styles.serviceBody}>
-                  <h3>{item.title}</h3>
+                  <Link prefetch={false} href="/services" style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
+                    <h3>{item.title}</h3>
+                  </Link>
                   <p>{item.description}</p>
                   <Link
                     prefetch={false}
@@ -487,6 +499,16 @@ export const LandingPage = () => {
                 </div>
               </article>
             ))}
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 48 }}>
+            <Link
+              prefetch={false}
+              href="/services"
+              className={styles.primaryButton}
+            >
+              View All Services
+            </Link>
           </div>
         </div>
       </section>
@@ -535,25 +557,27 @@ export const LandingPage = () => {
           </div>
           <div className={styles.projectGrid}>
             {projectItems.map((item) => (
-              <article key={item.title} className={styles.projectCard}>
-                <Image
-                  src={item.image}
-                  alt={item.title}
-                  width={480}
-                  height={420}
-                  className={styles.projectImage}
-                />
-                <div className={styles.projectOverlay}>
-                  <p>{item.category}</p>
-                  <h3>{item.title}</h3>
-                </div>
-              </article>
+              <Link key={item.slug} href={`/projects/${item.slug}`} prefetch={false} style={{ textDecoration: 'none' }}>
+                <article className={styles.projectCard} style={{ cursor: 'pointer' }}>
+                  <Image
+                    src={item.image}
+                    alt={item.title}
+                    width={480}
+                    height={420}
+                    className={styles.projectImage}
+                  />
+                  <div className={styles.projectOverlay}>
+                    <p>{item.category}</p>
+                    <h3>{item.title}</h3>
+                  </div>
+                </article>
+              </Link>
             ))}
           </div>
           <div className={styles.projectsButtonWrap}>
             <Link
               prefetch={false}
-              href="/services"
+              href="/projects"
               className={styles.primaryCta}
             >
               View All Projects
@@ -669,58 +693,39 @@ export const LandingPage = () => {
             <div className={styles.contactFormCard}>
               <span>Online booking form</span>
               <h2>Book a trusted service visit in minutes.</h2>
-              <form className={styles.contactForm}>
+              <form className={styles.contactForm} onSubmit={handleBookingSubmit}>
                 <div className={styles.formGrid}>
-                  <input type="text" placeholder="Your full name" />
+                  <input
+                    type="text"
+                    placeholder="Your full name"
+                    value={bookingName}
+                    onChange={(e) => setBookingName(e.target.value)}
+                  />
                   <input
                     type="email"
-                    name="email"
-                    autoComplete="email"
                     placeholder="Email address"
-                    required
-                    pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
-                    onInvalid={(event) => {
-                      event.currentTarget.setCustomValidity(
-                        "Please enter a valid email address so we can confirm your booking.",
-                      );
-                    }}
-                    onInput={(event) => {
-                      event.currentTarget.setCustomValidity("");
-                    }}
+                    autoComplete="email"
+                    value={bookingEmail}
+                    onChange={(e) => setBookingEmail(e.target.value)}
                   />
                   <select
                     value={selectedCategory}
-                    name="serviceCategory"
-                    required
-                    onChange={(event) => {
-                      const nextCategory = event.currentTarget.value as
-                        | BookingCategory
-                        | "";
-                      setSelectedCategory(nextCategory);
+                    onChange={(e) => {
+                      setSelectedCategory(e.currentTarget.value as BookingCategory | "");
                       setSelectedServiceOption("");
                     }}
                   >
-                    <option value="" disabled>
-                      Service category
-                    </option>
-                    {bookingCategoryOptions.map((category) => (
-                      <option key={category.value} value={category.value}>
-                        {category.label}
-                      </option>
+                    <option value="" disabled>Service category</option>
+                    {bookingCategoryOptions.map((c) => (
+                      <option key={c.value} value={c.value}>{c.label}</option>
                     ))}
                   </select>
                   <select
                     value={selectedServiceOption}
-                    name="serviceOption"
-                    required
                     disabled={!selectedCategory}
-                    onChange={(event) => {
-                      setSelectedServiceOption(event.currentTarget.value);
-                    }}
+                    onChange={(e) => setSelectedServiceOption(e.currentTarget.value)}
                   >
-                    <option value="" disabled>
-                      Service option
-                    </option>
+                    <option value="" disabled>Service option</option>
                     <option value="STANDARD">Standard</option>
                     <option value="PREMIUM">Premium</option>
                     <option value="EMERGENCY">Emergency</option>
@@ -729,9 +734,11 @@ export const LandingPage = () => {
                 <textarea
                   rows={5}
                   placeholder="Describe the issue you need help with"
+                  value={bookingMessage}
+                  onChange={(e) => setBookingMessage(e.target.value)}
                 />
                 <button type="submit" className={styles.primaryButton}>
-                  GET A BOOKING
+                  Get a Booking
                 </button>
               </form>
             </div>

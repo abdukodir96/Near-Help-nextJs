@@ -94,7 +94,7 @@ export const ServicesPageContent = () => {
     return {};
   })();
 
-  const { data, loading, error } = useQuery<{ getServices: { list: BackendService[]; meta: { totalCount: number } } }>(
+  const { data, loading } = useQuery<{ getServices: { list: BackendService[]; meta: { totalCount: number } } }>(
     GET_SERVICES,
     {
       variables: {
@@ -343,12 +343,6 @@ export const ServicesPageContent = () => {
                 )}
               </div>
             </div>
-
-            {error && (
-              <div style={{ textAlign: 'center', padding: '40px', color: '#ef4444', background: '#fff1f0', borderRadius: 12, margin: '20px 0' }}>
-                <strong>Query error:</strong> {error.message}
-              </div>
-            )}
 
             {loading && services.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '60px 0', color: '#6b7280' }}>Loading services...</div>

@@ -1,0 +1,425 @@
+$blue: #0052da;
+$dark: #1a202c;
+$muted: #6b7280;
+$line: #e5e7eb;
+$white: #ffffff;
+$orange: #ef5a3c;
+$bg: #f8fafc;
+
+.page { background: $white; min-height: 100vh; padding: 48px 24px 80px; }
+
+.inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.heading {
+  text-align: center;
+  margin-bottom: 36px;
+
+  h1 {
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    font-weight: 900;
+    color: $dark;
+    letter-spacing: -0.04em;
+    margin: 0 0 8px;
+  }
+
+  p {
+    font-size: 1rem;
+    color: $muted;
+    margin: 0;
+  }
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 28px;
+  align-items: stretch;
+
+  @media (max-width: 900px) { grid-template-columns: 1fr; align-items: start; }
+}
+
+// ── Sidebar ───────────────────────────────────────────────────────────────────
+
+.sidebarCard {
+  border: 1px solid $line;
+  border-radius: 20px;
+  padding: 28px 24px;
+  background: $white;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  align-self: stretch;
+}
+
+.profileSummary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid $line;
+}
+
+.avatarWrap {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #e9ecef;
+}
+
+.avatar { object-fit: cover; }
+
+.profileName {
+  font-size: 1rem;
+  font-weight: 800;
+  color: $dark;
+  margin: 0 0 3px;
+}
+
+.profilePhone {
+  font-size: 0.82rem;
+  color: $muted;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 4px;
+}
+
+.roleBadge {
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: $orange;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sideSection {
+  margin-bottom: 20px;
+
+  h3 {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: $muted;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 0 0 10px;
+  }
+}
+
+.sideMenu { display: flex; flex-direction: column; gap: 4px; }
+
+.sideLink,
+.sideAction {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: $dark;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+  width: 100%;
+
+  &:hover { background: $bg; }
+}
+
+.sideLinkActive {
+  background: $dark !important;
+  color: $white;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+// ── Main form ─────────────────────────────────────────────────────────────────
+
+.formCard {
+  border: 1px solid $line;
+  border-radius: 20px;
+  background: $white;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.formTop {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-bottom: 1px solid $line;
+
+  @media (max-width: 600px) { grid-template-columns: 1fr; }
+}
+
+.fieldCol {
+  padding: 24px 28px;
+  border-right: 1px solid $line;
+
+  &:last-child { border-right: none; }
+
+  label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: $muted;
+    margin-bottom: 10px;
+    letter-spacing: 0.03em;
+  }
+}
+
+.select,
+.titleInput {
+  width: 100%;
+  height: 44px;
+  border: 1.5px solid $line;
+  border-radius: 10px;
+  padding: 0 14px;
+  font-size: 0.97rem;
+  color: $dark;
+  background: $bg;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+
+  &:focus { border-color: $blue; background: $white; }
+}
+
+.select {
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%236b7280' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-color: $bg;
+  padding-right: 36px;
+}
+
+// ── Toolbar ───────────────────────────────────────────────────────────────────
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 20px;
+  border-bottom: 1px solid $line;
+  flex-wrap: wrap;
+  background: $bg;
+}
+
+.toolbarDivider {
+  width: 1px;
+  height: 20px;
+  background: $line;
+  margin: 0 6px;
+}
+
+.toolBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: $muted;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover { background: $white; color: $dark; }
+}
+
+// ── Image preview ─────────────────────────────────────────────────────────────
+
+.imagePreview {
+  position: relative;
+  border-bottom: 1px solid $line;
+  background: $bg;
+  padding: 12px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.imagePreviewThumb {
+  position: relative;
+  width: 120px;
+  height: 80px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1.5px solid $line;
+  flex-shrink: 0;
+}
+
+.imagePreviewInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 4px;
+}
+
+.imagePreviewName {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: $dark;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+
+.imagePreviewLabel {
+  font-size: 0.78rem;
+  color: $muted;
+}
+
+.imageRemoveBtn {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.12);
+  color: $dark;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background 0.15s;
+
+  &:hover { background: rgba(239,90,60,0.15); color: $orange; }
+}
+
+.imgUploading {
+  font-size: 0.85rem;
+  color: $muted;
+  padding: 12px 20px;
+  border-bottom: 1px solid $line;
+  background: $bg;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &::before {
+    content: '';
+    width: 14px;
+    height: 14px;
+    border: 2px solid $line;
+    border-top-color: $blue;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+  }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.imgUploadBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1.5px dashed $line;
+  background: transparent;
+  color: $blue;
+  font-size: 0.83rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover { background: rgba(0,82,218,0.06); border-color: $blue; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+// ── Content textarea ──────────────────────────────────────────────────────────
+
+.contentArea {
+  flex: 1;
+  min-height: 320px;
+  width: 100%;
+  border: none;
+  padding: 24px 28px;
+  font-size: 0.97rem;
+  color: $dark;
+  line-height: 1.8;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+  font-family: inherit;
+  background: $white;
+
+  &::placeholder { color: #b0b8c4; }
+}
+
+// ── Footer ────────────────────────────────────────────────────────────────────
+
+.formFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid $line;
+  background: $bg;
+}
+
+.modeToggle {
+  display: flex;
+  gap: 4px;
+}
+
+.modeBtn {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid $line;
+  background: $white;
+  color: $muted;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover { background: #f1f5f9; }
+}
+
+.modeBtnActive {
+  background: $dark;
+  color: $white;
+  border-color: $dark;
+}
+
+.submitBtn {
+  height: 44px;
+  padding: 0 32px;
+  border-radius: 10px;
+  border: none;
+  background: $blue;
+  color: $white;
+  font-size: 0.97rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+
+  &:hover:not(:disabled) { background: #0246b7; transform: translateY(-1px); }
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+}

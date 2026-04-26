@@ -140,7 +140,7 @@ export const FloatingChat = () => {
       let sid = aiSessionId;
       if (!sid) {
         const { data: sd } = await createSession({ variables: { input: {} } });
-        if (!sd?.createAiChatSession?._id) throw new Error('Session creation failed');
+        if (!sd?.createAiChatSession?._id) throw new Error('auth');
         sid = sd.createAiChatSession._id;
         setAiSessionId(sid);
       }
@@ -157,8 +157,19 @@ export const FloatingChat = () => {
           { id: assistantMessage._id, role: 'ai',   text: assistantMessage.content, time: nowTime() },
         ]);
       }
-    } catch {
-      setAiMessages((prev) => prev.filter((m) => m.id !== tempId));
+    } catch (err) {
+      const isAuthError = err instanceof Error && err.message === 'auth';
+      setAiMessages((prev) => [
+        ...prev,
+        {
+          id: `err-${Date.now()}`,
+          role: 'ai' as const,
+          text: isAuthError
+            ? 'Session expired. Please log out and log in again to use AI chat.'
+            : 'Something went wrong. Please try again.',
+          time: nowTime(),
+        },
+      ]);
     } finally {
       setAiTyping(false);
       setTimeout(() => aiEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);

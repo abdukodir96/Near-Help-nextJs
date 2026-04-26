@@ -363,6 +363,18 @@ export const GET_ARTICLE = gql`
   }
 `;
 
+export const CREATE_ARTICLE = gql`
+  mutation CreateBoardArticle($input: ArticleInput!) {
+    createBoardArticle(input: $input) {
+      _id
+      articleTitle
+      articleCategory
+      articleStatus
+      createdAt
+    }
+  }
+`;
+
 export const LIKE_ARTICLE = gql`
   mutation LikeTargetArticle($input: LikeTargetArticleInput!) {
     likeTargetArticle(input: $input) {

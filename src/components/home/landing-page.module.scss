@@ -554,6 +554,9 @@ $gold: #f4b81c;
     font-size: 32px;
     line-height: 1.2;
     font-weight: 800;
+    transition: color 0.2s;
+
+    &:hover { color: #0052da; }
   }
 
   p {
