@@ -2,121 +2,81 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import {
-  CaretDown,
-  CaretLeft,
-  CaretRight,
-  Eye,
-  HeartStraight,
-  MagnifyingGlass,
-  UsersThree,
-} from 'phosphor-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { agentItems } from './agents-data';
+import { CaretDown, CaretLeft, CaretRight, Eye, HeartStraight, MagnifyingGlass, UsersThree } from 'phosphor-react';
+import { useEffect, useRef, useState } from 'react';
+import { useQuery } from '@apollo/client/react';
+import { GET_AGENTS } from '@/lib/graphql/queries';
 import styles from './agents-page.module.scss';
 
 const sortChoices = [
-  { value: 'RECENT', label: 'Recent' },
-  { value: 'MOST_PROJECTS', label: 'Most Jobs' },
-  { value: 'MOST_LIKED', label: 'Most Liked' },
-  { value: 'MOST_FOLLOWED', label: 'Most Followed' },
+  { value: 'RECENT',        label: 'Recent',       backendVal: 'RECENT' },
+  { value: 'MOST_LIKED',    label: 'Most Liked',   backendVal: 'MOST_LIKED' },
+  { value: 'MOST_FOLLOWED', label: 'Most Followed', backendVal: 'MOST_FOLLOWED' },
 ] as const;
 
 const AGENTS_PER_PAGE = 6;
+const compact = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
+const fmt = (n: number) => compact.format(n);
 
 type AgentSort = (typeof sortChoices)[number]['value'];
 
-const compactNumberFormatter = new Intl.NumberFormat('en', {
-  notation: 'compact',
-  maximumFractionDigits: 1,
-});
+type BackendAgent = {
+  _id: string;
+  memberNick: string;
+  memberFullName?: string;
+  memberImage?: string;
+  memberDesc?: string;
+  memberServices: number;
+  memberLikes: number;
+  memberFollowers: number;
+  memberViews: number;
+  memberComments: number;
+  memberRank: number;
+};
 
-const formatCompactNumber = (value: number) => compactNumberFormatter.format(value);
+const getAvatarUrl = (img?: string) => {
+  if (!img) return '/theme/images/team/1.jpg';
+  if (img.startsWith('http')) return img;
+  return `http://localhost:3007${img}`;
+};
 
 export const AgentsPageContent = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm,   setSearchTerm]   = useState('');
   const [selectedSort, setSelectedSort] = useState<AgentSort>('RECENT');
-  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
-  const [activePage, setActivePage] = useState(0);
-  const sortMenuRef = useRef<HTMLDivElement | null>(null);
+  const [isSortOpen,   setIsSortOpen]   = useState(false);
+  const [currentPage,  setCurrentPage]  = useState(1);
+  const sortRef = useRef<HTMLDivElement | null>(null);
+
+  const { data, loading } = useQuery<{ getAgents: { list: BackendAgent[]; meta: { totalCount: number } } }>(
+    GET_AGENTS,
+    {
+      variables: {
+        input: {
+          searchText: searchTerm.trim() || undefined,
+          sortBy:     selectedSort,
+          page:       currentPage,
+          limit:      AGENTS_PER_PAGE,
+        },
+      },
+      fetchPolicy: 'cache-and-network',
+    },
+  );
+
+  const agents     = data?.getAgents?.list ?? [];
+  const totalCount = data?.getAgents?.meta?.totalCount ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalCount / AGENTS_PER_PAGE));
+
+  useEffect(() => { setCurrentPage(1); }, [searchTerm, selectedSort]);
 
   useEffect(() => {
-    const handlePointerDown = (event: MouseEvent) => {
-      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target as Node)) {
-        setIsSortMenuOpen(false);
-      }
-    };
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsSortMenuOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handlePointerDown);
-    document.addEventListener('keydown', handleEscape);
-
-    return () => {
-      document.removeEventListener('mousedown', handlePointerDown);
-      document.removeEventListener('keydown', handleEscape);
-    };
+    const onDown = (e: MouseEvent) => { if (sortRef.current && !sortRef.current.contains(e.target as Node)) setIsSortOpen(false); };
+    const onKey  = (e: KeyboardEvent) => { if (e.key === 'Escape') setIsSortOpen(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
   }, []);
 
-  const filteredAgents = useMemo(() => {
-    const query = searchTerm.trim().toLowerCase();
-
-    const matched = agentItems.filter((agent) => {
-      if (!query) return true;
-      return (
-        agent.name.toLowerCase().includes(query) ||
-        agent.role.toLowerCase().includes(query) ||
-        agent.specialty.toLowerCase().includes(query) ||
-        agent.location.toLowerCase().includes(query)
-      );
-    });
-
-    const indexed = matched.map((agent, index) => ({ agent, index }));
-
-    indexed.sort((left, right) => {
-      if (selectedSort === 'MOST_PROJECTS') {
-        const diff = right.agent.completedProjects - left.agent.completedProjects;
-        return diff !== 0 ? diff : left.index - right.index;
-      }
-
-      if (selectedSort === 'MOST_LIKED') {
-        const diff = right.agent.likes - left.agent.likes;
-        return diff !== 0 ? diff : left.index - right.index;
-      }
-
-      if (selectedSort === 'MOST_FOLLOWED') {
-        const diff = right.agent.followers - left.agent.followers;
-        return diff !== 0 ? diff : left.index - right.index;
-      }
-
-      return left.index - right.index;
-    });
-
-    return indexed.map(({ agent }) => agent);
-  }, [searchTerm, selectedSort]);
-
-  const totalPages = Math.ceil(filteredAgents.length / AGENTS_PER_PAGE);
-
-  const visibleAgents = useMemo(() => {
-    const startIndex = activePage * AGENTS_PER_PAGE;
-    return filteredAgents.slice(startIndex, startIndex + AGENTS_PER_PAGE);
-  }, [activePage, filteredAgents]);
-
-  useEffect(() => {
-    setActivePage(0);
-  }, [searchTerm, selectedSort]);
-
-  useEffect(() => {
-    if (activePage > 0 && activePage >= totalPages) {
-      setActivePage(Math.max(totalPages - 1, 0));
-    }
-  }, [activePage, totalPages]);
-
-  const currentSortLabel = sortChoices.find((choice) => choice.value === selectedSort)?.label ?? 'Recent';
+  const currentSortLabel = sortChoices.find((c) => c.value === selectedSort)?.label ?? 'Recent';
 
   return (
     <main className={styles.page}>
@@ -128,46 +88,38 @@ export const AgentsPageContent = () => {
               <input
                 type="text"
                 value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search for an agent"
-                aria-label="Search for an agent"
               />
             </label>
 
-            <div className={styles.sortControl} ref={sortMenuRef}>
+            <div className={styles.sortControl} ref={sortRef}>
               <span className={styles.sortLabel}>Sort by</span>
               <button
                 type="button"
                 className={styles.sortButton}
                 aria-haspopup="menu"
-                aria-expanded={isSortMenuOpen}
-                onClick={() => setIsSortMenuOpen((prev) => !prev)}
+                aria-expanded={isSortOpen}
+                onClick={() => setIsSortOpen((p) => !p)}
               >
                 <span>{currentSortLabel}</span>
-                <CaretDown
-                  size={16}
-                  weight="bold"
-                  className={`${styles.sortCaret} ${isSortMenuOpen ? styles.sortCaretOpen : ''}`}
-                />
+                <CaretDown size={16} weight="bold" className={`${styles.sortCaret} ${isSortOpen ? styles.sortCaretOpen : ''}`} />
               </button>
 
-              {isSortMenuOpen && (
-                <div className={styles.sortMenu} role="menu" aria-label="Sort agents">
-                  {sortChoices.map((choice) => {
-                    const active = selectedSort === choice.value;
+              {isSortOpen && (
+                <div className={styles.sortMenu} role="menu">
+                  {sortChoices.map((c) => {
+                    const active = selectedSort === c.value;
                     return (
                       <button
-                        key={choice.value}
+                        key={c.value}
                         type="button"
                         role="menuitemradio"
                         aria-checked={active}
                         className={`${styles.sortOption} ${active ? styles.sortOptionActive : ''}`}
-                        onClick={() => {
-                          setSelectedSort(choice.value);
-                          setIsSortMenuOpen(false);
-                        }}
+                        onClick={() => { setSelectedSort(c.value); setIsSortOpen(false); }}
                       >
-                        {choice.label}
+                        {c.label}
                       </button>
                     );
                   })}
@@ -176,39 +128,47 @@ export const AgentsPageContent = () => {
             </div>
           </div>
 
-          {filteredAgents.length > 0 ? (
+          {loading && agents.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 0', color: '#6b7280' }}>Loading agents...</div>
+          ) : agents.length > 0 ? (
             <>
               <div className={styles.agentGrid}>
-                {visibleAgents.map((agent) => (
-                  <article key={agent.slug} className={styles.agentCard}>
-                    <Link prefetch={false} href={`/agents/${agent.slug}`} className={styles.imageLink}>
+                {agents.map((agent) => (
+                  <article key={agent._id} className={styles.agentCard}>
+                    <Link prefetch={false} href={`/agents/${agent._id}`} className={styles.imageLink}>
                       <div className={styles.imageWrap}>
-                        <span className={styles.jobsBadge}>{agent.completedProjects} jobs</span>
-                        <Image src={agent.image} alt={agent.name} width={320} height={400} className={styles.agentImage} />
+                        <span className={styles.jobsBadge}>{agent.memberServices} jobs</span>
+                        <Image
+                          src={getAvatarUrl(agent.memberImage)}
+                          alt={agent.memberFullName || agent.memberNick}
+                          width={320}
+                          height={400}
+                          className={styles.agentImage}
+                        />
                       </div>
                     </Link>
 
                     <div className={styles.cardBody}>
                       <h2>
-                        <Link prefetch={false} href={`/agents/${agent.slug}`}>
-                          {agent.name}
+                        <Link prefetch={false} href={`/agents/${agent._id}`}>
+                          {agent.memberFullName || agent.memberNick}
                         </Link>
                       </h2>
-                      <p className={styles.role}>{agent.role}</p>
-                      <p className={styles.specialty}>{agent.specialty}</p>
+                      <p className={styles.role}>{agent.memberNick}</p>
+                      {agent.memberDesc && <p className={styles.specialty}>{agent.memberDesc.slice(0, 60)}...</p>}
 
                       <div className={styles.cardMeta}>
                         <span className={styles.metaItem}>
                           <Eye size={18} weight="regular" />
-                          <span>{formatCompactNumber(agent.profileViews)}</span>
+                          <span>{fmt(agent.memberViews)}</span>
                         </span>
                         <span className={styles.metaItem}>
                           <HeartStraight size={18} weight="regular" />
-                          <span>{formatCompactNumber(agent.likes)}</span>
+                          <span>{fmt(agent.memberLikes)}</span>
                         </span>
                         <span className={styles.metaItem}>
                           <UsersThree size={18} weight="regular" />
-                          <span>{formatCompactNumber(agent.followers)}</span>
+                          <span>{fmt(agent.memberFollowers)}</span>
                         </span>
                       </div>
                     </div>
@@ -218,42 +178,22 @@ export const AgentsPageContent = () => {
 
               {totalPages > 1 && (
                 <div className={styles.paginationBar}>
-                  <button
-                    type="button"
-                    className={styles.paginationButton}
-                    onClick={() => setActivePage((prev) => Math.max(prev - 1, 0))}
-                    disabled={activePage === 0}
-                  >
-                    <CaretLeft size={16} weight="bold" />
-                    <span>Prev</span>
+                  <button type="button" className={styles.paginationButton} onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={currentPage === 1}>
+                    <CaretLeft size={16} weight="bold" /><span>Prev</span>
                   </button>
-
                   <div className={styles.paginationNumbers}>
-                    {Array.from({ length: totalPages }, (_, index) => {
-                      const active = index === activePage;
+                    {Array.from({ length: totalPages }, (_, i) => {
+                      const n = i + 1;
+                      const active = currentPage === n;
                       return (
-                        <button
-                          key={`agent-pagination-${index}`}
-                          type="button"
-                          className={`${styles.paginationNumber} ${active ? styles.paginationNumberActive : ''}`}
-                          onClick={() => setActivePage(index)}
-                          aria-label={`Go to page ${index + 1}`}
-                          aria-current={active ? 'page' : undefined}
-                        >
-                          {index + 1}
+                        <button key={n} type="button" className={`${styles.paginationNumber} ${active ? styles.paginationNumberActive : ''}`} onClick={() => setCurrentPage(n)} aria-current={active ? 'page' : undefined}>
+                          {n}
                         </button>
                       );
                     })}
                   </div>
-
-                  <button
-                    type="button"
-                    className={styles.paginationButton}
-                    onClick={() => setActivePage((prev) => Math.min(prev + 1, totalPages - 1))}
-                    disabled={activePage === totalPages - 1}
-                  >
-                    <span>Next</span>
-                    <CaretRight size={16} weight="bold" />
+                  <button type="button" className={styles.paginationButton} onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages}>
+                    <span>Next</span><CaretRight size={16} weight="bold" />
                   </button>
                 </div>
               )}
@@ -261,7 +201,7 @@ export const AgentsPageContent = () => {
           ) : (
             <div className={styles.emptyState}>
               <h3>No agents match your search</h3>
-              <p>Try a broader keyword such as a name, city, or specialty.</p>
+              <p>Try a broader keyword such as a name or specialty.</p>
             </div>
           )}
         </div>

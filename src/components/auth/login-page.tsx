@@ -7,17 +7,18 @@ import { ArrowRight } from 'phosphor-react';
 import { useState } from 'react';
 import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
+import { useMutation } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/auth/tokens';
+import { LOGIN } from '@/lib/graphql/queries';
 import styles from './auth-page.module.scss';
-
-const MOCK_USER = { nickname: 'Martin', password: 'damir2020' };
 
 export const LoginPage = () => {
   const router = useRouter();
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
-  const [loading, setLoading] = useState(false);
+
+  const [loginMutation, { loading }] = useMutation(LOGIN);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,47 +34,42 @@ export const LoginPage = () => {
       return;
     }
 
-    setLoading(true);
+    try {
+      const { data } = await loginMutation({
+        variables: { input: { memberNick: nickname.trim(), memberPassword: password } },
+      });
 
-    const isValid =
-      nickname.trim() === MOCK_USER.nickname &&
-      password === MOCK_USER.password;
+      if (data?.login) {
+        const { accessToken, refreshToken } = data.login;
+        const cookieOptions = remember ? { expires: 7 } : undefined;
+        Cookies.set(ACCESS_TOKEN_KEY, accessToken, cookieOptions);
+        Cookies.set(REFRESH_TOKEN_KEY, refreshToken, cookieOptions);
 
-    if (!isValid) {
-      setLoading(false);
+        await Swal.fire({
+          icon: 'success',
+          title: 'Welcome back!',
+          text: `Logged in as ${data.login.member.memberNick}.`,
+          confirmButtonColor: '#0052da',
+          timer: 1500,
+          showConfirmButton: false,
+        });
+
+        router.push('/');
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Incorrect nickname or password.';
       await Swal.fire({
         icon: 'error',
         title: 'Login failed',
-        text: 'Incorrect nickname or password. Please try again.',
+        text: message,
         confirmButtonColor: '#0052da',
         confirmButtonText: 'Try Again',
       });
-      return;
     }
-
-    const cookieOptions = remember
-      ? { expires: 7 }
-      : undefined;
-
-    Cookies.set(ACCESS_TOKEN_KEY, 'mock-access-token', cookieOptions);
-    Cookies.set(REFRESH_TOKEN_KEY, 'mock-refresh-token', cookieOptions);
-
-    await Swal.fire({
-      icon: 'success',
-      title: 'Welcome back!',
-      text: `Logged in as ${nickname}.`,
-      confirmButtonColor: '#0052da',
-      timer: 1500,
-      showConfirmButton: false,
-    });
-
-    setLoading(false);
-    router.push('/');
   };
 
   return (
     <div className={styles.page}>
-      {/* Form side */}
       <div className={styles.formSide}>
         <div className={styles.formBox}>
           <Link href="/" className={styles.brand}>
@@ -125,8 +121,8 @@ export const LoginPage = () => {
             </div>
 
             <button type="submit" className={styles.submitBtn} disabled={loading}>
-              LOGIN
-              <ArrowRight size={20} weight="bold" />
+              {loading ? 'Logging in...' : 'LOGIN'}
+              {!loading && <ArrowRight size={20} weight="bold" />}
             </button>
           </form>
 
@@ -137,16 +133,8 @@ export const LoginPage = () => {
         </div>
       </div>
 
-      {/* Image side */}
       <div className={styles.imageSide}>
-        <Image
-          src="/theme/images/contact.jpg"
-          alt="NearHelp"
-          fill
-          sizes="50vw"
-          className={styles.bgImage}
-          priority
-        />
+        <Image src="/theme/images/contact.jpg" alt="NearHelp" fill sizes="50vw" className={styles.bgImage} priority />
       </div>
     </div>
   );

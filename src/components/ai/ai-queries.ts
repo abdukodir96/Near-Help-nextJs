@@ -1,15 +1,31 @@
 import { gql } from '@apollo/client';
 
+const SERVICE_FIELDS = gql`
+  fragment ServiceFields on Service {
+    _id
+    serviceCategory
+    serviceOption
+    serviceTitle
+    servicePrice
+    serviceArea
+    serviceAddress
+    serviceViews
+    serviceLikes
+    serviceStatus
+  }
+`;
+
 // ── Price Estimation ─────────────────────────────────────────────────────────
 
 export const ESTIMATE_PRICE = gql`
-  mutation EstimatePrice($input: PriceEstimateInput!) {
-    estimatePrice(input: $input) {
-      minPrice
-      maxPrice
+  query EstimateServicePrice($input: EstimateServicePriceInput!) {
+    estimateServicePrice(input: $input) {
+      estimatedMinPrice
+      estimatedMaxPrice
       currency
-      reasoning
-      category
+      confidence
+      summary
+      disclaimer
     }
   }
 `;
@@ -17,14 +33,11 @@ export const ESTIMATE_PRICE = gql`
 // ── Semantic Search ───────────────────────────────────────────────────────────
 
 export const SEMANTIC_SEARCH = gql`
-  mutation SemanticSearch($input: SemanticSearchInput!) {
-    semanticSearch(input: $input) {
-      serviceId
-      title
-      category
-      description
-      score
-      priceLabel
+  ${SERVICE_FIELDS}
+  query SemanticSearchServices($input: SemanticSearchServicesInput!) {
+    semanticSearchServices(input: $input) {
+      list { ...ServiceFields }
+      meta { totalCount }
     }
   }
 `;
@@ -32,38 +45,35 @@ export const SEMANTIC_SEARCH = gql`
 // ── Recommendations ───────────────────────────────────────────────────────────
 
 export const GET_RECOMMENDATIONS = gql`
-  mutation GetRecommendations($input: RecommendationInput!) {
-    getRecommendations(input: $input) {
-      serviceId
-      title
-      category
-      reason
-      score
-      priceLabel
+  ${SERVICE_FIELDS}
+  query RecommendServices($input: RecommendServicesInput!) {
+    recommendServices(input: $input) {
+      list { ...ServiceFields }
+      meta { totalCount }
     }
   }
 `;
 
-// ── Booking Assistant (price + recommendations combined) ──────────────────────
+// ── Booking Assistant ─────────────────────────────────────────────────────────
 
 export const BOOKING_ASSISTANT = gql`
-  mutation BookingAssistant($input: BookingAssistantInput!) {
-    bookingAssistant(input: $input) {
+  ${SERVICE_FIELDS}
+  query RecommendAndEstimateServices($input: RecommendAndEstimateServicesInput!) {
+    recommendAndEstimateServices(input: $input) {
       priceEstimate {
-        minPrice
-        maxPrice
+        estimatedMinPrice
+        estimatedMaxPrice
         currency
-        reasoning
+        confidence
+        summary
+        disclaimer
       }
-      recommendations {
-        serviceId
-        title
-        category
-        reason
-        score
-        priceLabel
+      recommendedServices {
+        list { ...ServiceFields }
+        meta { totalCount }
       }
       summary
+      nextAction
     }
   }
 `;

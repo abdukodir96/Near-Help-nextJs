@@ -28,7 +28,8 @@ import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
 import { useState } from 'react';
 import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/auth/tokens';
-import { serviceItems } from '@/components/services/services-data';
+import { useQuery, useMutation } from '@apollo/client/react';
+import { GET_FAVORITES, LIKE_SERVICE } from '@/lib/graphql/queries';
 import styles from './my-favorites.module.scss';
 
 type SidebarItem = {
@@ -77,19 +78,35 @@ const sidebarSections: SidebarSection[] = [
 const TOP_LIKES_THRESHOLD = 20;
 const ITEMS_PER_PAGE = 6;
 
-const initialFavorites = serviceItems.map((s) => ({
-  ...s,
-  liked: true,
-}));
+type BackendService = {
+  _id: string; serviceCategory: string; serviceOption: string; serviceTitle: string;
+  servicePrice: number; serviceViews: number; serviceLikes: number; serviceArea?: string;
+  serviceImages?: string[]; serviceDesc?: string; memberData?: { memberNick: string };
+};
+
+const getImageUrl = (images?: string[]) => {
+  if (!images?.length) return '/theme/images/service/1.jpg';
+  const img = images[0];
+  if (img.startsWith('http')) return img;
+  return `http://localhost:3007${img}`;
+};
 
 export const MyFavorites = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const [favorites, setFavorites] = useState(initialFavorites);
   const [page, setPage] = useState(1);
 
-  const totalPages = Math.ceil(favorites.length / ITEMS_PER_PAGE);
-  const pageItems = favorites.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const { data, refetch } = useQuery<{ getFavorites: { list: BackendService[]; meta: { totalCount: number } } }>(GET_FAVORITES, {
+    variables: { input: { page, limit: ITEMS_PER_PAGE } },
+    fetchPolicy: 'cache-and-network',
+  });
+
+  const favorites = data?.getFavorites?.list ?? [];
+  const totalCount = data?.getFavorites?.meta?.totalCount ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
+  const pageItems = favorites;
+
+  const [unlikeService] = useMutation(LIKE_SERVICE);
 
   const handleLogout = async () => {
     Cookies.remove(ACCESS_TOKEN_KEY);
@@ -118,7 +135,7 @@ export const MyFavorites = () => {
     return true;
   };
 
-  const handleUnfavorite = async (slug: string) => {
+  const handleUnfavorite = async (id: string) => {
     const authed = await checkAuth();
     if (!authed) return;
 
@@ -134,7 +151,8 @@ export const MyFavorites = () => {
     });
 
     if (result.isConfirmed) {
-      setFavorites((prev) => prev.filter((f) => f.slug !== slug));
+      await unlikeService({ variables: { input: { likeRefId: id } } }).catch(() => {});
+      refetch();
       if (pageItems.length === 1 && page > 1) setPage((p) => p - 1);
     }
   };
@@ -210,15 +228,14 @@ export const MyFavorites = () => {
               ) : (
                 <>
                   <div className={styles.cardGrid}>
-                    {pageItems.map((item) => {
-                      const isTop = item.baseLikes >= TOP_LIKES_THRESHOLD;
+                    {(pageItems as BackendService[]).map((item) => {
+                      const isTop = item.serviceLikes >= TOP_LIKES_THRESHOLD;
                       return (
-                        <article key={item.slug} className={styles.card}>
-                          {/* Image */}
+                        <article key={item._id} className={styles.card}>
                           <div className={styles.cardImageWrap}>
                             <Image
-                              src={item.image}
-                              alt={item.title}
+                              src={getImageUrl(item.serviceImages)}
+                              alt={item.serviceTitle}
                               fill
                               sizes="(max-width:768px) 100vw, 33vw"
                               className={styles.cardImage}
@@ -228,53 +245,42 @@ export const MyFavorites = () => {
                                 <BoltRounded fontSize="inherit" /> TOP
                               </span>
                             )}
-                            <span className={styles.priceBadge}>{item.priceLabel}</span>
+                            <span className={styles.priceBadge}>₩{Math.round(item.servicePrice / 1000)}k</span>
                           </div>
 
-                          {/* Body */}
                           <div className={styles.cardBody}>
-                            <h3 className={styles.cardTitle}>{item.title}</h3>
-                            <p className={styles.cardLocation}>
-                              <PlaceOutlined fontSize="small" />
-                              {item.locations.slice(0, 2).join(', ')}
-                              {item.locations.length > 2 && ` +${item.locations.length - 2}`}
-                            </p>
+                            <h3 className={styles.cardTitle}>{item.serviceTitle}</h3>
+                            {item.serviceArea && (
+                              <p className={styles.cardLocation}>
+                                <PlaceOutlined fontSize="small" />
+                                {item.serviceArea}
+                              </p>
+                            )}
 
-                            {/* Stats */}
                             <div className={styles.statsRow}>
                               <span className={styles.stat}>
-                                <AccessTimeOutlined fontSize="small" />
-                                <span>{item.responseTime.split('/')[0].trim()}</span>
-                              </span>
-                              <span className={styles.statDivider} />
-                              <span className={styles.stat}>
                                 <PlaceOutlined fontSize="small" />
-                                <span>{item.locations.length} location{item.locations.length > 1 ? 's' : ''}</span>
+                                <span>{item.serviceOption}</span>
                               </span>
                               <span className={styles.statDivider} />
                               <span className={styles.stat}>
                                 <VisibilityOutlined fontSize="small" />
-                                <span>{item.baseViews}</span>
+                                <span>{item.serviceViews}</span>
                               </span>
                             </div>
 
-                            {/* Footer: comments | views + likes */}
                             <div className={styles.cardActions}>
-                              <span className={styles.commentCount}>
-                                <ChatBubbleOutlineRounded fontSize="small" />
-                                {item.comments.length}
+                              <span className={styles.viewCount}>
+                                <VisibilityOutlined fontSize="small" />
+                                {item.serviceViews}
                               </span>
-                                <span className={styles.viewCount}>
-                                  <VisibilityOutlined fontSize="small" />
-                                  {item.baseViews}
-                                </span>
-                                <button
-                                  type="button"
-                                  className={styles.heartBtn}
-                                  onClick={() => handleUnfavorite(item.slug)}
-                                  aria-label="Remove from favorites"
-                                >
-                                  <FavoriteRounded fontSize="small" />
+                              <button
+                                type="button"
+                                className={styles.heartBtn}
+                                onClick={() => handleUnfavorite(item._id)}
+                                aria-label="Remove from favorites"
+                              >
+                                <FavoriteRounded fontSize="small" />
                                   <span>{item.baseLikes}</span>
                                 </button>
                             </div>

@@ -7,40 +7,83 @@ import { Eye, Heart, NotePencil, Sparkle } from 'phosphor-react';
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { useMemo, useState } from 'react';
 import Swal from 'sweetalert2';
+import { useQuery, useMutation } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
-import { communityCategories, communityPosts, type CommunityCategoryKey } from './community-data';
+import { GET_ARTICLES, LIKE_ARTICLE } from '@/lib/graphql/queries';
+import { communityCategories, type CommunityCategoryKey } from './community-data';
 import styles from './community-page.module.scss';
+
+type BackendArticle = {
+  _id: string;
+  articleCategory: string;
+  articleTitle: string;
+  articleContent: string;
+  articleImage?: string;
+  articleViews: number;
+  articleLikes: number;
+  articleComments: number;
+  meLiked?: boolean;
+  createdAt: string;
+  memberData?: { _id: string; memberNick: string; memberFullName?: string; memberImage?: string };
+};
+
+const categoryMap: Record<CommunityCategoryKey, string> = {
+  'free-board':    'FREE',
+  'recommendation': 'RECOMMEND',
+  'news':          'NEWS',
+  'humor':         'HUMOR',
+};
+
+const getImageUrl = (img?: string) => {
+  if (!img) return '/theme/images/blog/img-1.jpg';
+  if (img.startsWith('http')) return img;
+  return `http://localhost:3007${img}`;
+};
+
+const formatDate = (iso: string) => {
+  const d = new Date(iso);
+  return {
+    month: d.toLocaleString('en', { month: 'long' }),
+    day:   d.getDate().toString(),
+  };
+};
 
 export function CommunityPageContent() {
   const router = useRouter();
   const [activeCategory, setActiveCategory] = useState<CommunityCategoryKey>('free-board');
-  const [likedPostIds, setLikedPostIds] = useState<string[]>([]);
+  const [likedMap,       setLikedMap]       = useState<Record<string, boolean>>({});
 
   const activeCategoryData = useMemo(
-    () => communityCategories.find((category) => category.key === activeCategory) ?? communityCategories[0],
+    () => communityCategories.find((c) => c.key === activeCategory) ?? communityCategories[0],
     [activeCategory],
   );
 
-  const filteredPosts = useMemo(
-    () => communityPosts.filter((post) => post.category === activeCategory),
-    [activeCategory],
+  const { data, loading } = useQuery<{ getArticles: { list: BackendArticle[]; metaCounter: { total: number }[] } }>(
+    GET_ARTICLES,
+    {
+      variables: {
+        input: {
+          page:  1,
+          limit: 12,
+          search: { articleCategory: categoryMap[activeCategory] },
+        },
+      },
+      fetchPolicy: 'cache-and-network',
+    },
   );
 
-  const openPost = (postId: string) => {
-    router.push(`/community/${postId}`);
-  };
+  const articles = data?.getArticles?.list ?? [];
 
-  const handlePostKeyDown = (event: KeyboardEvent<HTMLElement>, postId: string) => {
+  const [likeArticle] = useMutation(LIKE_ARTICLE);
+
+  const openPost = (id: string) => router.push(`/community/${id}`);
+
+  const handlePostKeyDown = (event: KeyboardEvent<HTMLElement>, id: string) => {
     if ((event.target as HTMLElement).closest('button')) return;
-
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      openPost(postId);
-    }
+    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openPost(id); }
   };
 
-  const handlePostLike = async (event: MouseEvent<HTMLButtonElement>, postId: string) => {
-    event.preventDefault();
+  const handlePostLike = async (event: MouseEvent, id: string) => {
     event.stopPropagation();
 
     if (!Cookies.get(ACCESS_TOKEN_KEY)) {
@@ -54,9 +97,12 @@ export function CommunityPageContent() {
       return;
     }
 
-    setLikedPostIds((currentIds) =>
-      currentIds.includes(postId) ? currentIds.filter((currentId) => currentId !== postId) : [...currentIds, postId],
-    );
+    try {
+      const { data: res } = await likeArticle({ variables: { input: { likeRefId: id } } });
+      if (res?.likeTargetArticle) {
+        setLikedMap((prev) => ({ ...prev, [id]: res.likeTargetArticle.myFavorite }));
+      }
+    } catch { /* silently fail */ }
   };
 
   return (
@@ -69,7 +115,6 @@ export function CommunityPageContent() {
                 <Sparkle size={34} weight="duotone" />
                 <span>NearHelp</span>
               </div>
-
               <div className={styles.brandCopy}>
                 <strong>NearHelp</strong>
                 <span>Community</span>
@@ -79,7 +124,6 @@ export function CommunityPageContent() {
             <div className={styles.categoryList}>
               {communityCategories.map((category) => {
                 const active = category.key === activeCategory;
-
                 return (
                   <button
                     key={category.key}
@@ -101,63 +145,73 @@ export function CommunityPageContent() {
               <p className={styles.eyebrow}>{activeCategoryData.heading}</p>
               <h1>{activeCategoryData.description}</h1>
             </div>
-
-            <button type="button" className={styles.writeButton}>
+            <button type="button" className={styles.writeButton} onClick={() => router.push('/community/write')}>
               <NotePencil size={18} weight="bold" />
               Write
             </button>
           </div>
 
-          <div className={styles.grid}>
-            {filteredPosts.map((post) => {
-              const liked = likedPostIds.includes(post.id);
-              const likeCount = post.likes + (liked ? 1 : 0);
+          {loading && articles.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 0', color: '#6b7280' }}>Loading posts...</div>
+          ) : (
+            <div className={styles.grid}>
+              {articles.map((article) => {
+                const liked     = likedMap[article._id] ?? article.meLiked ?? false;
+                const likeCount = article.articleLikes + (liked && !article.meLiked ? 1 : 0);
+                const { month, day } = formatDate(article.createdAt);
 
-              return (
-                <article
-                  key={post.id}
-                  className={styles.postCard}
-                  role="link"
-                  tabIndex={0}
-                  aria-label={`Open ${post.title}`}
-                  onClick={() => openPost(post.id)}
-                  onKeyDown={(event) => handlePostKeyDown(event, post.id)}
-                >
-                  <div className={styles.imageWrap}>
-                    <Image src={post.image} alt={post.title} fill sizes="(max-width: 767px) 100vw, (max-width: 1180px) 50vw, 33vw" className={styles.image} />
-                    <div className={styles.dateBadge}>
-                      <span>{post.month}</span>
-                      <strong>{post.day}</strong>
+                return (
+                  <article
+                    key={article._id}
+                    className={styles.postCard}
+                    role="link"
+                    tabIndex={0}
+                    aria-label={`Open ${article.articleTitle}`}
+                    onClick={() => openPost(article._id)}
+                    onKeyDown={(e) => handlePostKeyDown(e, article._id)}
+                  >
+                    <div className={styles.imageWrap}>
+                      <Image
+                        src={getImageUrl(article.articleImage)}
+                        alt={article.articleTitle}
+                        fill
+                        sizes="(max-width: 767px) 100vw, (max-width: 1180px) 50vw, 33vw"
+                        className={styles.image}
+                      />
+                      <div className={styles.dateBadge}>
+                        <span>{month}</span>
+                        <strong>{day}</strong>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className={styles.postBody}>
-                    <div className={styles.postHead}>
-                      <h2 className={styles.postTitle}>{post.title}</h2>
-                      <p>{post.excerpt}</p>
-                    </div>
+                    <div className={styles.postBody}>
+                      <div className={styles.postHead}>
+                        <h2 className={styles.postTitle}>{article.articleTitle}</h2>
+                        <p>{article.articleContent.slice(0, 100)}...</p>
+                      </div>
 
-                    <div className={styles.statsRow}>
-                      <span>
-                        <Eye size={22} weight="duotone" />
-                        {post.views}
-                      </span>
-                      <button
-                        type="button"
-                        className={`${styles.likeButton} ${liked ? styles.likeButtonActive : ''}`}
-                        aria-label={`Like ${post.title}`}
-                        aria-pressed={liked}
-                        onClick={(event) => handlePostLike(event, post.id)}
-                      >
-                        <Heart size={22} weight={liked ? 'fill' : 'regular'} />
-                        {likeCount}
-                      </button>
+                      <div className={styles.statsRow}>
+                        <span>
+                          <Eye size={22} weight="duotone" />
+                          {article.articleViews}
+                        </span>
+                        <button
+                          type="button"
+                          className={`${styles.likeButton} ${liked ? styles.likeButtonActive : ''}`}
+                          aria-label={`Like ${article.articleTitle}`}
+                          aria-pressed={liked}
+                          onClick={(e) => handlePostLike(e, article._id)}
+                        >
+                          <Heart size={22} weight={liked ? 'fill' : 'regular'} />
+                          {likeCount}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
         </section>
       </div>
     </main>

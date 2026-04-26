@@ -1,41 +1,62 @@
+// ── Enums (must match backend exactly) ───────────────────────────────────────
+
+export const SERVICE_CATEGORIES = [
+  'PLUMBING',
+  'GAS_LINE',
+  'ELECTRICITY',
+  'WATER_LINE',
+  'BATHROOM_PLUMBING',
+  'BASEMENT_PLUMBING',
+  'REMODELING',
+  'CLEANING',
+] as const;
+
+export const SERVICE_OPTIONS = ['STANDARD', 'PREMIUM', 'EMERGENCY'] as const;
+
+export const SERVICE_LOCATIONS = [
+  'SEOUL', 'BUSAN', 'INCHEON', 'DAEGU',
+  'GYEONGJU', 'GWANGJU', 'JEONJU', 'DAEJON', 'JEJU',
+] as const;
+
+export type ServiceCategory = typeof SERVICE_CATEGORIES[number];
+export type ServiceOption   = typeof SERVICE_OPTIONS[number];
+export type ServiceLocation = typeof SERVICE_LOCATIONS[number];
+
+// ── Backend DTOs ──────────────────────────────────────────────────────────────
+
 export type PriceEstimate = {
-  minPrice: number;
-  maxPrice: number;
+  estimatedMinPrice: number;
+  estimatedMaxPrice: number;
   currency: string;
-  reasoning: string;
-  category: string;
+  confidence: number;
+  summary: string;
+  disclaimer: string;
 };
 
-export type ServiceResult = {
-  serviceId: string;
-  title: string;
-  category: string;
-  description?: string;
-  reason?: string;
-  score: number;
-  priceLabel: string;
+export type ServiceItem = {
+  _id: string;
+  serviceCategory: ServiceCategory;
+  serviceOption: ServiceOption;
+  serviceTitle: string;
+  servicePrice: number;
+  serviceArea?: ServiceLocation;
+  serviceAddress: string;
+  serviceViews: number;
+  serviceLikes: number;
+  serviceStatus: string;
+};
+
+export type ServicesResult = {
+  list: ServiceItem[];
+  meta: { totalCount: number };
 };
 
 export type BookingAssistantResult = {
   priceEstimate: PriceEstimate;
-  recommendations: ServiceResult[];
+  recommendedServices: ServicesResult;
   summary: string;
+  nextAction: string;
 };
-
-export const SERVICE_CATEGORIES = [
-  'PLUMBING',
-  'ELECTRICAL',
-  'GAS',
-  'CLEANING',
-  'RENOVATION',
-  'HVAC',
-  'PAINTING',
-  'CARPENTRY',
-  'ROOFING',
-  'LANDSCAPING',
-] as const;
-
-export type ServiceCategory = typeof SERVICE_CATEGORIES[number];
 
 // ── AI Chat ───────────────────────────────────────────────────────────────────
 
