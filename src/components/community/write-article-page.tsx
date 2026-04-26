@@ -78,9 +78,9 @@ export const WriteArticlePage = () => {
   const [content,  setContent]  = useState('');
 
   // Image upload state
-  const [imageUrl,      setImageUrl]      = useState<string | null>(null);
+  const [imageUrl,      setImageUrl]      = useState<string | null>(null); // relative path for backend
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null); // full URL for display
   const [imageName,     setImageName]     = useState<string | null>(null);
-  const [imagePreview,  setImagePreview]  = useState<string | null>(null);
   const [imgUploading,  setImgUploading]  = useState(false);
   const imgInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -106,6 +106,11 @@ export const WriteArticlePage = () => {
     e.target.value = '';
     if (!file) return;
 
+    if (!Cookies.get(ACCESS_TOKEN_KEY)) {
+      await Swal.fire({ icon: 'warning', title: 'Login required', text: 'Please log in to upload images.', confirmButtonColor: '#0052da' });
+      return;
+    }
+
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
       await Swal.fire({ icon: 'error', title: 'Invalid format', text: 'Please upload JPG, PNG or WebP.', confirmButtonColor: '#0052da' });
       return;
@@ -116,30 +121,36 @@ export const WriteArticlePage = () => {
       return;
     }
 
-    // Local preview
     const localPreview = URL.createObjectURL(file);
-    setImagePreview(localPreview);
+    setImagePreviewUrl(localPreview);
     setImageName(file.name);
     setImgUploading(true);
 
     try {
-      const { data } = await uploadImage({ variables: { file } });
+      const { data, errors } = await uploadImage({ variables: { file } });
+
+      if (errors?.length) throw new Error(errors[0].message);
+
       if (data?.uploadSingleImage?.url) {
-        setImageUrl(data.uploadSingleImage.url);
+        const relativePath = data.uploadSingleImage.url; // e.g. /uploads/images/.../file.jpg
+        setImageUrl(relativePath);                        // send to backend as-is
+        setImagePreviewUrl(`http://localhost:3007${relativePath}`); // show in browser
+      } else {
+        throw new Error('Upload returned no URL');
       }
-    } catch {
-      setImagePreview(null);
+    } catch (err: unknown) {
+      setImagePreviewUrl(null);
       setImageName(null);
       URL.revokeObjectURL(localPreview);
-      await Swal.fire({ icon: 'error', title: 'Upload failed', text: 'Could not upload image. Try again.', confirmButtonColor: '#0052da' });
+      const msg = err instanceof Error ? err.message : 'Could not upload image. Try again.';
+      await Swal.fire({ icon: 'error', title: 'Upload failed', text: msg, confirmButtonColor: '#0052da' });
     } finally {
       setImgUploading(false);
     }
   };
 
   const removeImage = () => {
-    if (imagePreview) URL.revokeObjectURL(imagePreview);
-    setImagePreview(null);
+    setImagePreviewUrl(null);
     setImageUrl(null);
     setImageName(null);
   };
@@ -318,11 +329,11 @@ export const WriteArticlePage = () => {
             )}
 
             {/* Image preview */}
-            {imagePreview && !imgUploading && (
+            {imagePreviewUrl && !imgUploading && (
               <div className={styles.imagePreview}>
                 <div className={styles.imagePreviewThumb}>
                   <Image
-                    src={imagePreview.startsWith('blob:') ? imagePreview : `${BACKEND_URL}${imagePreview}`}
+                    src={imagePreviewUrl}
                     alt="preview"
                     fill
                     sizes="120px"
