@@ -364,8 +364,8 @@ export const GET_ARTICLE = gql`
 `;
 
 export const CREATE_ARTICLE = gql`
-  mutation CreateBoardArticle($input: ArticleInput!) {
-    createBoardArticle(input: $input) {
+  mutation CreateArticle($input: ArticleInput!) {
+    createArticle(input: $input) {
       _id
       articleTitle
       articleCategory

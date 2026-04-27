@@ -84,7 +84,8 @@ export const WriteArticlePage = () => {
   const [imgUploading,  setImgUploading]  = useState(false);
   const imgInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [createArticle, { loading }]   = useMutation(CREATE_ARTICLE);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [createArticle, { loading }]   = useMutation<any>(CREATE_ARTICLE);
   const [uploadImage]                  = useMutation<{ uploadSingleImage: { url: string; filename: string } }>(UPLOAD_IMAGE);
 
   const handleLogout = async () => {
@@ -127,11 +128,10 @@ export const WriteArticlePage = () => {
     setImgUploading(true);
 
     try {
-      const { data, errors } = await uploadImage({ variables: { file } });
+      const result = await uploadImage({ variables: { file } });
 
-      if (errors?.length) throw new Error(errors[0].message);
-
-      if (data?.uploadSingleImage?.url) {
+      if (result.data?.uploadSingleImage?.url) {
+        const data = result.data;
         const relativePath = data.uploadSingleImage.url; // e.g. /uploads/images/.../file.jpg
         setImageUrl(relativePath);                        // send to backend as-is
         setImagePreviewUrl(`http://localhost:3007${relativePath}`); // show in browser
@@ -190,7 +190,7 @@ export const WriteArticlePage = () => {
         },
       });
 
-      if (data?.createBoardArticle) {
+      if (data?.createArticle) {
         await Swal.fire({
           icon: 'success',
           title: 'Article published!',

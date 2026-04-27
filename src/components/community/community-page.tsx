@@ -117,7 +117,7 @@ export function CommunityPageContent() {
               </div>
               <div className={styles.brandCopy}>
                 <strong>NearHelp</strong>
-                <span>Community</span>
+                <span>Blog</span>
               </div>
             </div>
 

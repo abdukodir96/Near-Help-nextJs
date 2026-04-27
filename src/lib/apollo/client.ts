@@ -23,29 +23,24 @@ export const createApolloClient = () => {
     return {
       headers: {
         ...headers,
+        'apollo-require-preflight': 'true',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     };
   });
 
-  const errorLink = onError(({ graphQLErrors, networkError }) => {
-    if (graphQLErrors) {
-      for (const err of graphQLErrors) {
+  const errorLink = onError(({ error }) => {
+    if (CombinedGraphQLErrors.is(error)) {
+      for (const err of error.errors) {
         const msg = err.message ?? '';
-        if (
-          msg.includes('expired') ||
-          msg.includes('invalid token') ||
-          msg.includes('not provided') ||
-          msg.includes('Unauthorized')
-        ) {
+        if (msg.includes('expired') || msg.includes('invalid token') || msg.includes('Unauthorized')) {
           Cookies.remove(ACCESS_TOKEN_KEY);
           Cookies.remove(REFRESH_TOKEN_KEY);
-        } else {
-          console.error('GraphQL error:', msg);
         }
       }
+      return;
     }
-    if (networkError) console.error('Network error:', networkError);
+    console.error('Network error:', error);
   });
 
   const wsLink = typeof window !== 'undefined'
