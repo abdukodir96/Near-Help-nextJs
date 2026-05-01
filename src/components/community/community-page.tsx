@@ -98,7 +98,7 @@ export function CommunityPageContent() {
     }
 
     try {
-      const { data: res } = await likeArticle({ variables: { input: { likeRefId: id } } });
+      const { data: res } = await likeArticle({ variables: { input: { targetArticleId: id } } });
       if (res?.likeTargetArticle) {
         setLikedMap((prev) => ({ ...prev, [id]: res.likeTargetArticle.myFavorite }));
       }

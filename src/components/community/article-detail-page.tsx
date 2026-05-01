@@ -82,7 +82,7 @@ export function ArticleDetailPage({ articleId }: ArticleDetailPageProps) {
     setLikeCount((prev) => (prev ?? article?.articleLikes ?? 0) + (!prevLiked ? 1 : -1));
 
     try {
-      const { data: res } = await likeArticle({ variables: { input: { likeRefId: articleId } } });
+      const { data: res } = await likeArticle({ variables: { input: { targetArticleId: articleId } } });
       if (res?.likeTargetArticle) {
         const isFav = res.likeTargetArticle.myFavorite as boolean;
         setLiked(isFav);
