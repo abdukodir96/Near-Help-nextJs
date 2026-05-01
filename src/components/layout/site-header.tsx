@@ -15,7 +15,7 @@ const mainLinks = [
   { href: '/', key: 'home' },
   { href: '/services', key: 'services' },
   { href: '/agents', key: 'agents' },
-  { href: '/community', key: 'community' },
+  { href: '/blog', key: 'community' },
   { href: '/cs', key: 'cs' },
   { href: '/messages', key: 'messages', authOnly: true },
   { href: '/mypage', key: 'mypage', authOnly: true },

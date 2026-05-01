@@ -4,7 +4,7 @@ const adminLinks = [
   { href: '/admin', label: 'Dashboard' },
   { href: '/admin/users', label: 'Users' },
   { href: '/admin/services', label: 'Services' },
-  { href: '/admin/community', label: 'Community' },
+  { href: '/admin/blog', label: 'Community' },
   { href: '/admin/cs', label: 'CS' },
 ] as const;
 

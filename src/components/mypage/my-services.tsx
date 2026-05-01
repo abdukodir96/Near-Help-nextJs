@@ -63,7 +63,7 @@ const sidebarSections: SidebarSection[] = [
     title: 'Community',
     items: [
       { label: 'Articles', href: '/mypage/articles', icon: ArticleOutlined },
-      { label: 'Write Article', href: '/community', icon: EditNoteOutlined },
+      { label: 'Write Article', href: '/blog', icon: EditNoteOutlined },
     ],
   },
   {

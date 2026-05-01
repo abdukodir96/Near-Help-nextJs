@@ -1,4 +1,4 @@
-import { WriteArticlePage } from '@/components/community/write-article-page';
+import { WriteArticlePage } from '@/components/blog/write-article-page';
 
 export default function WriteArticleRoute() {
   return <WriteArticlePage />;

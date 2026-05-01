@@ -50,7 +50,7 @@ const sidebarSections = [
     title: 'Community',
     items: [
       { label: 'Articles',      href: '/mypage/articles',   Icon: ArticleOutlined },
-      { label: 'Write Article', href: '/community/write',   Icon: EditNoteOutlined },
+      { label: 'Write Article', href: '/blog/write',   Icon: EditNoteOutlined },
     ],
   },
   {
@@ -199,7 +199,7 @@ export const WriteArticlePage = () => {
           timer: 2000,
           showConfirmButton: false,
         });
-        router.push('/community');
+        router.push('/blog');
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to publish. Please try again.';

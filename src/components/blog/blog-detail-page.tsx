@@ -7,8 +7,8 @@ import { ChatCenteredText, Eye, Heart, NotePencil, PaperPlaneTilt, Sparkle } fro
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import Swal from 'sweetalert2';
 import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
-import { communityCategories, type CommunityPost } from './community-data';
-import styles from './community-detail-page.module.scss';
+import { communityCategories, type CommunityPost } from './blog-data';
+import styles from './blog-detail-page.module.scss';
 
 const authorAvatars: Record<string, string> = {
   Martin: '/theme/images/team/4.jpg',
@@ -345,7 +345,7 @@ export function CommunityDetailPageContent({ post }: { post: CommunityPost }) {
                   <Link
                     prefetch={false}
                     key={category.key}
-                    href="/community"
+                    href="/blog"
                     className={`${styles.categoryButton} ${active ? styles.categoryButtonActive : ''}`}
                   >
                     {category.label}

@@ -23,7 +23,7 @@ const quickLinks = [
   { href: '/', label: 'Home' },
   { href: '/services', label: 'Our Services' },
   { href: '/agents', label: 'Agents' },
-  { href: '/community', label: 'Blog' },
+  { href: '/blog', label: 'Blog' },
   { href: '/contact', label: 'Contact' },
   { href: '/cs/faq', label: 'FAQs' },
 ] as const;

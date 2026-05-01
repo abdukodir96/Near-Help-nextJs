@@ -10,8 +10,8 @@ import Cookies from 'js-cookie';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
 import { GET_ARTICLE, LIKE_ARTICLE } from '@/lib/graphql/queries';
-import { communityCategories } from './community-data';
-import styles from './community-detail-page.module.scss';
+import { communityCategories } from './blog-data';
+import styles from './blog-detail-page.module.scss';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3007';
 
@@ -119,7 +119,7 @@ export function ArticleDetailPage({ articleId }: ArticleDetailPageProps) {
             <p style={{ fontSize: '1.2rem', fontWeight: 700 }}>Article not found.</p>
             <button
               type="button"
-              onClick={() => router.push('/community')}
+              onClick={() => router.push('/blog')}
               style={{ marginTop: 16, padding: '10px 24px', background: '#0052da', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700 }}
             >
               Back to Blog
@@ -153,7 +153,7 @@ export function ArticleDetailPage({ articleId }: ArticleDetailPageProps) {
             <button
               type="button"
               className={styles.writeButton}
-              onClick={() => router.push('/community/write')}
+              onClick={() => router.push('/blog/write')}
             >
               <NotePencil size={18} weight="bold" />
               Write
@@ -248,7 +248,7 @@ function SidebarCard() {
         {communityCategories.map((cat) => (
           <Link
             key={cat.key}
-            href="/community"
+            href="/blog"
             prefetch={false}
             className={styles.categoryButton}
           >

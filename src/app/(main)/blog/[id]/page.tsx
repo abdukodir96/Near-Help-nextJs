@@ -1,4 +1,4 @@
-import { ArticleDetailPage } from '@/components/community/article-detail-page';
+import { ArticleDetailPage } from '@/components/blog/article-detail-page';
 
 type Props = {
   params: { id: string };

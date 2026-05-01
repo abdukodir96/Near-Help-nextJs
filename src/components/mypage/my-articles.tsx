@@ -57,7 +57,7 @@ const sidebarSections: SidebarSection[] = [
     title: 'Community',
     items: [
       { label: 'Articles',      href: '/mypage/articles', icon: ArticleOutlined },
-      { label: 'Write Article', href: '/community',       icon: EditNoteOutlined },
+      { label: 'Write Article', href: '/blog',       icon: EditNoteOutlined },
     ],
   },
   {
@@ -182,7 +182,7 @@ export const MyArticles = () => {
             <div className={styles.mainArea}>
               <div className={styles.cardGrid}>
                 {pageItems.map((article) => (
-                  <Link key={article.id} href={`/community/${article.slug}`} className={styles.card}>
+                  <Link key={article.id} href={`/blog/${article.slug}`} className={styles.card}>
                     {/* Image + date badge */}
                     <div className={styles.cardImageWrap}>
                       <Image

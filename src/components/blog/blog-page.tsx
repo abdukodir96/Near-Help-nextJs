@@ -10,8 +10,8 @@ import Swal from 'sweetalert2';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
 import { GET_ARTICLES, LIKE_ARTICLE } from '@/lib/graphql/queries';
-import { communityCategories, type CommunityCategoryKey } from './community-data';
-import styles from './community-page.module.scss';
+import { communityCategories, type CommunityCategoryKey } from './blog-data';
+import styles from './blog-page.module.scss';
 
 type BackendArticle = {
   _id: string;
@@ -48,7 +48,7 @@ const formatDate = (iso: string) => {
   };
 };
 
-export function CommunityPageContent() {
+export function BlogPageContent() {
   const router = useRouter();
   const [activeCategory, setActiveCategory] = useState<CommunityCategoryKey>('free-board');
   const [likedMap,       setLikedMap]       = useState<Record<string, boolean>>({});
@@ -76,7 +76,7 @@ export function CommunityPageContent() {
 
   const [likeArticle] = useMutation(LIKE_ARTICLE);
 
-  const openPost = (id: string) => router.push(`/community/${id}`);
+  const openPost = (id: string) => router.push(`/blog/${id}`);
 
   const handlePostKeyDown = (event: KeyboardEvent<HTMLElement>, id: string) => {
     if ((event.target as HTMLElement).closest('button')) return;
@@ -145,7 +145,7 @@ export function CommunityPageContent() {
               <p className={styles.eyebrow}>{activeCategoryData.heading}</p>
               <h1>{activeCategoryData.description}</h1>
             </div>
-            <button type="button" className={styles.writeButton} onClick={() => router.push('/community/write')} >
+            <button type="button" className={styles.writeButton} onClick={() => router.push('/blog/write')} >
               <NotePencil size={18} weight="bold" />
               Write
             </button>
