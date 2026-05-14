@@ -52,6 +52,7 @@ export function BlogPageContent() {
   const router = useRouter();
   const [activeCategory, setActiveCategory] = useState<CommunityCategoryKey>('free-board');
   const [likedMap,       setLikedMap]       = useState<Record<string, boolean>>({});
+  const [viewIncrMap,    setViewIncrMap]    = useState<Record<string, number>>({});
 
   const activeCategoryData = useMemo(
     () => communityCategories.find((c) => c.key === activeCategory) ?? communityCategories[0],
@@ -74,9 +75,15 @@ export function BlogPageContent() {
 
   const articles = data?.getArticles?.list ?? [];
 
-  const [likeArticle] = useMutation(LIKE_ARTICLE);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [likeArticle] = useMutation<any>(LIKE_ARTICLE);
 
-  const openPost = (id: string) => router.push(`/blog/${id}`);
+  const openPost = (id: string) => {
+    if (Cookies.get(ACCESS_TOKEN_KEY)) {
+      setViewIncrMap((prev) => ({ ...prev, [id]: (prev[id] ?? 0) + 1 }));
+    }
+    router.push(`/blog/${id}`);
+  };
 
   const handlePostKeyDown = (event: KeyboardEvent<HTMLElement>, id: string) => {
     if ((event.target as HTMLElement).closest('button')) return;
@@ -158,6 +165,7 @@ export function BlogPageContent() {
               {articles.map((article) => {
                 const liked     = likedMap[article._id] ?? article.meLiked ?? false;
                 const likeCount = article.articleLikes + (liked && !article.meLiked ? 1 : 0);
+                const viewCount = article.articleViews + (viewIncrMap[article._id] ?? 0);
                 const { month, day } = formatDate(article.createdAt);
 
                 return (
@@ -193,7 +201,7 @@ export function BlogPageContent() {
                       <div className={styles.statsRow}>
                         <span>
                           <Eye size={22} weight="duotone" />
-                          {article.articleViews}
+                          {viewCount}
                         </span>
                         <button
                           type="button"
