@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { projectItems } from './projects-data';
 import { NewsletterWidget } from './newsletter-widget';
+import { ProjectComments } from './project-comments';
 import styles from './project-detail-page.module.scss';
 
 const processIcons = ['💡', '🏆', '⚙️'];
@@ -89,6 +90,9 @@ export const ProjectDetailPage = ({ slug }: { slug: string }) => {
               <div key={b} className={styles.benefitItem}>{b}</div>
             ))}
           </div>
+
+          {/* Comments */}
+          <ProjectComments />
         </div>
 
         {/* ── Sidebar ── */}
