@@ -21,13 +21,17 @@ import {
 import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react';
+import { useQuery, useMutation } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/auth/tokens';
+import { GET_ME, UPDATE_MEMBER, UPLOAD_IMAGE } from '@/lib/graphql/queries';
 import styles from './my-page.module.scss';
 
-type ProfileFormState = {
-  username: string;
-  phone: string;
-  address: string;
+const BACKEND_URL = (process.env.NEXT_PUBLIC_GRAPHQL_URL ?? 'http://localhost:3007/graphql').replace(/\/graphql$/, '');
+
+const normalizeImage = (img?: string | null) => {
+  if (!img) return '/theme/images/team/2.jpg';
+  if (img.startsWith('http')) return img;
+  return `${BACKEND_URL}${img}`;
 };
 
 type SidebarItem = {
@@ -37,141 +41,161 @@ type SidebarItem = {
   action?: 'logout';
 };
 
-type SidebarSection = {
-  title: string;
-  items: SidebarItem[];
-};
-
-const defaultProfile = {
-  name: 'Martin',
-  phone: '01024694424',
-  role: 'AGENT',
-  image: '/theme/images/team/2.jpg',
-  address: 'Busan, South Korea',
-};
+type SidebarSection = { title: string; items: SidebarItem[] };
 
 const sidebarSections: SidebarSection[] = [
   {
     title: 'Manage Services',
     items: [
-      { label: 'Add Service', href: '/services', icon: AddCircleOutlineRounded },
-      { label: 'My Services', href: '/mypage/services', icon: HomeWorkOutlined },
-      { label: 'My Favorites', href: '/mypage/favorites', icon: FavoriteBorderRounded },
-      { label: 'Recently Visited', href: '/mypage/recent', icon: HistoryOutlined },
-      { label: 'My Followers', href: '/mypage/followers', icon: GroupOutlined },
-      { label: 'My Followings', href: '/mypage/followings', icon: PersonAddAltOutlined },
+      { label: 'Add Service',      href: '/mypage/services/new', icon: AddCircleOutlineRounded },
+      { label: 'My Services',      href: '/mypage/services',     icon: HomeWorkOutlined },
+      { label: 'My Favorites',     href: '/mypage/favorites',    icon: FavoriteBorderRounded },
+      { label: 'Recently Visited', href: '/mypage/recent',       icon: HistoryOutlined },
+      { label: 'My Followers',     href: '/mypage/followers',    icon: GroupOutlined },
+      { label: 'My Followings',    href: '/mypage/followings',   icon: PersonAddAltOutlined },
     ],
   },
   {
     title: 'Community',
     items: [
-      { label: 'Articles', href: '/mypage/articles', icon: ArticleOutlined },
-      { label: 'Write Article', href: '/blog', icon: EditNoteOutlined },
+      { label: 'Articles',      href: '/mypage/articles', icon: ArticleOutlined },
+      { label: 'Write Article', href: '/blog/write',      icon: EditNoteOutlined },
     ],
   },
   {
     title: 'Manage Account',
     items: [
-      { label: 'My Profile', href: '/mypage', icon: AccountCircleOutlined },
-      { label: 'Logout', icon: LogoutRounded, action: 'logout' },
+      { label: 'My Profile', href: '/mypage',      icon: AccountCircleOutlined },
+      { label: 'Logout',     icon: LogoutRounded,  action: 'logout' },
     ],
   },
 ];
 
 export const MyPage = () => {
-  const pathname = usePathname();
-  const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const uploadedUrlRef = useRef<string | null>(null);
-  const [photoPreview, setPhotoPreview] = useState(defaultProfile.image);
-  const [form, setForm] = useState<ProfileFormState>({
-    username: defaultProfile.name,
-    phone: defaultProfile.phone,
-    address: defaultProfile.address,
-  });
+  const pathname   = usePathname();
+  const router     = useRouter();
+  const fileInputRef    = useRef<HTMLInputElement | null>(null);
+  const [photoPreview,  setPhotoPreview]  = useState('/theme/images/team/2.jpg');
+  const [pendingFile,   setPendingFile]   = useState<File | null>(null);
+  const [saving,        setSaving]        = useState(false);
+  const [form, setForm] = useState({ nick: '', phone: '', address: '' });
 
-  useEffect(() => {
-    return () => {
-      if (uploadedUrlRef.current) {
-        URL.revokeObjectURL(uploadedUrlRef.current);
-      }
+  // ── Queries / Mutations ────────────────────────────────────────────────────
+
+  const { data, loading, refetch } = useQuery<{
+    getMember: {
+      _id: string;
+      memberNick: string;
+      memberFullName?: string;
+      memberImage?: string;
+      memberPhone?: string;
+      memberEmail?: string;
+      memberAddress?: string;
+      memberDesc?: string;
+      memberType: string;
     };
-  }, []);
+  }>(GET_ME, { fetchPolicy: 'network-only' });
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    setForm((current) => ({ ...current, [name]: value }));
+  const [updateMember] = useMutation(UPDATE_MEMBER);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [uploadImage]  = useMutation<any>(UPLOAD_IMAGE);
+
+  // Sync form with fetched data
+  useEffect(() => {
+    const m = data?.getMember;
+    if (!m) return;
+    setForm({
+      nick:    m.memberNick    ?? '',
+      phone:   m.memberPhone   ?? '',
+      address: m.memberAddress ?? '',
+    });
+    setPhotoPreview(normalizeImage(m.memberImage));
+  }, [data]);
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handlePhotoUpload = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const handlePhotoSelect = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    if (!file) {
+    if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
+      await Swal.fire({ icon: 'error', title: 'Invalid file', text: 'Please upload a JPG or PNG image.', confirmButtonColor: '#0052da' });
+      e.target.value = '';
       return;
     }
 
-    if (!['image/jpeg', 'image/png'].includes(file.type)) {
-      await Swal.fire({
-        icon: 'error',
-        title: 'Invalid image file',
-        text: 'Please upload a JPG, JPEG, or PNG image for your profile.',
-        confirmButtonColor: '#0052da',
-      });
-      event.target.value = '';
-      return;
-    }
-
-    if (uploadedUrlRef.current) {
-      URL.revokeObjectURL(uploadedUrlRef.current);
-    }
-
-    const objectUrl = URL.createObjectURL(file);
-    uploadedUrlRef.current = objectUrl;
-    setPhotoPreview(objectUrl);
-    event.target.value = '';
-
-    await Swal.fire({
-      icon: 'success',
-      title: 'Image selected',
-      text: 'Your new profile image preview is ready. Save your profile when you are done.',
-      confirmButtonColor: '#0052da',
-    });
+    setPendingFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+    e.target.value = '';
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-    if (!form.username.trim() || !form.phone.trim() || !form.address.trim()) {
-      await Swal.fire({
-        icon: 'warning',
-        title: 'Complete your profile',
-        text: 'Please fill in your username, phone number, and address before updating.',
-        confirmButtonColor: '#0052da',
-      });
+    if (!form.nick.trim()) {
+      await Swal.fire({ icon: 'warning', title: 'Username required', text: 'Please enter a username.', confirmButtonColor: '#0052da' });
       return;
     }
 
-    await Swal.fire({
-      icon: 'success',
-      title: 'Profile updated',
-      text: 'Your profile changes have been saved locally. We can connect this form to the backend next.',
-      confirmButtonColor: '#0052da',
-    });
+    setSaving(true);
+    try {
+      let imageUrl: string | undefined;
+
+      // Upload image first if a new file was selected
+      if (pendingFile) {
+        const uploadRes = await uploadImage({ variables: { file: pendingFile } });
+        const url = uploadRes.data?.uploadSingleImage?.url;
+        if (url) imageUrl = url;
+      }
+
+      await updateMember({
+        variables: {
+          input: {
+            memberNick:    form.nick.trim()     || undefined,
+            memberPhone:   form.phone.trim()    || undefined,
+            memberAddress: form.address.trim()  || undefined,
+            ...(imageUrl ? { memberImage: imageUrl } : {}),
+          },
+        },
+      });
+
+      setPendingFile(null);
+      await refetch();
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Profile updated',
+        text: 'Your profile has been saved successfully.',
+        confirmButtonColor: '#0052da',
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } catch {
+      await Swal.fire({ icon: 'error', title: 'Update failed', text: 'Could not save your profile. Please try again.', confirmButtonColor: '#0052da' });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleLogout = async () => {
     Cookies.remove(ACCESS_TOKEN_KEY);
     Cookies.remove(REFRESH_TOKEN_KEY);
-
-    await Swal.fire({
-      icon: 'success',
-      title: 'Logged out',
-      text: 'You have been logged out successfully.',
-      confirmButtonColor: '#0052da',
-    });
-
+    await Swal.fire({ icon: 'success', title: 'Logged out', confirmButtonColor: '#0052da', timer: 1500, showConfirmButton: false });
     router.push('/auth/login');
   };
+
+  // ── Derived display values ─────────────────────────────────────────────────
+
+  const member      = data?.getMember;
+  const displayName = member?.memberFullName || member?.memberNick || form.nick || '—';
+  const displayRole = member?.memberType ?? 'AGENT';
+
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <main className={styles.page}>
@@ -183,25 +207,26 @@ export const MyPage = () => {
           </header>
 
           <div className={styles.contentGrid}>
+            {/* ── Sidebar ── */}
             <aside className={styles.sidebarCard}>
               <div className={styles.profileSummary}>
                 <div className={styles.summaryAvatarWrap}>
                   <Image
                     src={photoPreview}
-                    alt={form.username}
+                    alt={displayName}
                     fill
                     sizes="112px"
                     className={styles.summaryAvatar}
-                    unoptimized={photoPreview.startsWith('blob:')}
+                    unoptimized
                   />
                 </div>
                 <div className={styles.summaryInfo}>
-                  <h2>{form.username}</h2>
+                  <h2>{loading ? '...' : displayName}</h2>
                   <div className={styles.summaryPhone}>
                     <PhoneOutlined fontSize="small" />
-                    <span>{form.phone}</span>
+                    <span>{member?.memberPhone || '—'}</span>
                   </div>
-                  <span className={styles.roleBadge}>{defaultProfile.role}</span>
+                  <span className={styles.roleBadge}>{displayRole}</span>
                 </div>
               </div>
 
@@ -216,16 +241,9 @@ export const MyPage = () => {
 
                         if (item.action === 'logout') {
                           return (
-                            <button
-                              key={item.label}
-                              type="button"
-                              onClick={handleLogout}
-                              className={styles.sidebarAction}
-                            >
+                            <button key={item.label} type="button" onClick={handleLogout} className={styles.sidebarAction}>
                               <span className={styles.sidebarLinkMain}>
-                                <span className={styles.sidebarActionIcon}>
-                                  <Icon fontSize="small" />
-                                </span>
+                                <span className={styles.sidebarActionIcon}><Icon fontSize="small" /></span>
                                 <span>{item.label}</span>
                               </span>
                             </button>
@@ -236,13 +254,11 @@ export const MyPage = () => {
                           <Link
                             key={item.label}
                             prefetch={false}
-                            href={item.href || '/mypage'}
+                            href={item.href ?? '/mypage'}
                             className={`${styles.sidebarLink} ${isActive ? styles.sidebarLinkActive : ''}`}
                           >
                             <span className={styles.sidebarLinkMain}>
-                              <span className={styles.sidebarLinkIcon}>
-                                <Icon fontSize="small" />
-                              </span>
+                              <span className={styles.sidebarLinkIcon}><Icon fontSize="small" /></span>
                               <span>{item.label}</span>
                             </span>
                           </Link>
@@ -254,82 +270,107 @@ export const MyPage = () => {
               </div>
             </aside>
 
+            {/* ── Main form ── */}
             <section className={styles.mainCard}>
-              <form onSubmit={handleSubmit} className={styles.profileForm}>
-                <div className={styles.photoSection}>
-                  <h2>Photo</h2>
-                  <div className={styles.photoRow}>
-                    <div className={styles.photoPreviewWrap}>
-                      <Image
-                        src={photoPreview}
-                        alt={form.username}
-                        fill
-                        sizes="320px"
-                        className={styles.photoPreview}
-                        unoptimized={photoPreview.startsWith('blob:')}
-                      />
-                    </div>
+              {loading ? (
+                <div style={{ padding: '60px 0', textAlign: 'center', color: '#6b7280' }}>Loading profile...</div>
+              ) : (
+                <form onSubmit={handleSubmit} className={styles.profileForm}>
+                  <div className={styles.photoSection}>
+                    <h2>Photo</h2>
+                    <div className={styles.photoRow}>
+                      <div className={styles.photoPreviewWrap}>
+                        <Image
+                          src={photoPreview}
+                          alt={displayName}
+                          fill
+                          sizes="320px"
+                          className={styles.photoPreview}
+                          unoptimized
+                        />
+                      </div>
 
-                    <div className={styles.uploadColumn}>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/png,image/jpeg"
-                        className={styles.hiddenInput}
-                        onChange={handlePhotoUpload}
-                      />
-                      <button
-                        type="button"
-                        className={styles.uploadButton}
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        <UploadOutlined />
-                        <span>Upload Profile Image</span>
-                      </button>
-                      <p>A photo must be in JPG, JPEG or PNG format!</p>
+                      <div className={styles.uploadColumn}>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/png,image/jpeg,image/jpg"
+                          className={styles.hiddenInput}
+                          onChange={handlePhotoSelect}
+                        />
+                        <button
+                          type="button"
+                          className={styles.uploadButton}
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          <UploadOutlined />
+                          <span>Upload Profile Image</span>
+                        </button>
+                        <p>A photo must be in JPG, JPEG or PNG format!</p>
+                        {pendingFile && (
+                          <p style={{ color: '#0052da', fontSize: '0.85rem', marginTop: 6 }}>
+                            New image selected — save to apply.
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className={styles.fieldGrid}>
-                  <label className={styles.field}>
-                    <span>Username</span>
+                  <div className={styles.fieldGrid}>
+                    <label className={styles.field}>
+                      <span>Username</span>
+                      <input
+                        type="text"
+                        name="nick"
+                        value={form.nick}
+                        onChange={handleChange}
+                        placeholder="Your username"
+                      />
+                    </label>
+
+                    <label className={styles.field}>
+                      <span>Phone</span>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={form.phone}
+                        onChange={handleChange}
+                        placeholder="Your phone number"
+                      />
+                    </label>
+                  </div>
+
+                  <label className={`${styles.field} ${styles.fullWidthField}`}>
+                    <span>Address</span>
                     <input
                       type="text"
-                      name="username"
-                      value={form.username}
+                      name="address"
+                      value={form.address}
                       onChange={handleChange}
+                      placeholder="Your address"
                     />
                   </label>
 
-                  <label className={styles.field}>
-                    <span>Phone</span>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={form.phone}
-                      onChange={handleChange}
-                    />
-                  </label>
-                </div>
+                  {member?.memberEmail && (
+                    <label className={`${styles.field} ${styles.fullWidthField}`}>
+                      <span>Email</span>
+                      <input
+                        type="email"
+                        value={member.memberEmail}
+                        readOnly
+                        style={{ background: '#f8fafc', color: '#9aa0ab', cursor: 'not-allowed' }}
+                      />
+                    </label>
+                  )}
 
-                <label className={`${styles.field} ${styles.fullWidthField}`}>
-                  <span>Address</span>
-                  <input
-                    type="text"
-                    name="address"
-                    value={form.address}
-                    onChange={handleChange}
-                  />
-                </label>
-
-                <div className={styles.submitRow}>
-                  <button type="submit" className={styles.submitButton}>
-                    <span>Update Profile</span>
-                    <ArrowOutwardRounded fontSize="small" />
-                  </button>
-                </div>
-              </form>
+                  <div className={styles.submitRow}>
+                    <button type="submit" className={styles.submitButton} disabled={saving}>
+                      <span>{saving ? 'Saving...' : 'Update Profile'}</span>
+                      <ArrowOutwardRounded fontSize="small" />
+                    </button>
+                  </div>
+                </form>
+              )}
             </section>
           </div>
         </section>

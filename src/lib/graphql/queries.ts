@@ -154,6 +154,20 @@ export const GET_ME = gql`
   }
 `;
 
+export const UPDATE_MEMBER = gql`
+  mutation UpdateMember($input: UpdateMemberInput!) {
+    updateMember(input: $input) {
+      _id
+      memberNick
+      memberFullName
+      memberAddress
+      memberDesc
+      memberImage
+      memberType
+    }
+  }
+`;
+
 // ── Services ─────────────────────────────────────────────────────────────────
 
 export const GET_SERVICES = gql`
