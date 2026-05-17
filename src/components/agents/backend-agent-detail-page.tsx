@@ -24,7 +24,7 @@ import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
 import {
   GET_MEMBER,
   GET_AGENT_SERVICES,
-  LIKE_MEMBER,
+  TOGGLE_FOLLOW,
   GET_COMMENTS,
 } from '@/lib/graphql/queries';
 import styles from './agent-detail-page.module.scss';
@@ -195,20 +195,20 @@ export function BackendAgentDetailPage({ memberId }: { memberId: string }) {
   const { data: memberData, loading: memberLoading, error: memberError } = useQuery<{
     getMember: BackendMember;
   }>(GET_MEMBER, {
-    variables: { input: { memberId } },
+    variables: { input: { targetMemberId: memberId } },
     fetchPolicy: 'network-only',
   });
 
   const { data: servicesData } = useQuery<{
     getAgentServices: { list: BackendService[]; meta: { totalCount: number } };
   }>(GET_AGENT_SERVICES, {
-    variables: { input: { memberId, page: 1, limit: 6 } },
+    variables: { input: { agentId: memberId, page: 1, limit: 6 } },
     fetchPolicy: 'cache-and-network',
   });
 
   // ── Mutations ──────────────────────────────────────────────────────────────
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [likeMember] = useMutation<any>(LIKE_MEMBER);
+  const [toggleFollow] = useMutation<any>(TOGGLE_FOLLOW);
   const [createComment] = useMutation(CREATE_COMMENT);
   const [createReply]   = useMutation(CREATE_REPLY);
 
@@ -290,7 +290,7 @@ export function BackendAgentDetailPage({ memberId }: { memberId: string }) {
     const next = !following;
     setFollowing(next);
     try {
-      await likeMember({ variables: { input: { targetMemberId: memberId } } });
+      await toggleFollow({ variables: { input: { targetMemberId: memberId } } });
     } catch {
       setFollowing(!next);
     }
