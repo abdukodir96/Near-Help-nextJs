@@ -685,6 +685,85 @@
 
 .reviewForm {
   margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  label {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #253041;
+  }
+
+  textarea {
+    width: 100%;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 0.97rem;
+    color: #253041;
+    resize: vertical;
+    outline: none;
+    font-family: inherit;
+    line-height: 1.65;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+
+    &::placeholder { color: #adb5bd; }
+    &:focus { border-color: #0052da; }
+  }
+}
+
+.reviewSubmitBtn {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 50px;
+  padding: 0 26px;
+  border-radius: 12px;
+  border: none;
+  background: #0052da;
+  color: #fff;
+  font-size: 0.97rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+
+  &:hover {
+    background: #0246b7;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(0, 82, 218, 0.22);
+  }
+}
+
+.replyThread {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 14px;
+  padding: 14px 0;
+  border-top: 1px solid #edf1f6;
+}
+
+.replyAvatarWrapSm {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #eef3f9;
+  flex-shrink: 0;
+}
+
+.replyBody {
+  min-width: 0;
+
+  p {
+    margin: 0;
+    color: #5f6877;
+    font-size: 0.95rem;
+    line-height: 1.65;
+  }
 }
 
 .reviewSubmitButton {
