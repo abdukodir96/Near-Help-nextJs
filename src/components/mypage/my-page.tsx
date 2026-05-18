@@ -78,7 +78,7 @@ export const MyPage = () => {
   const [photoPreview,  setPhotoPreview]  = useState('/theme/images/team/2.jpg');
   const [pendingFile,   setPendingFile]   = useState<File | null>(null);
   const [saving,        setSaving]        = useState(false);
-  const [form, setForm] = useState({ nick: '', phone: '', address: '' });
+  const [form, setForm] = useState({ nick: '', email: '', phone: '', address: '' });
 
   // ── Queries / Mutations ────────────────────────────────────────────────────
 
@@ -106,6 +106,7 @@ export const MyPage = () => {
     if (!m) return;
     setForm({
       nick:    m.memberNick    ?? '',
+      email:   m.memberEmail   ?? '',
       phone:   m.memberPhone   ?? '',
       address: m.memberAddress ?? '',
     });
@@ -153,16 +154,26 @@ export const MyPage = () => {
         if (url) imageUrl = url;
       }
 
-      await updateMember({
-        variables: {
-          input: {
-            memberNick:    form.nick.trim()     || undefined,
-            memberPhone:   form.phone.trim()    || undefined,
-            memberAddress: form.address.trim()  || undefined,
-            ...(imageUrl ? { memberImage: imageUrl } : {}),
-          },
-        },
-      });
+      const m = data?.getMember;
+      const input: Record<string, string> = {};
+
+      const nick    = form.nick.trim();
+      const email   = form.email.trim();
+      const phone   = form.phone.trim();
+      const address = form.address.trim();
+
+      if (nick    && nick    !== m?.memberNick)    input.memberNick    = nick;
+      if (email   && email   !== m?.memberEmail)   input.memberEmail   = email;
+      if (phone   && phone   !== m?.memberPhone)   input.memberPhone   = phone;
+      if (address && address !== m?.memberAddress) input.memberAddress = address;
+      if (imageUrl) input.memberImage = imageUrl;
+
+      if (Object.keys(input).length === 0 && !pendingFile) {
+        await Swal.fire({ icon: 'info', title: 'No changes', text: 'You have not made any changes.', confirmButtonColor: '#0052da', timer: 1800, showConfirmButton: false });
+        return;
+      }
+
+      await updateMember({ variables: { input } });
 
       setPendingFile(null);
       await refetch();
@@ -175,8 +186,10 @@ export const MyPage = () => {
         timer: 2000,
         showConfirmButton: false,
       });
-    } catch {
-      await Swal.fire({ icon: 'error', title: 'Update failed', text: 'Could not save your profile. Please try again.', confirmButtonColor: '#0052da' });
+    } catch (err: unknown) {
+      const raw = err instanceof Error ? err.message : String(err);
+      console.error('[updateMember error]', raw);
+      await Swal.fire({ icon: 'error', title: 'Update failed', text: raw || 'Unknown error', confirmButtonColor: '#0052da' });
     } finally {
       setSaving(false);
     }
@@ -351,17 +364,16 @@ export const MyPage = () => {
                     />
                   </label>
 
-                  {member?.memberEmail && (
-                    <label className={`${styles.field} ${styles.fullWidthField}`}>
-                      <span>Email</span>
-                      <input
-                        type="email"
-                        value={member.memberEmail}
-                        readOnly
-                        style={{ background: '#f8fafc', color: '#9aa0ab', cursor: 'not-allowed' }}
-                      />
-                    </label>
-                  )}
+                  <label className={`${styles.field} ${styles.fullWidthField}`}>
+                    <span>Email*</span>
+                    <input
+                      type="email"
+                      name="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      placeholder="Your email address"
+                    />
+                  </label>
 
                   <div className={styles.submitRow}>
                     <button type="submit" className={styles.submitButton} disabled={saving}>

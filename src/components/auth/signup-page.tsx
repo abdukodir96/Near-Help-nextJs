@@ -15,17 +15,24 @@ import styles from './auth-page.module.scss';
 export const SignupPage = () => {
   const router = useRouter();
   const [nickname, setNickname] = useState('');
+  const [email,    setEmail]    = useState('');
   const [phone,    setPhone]    = useState('');
   const [password, setPassword] = useState('');
   const [confirm,  setConfirm]  = useState('');
 
-  const [signupMutation, { loading }] = useMutation(SIGNUP);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [signupMutation, { loading }] = useMutation<any>(SIGNUP);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!nickname.trim() || !password.trim()) {
+    if (!nickname.trim() || !email.trim() || !password.trim()) {
       await Swal.fire({ icon: 'warning', title: 'Missing fields', text: 'Please fill in all required fields.', confirmButtonColor: '#0052da', confirmButtonText: 'OK' });
+      return;
+    }
+
+    if (!email.includes('@')) {
+      await Swal.fire({ icon: 'warning', title: 'Invalid email', text: 'Please enter a valid email address.', confirmButtonColor: '#0052da' });
       return;
     }
 
@@ -39,9 +46,10 @@ export const SignupPage = () => {
       const { data } = await signupMutation({
         variables: {
           input: {
-            memberNick: nickname.trim(),
-            memberPassword: password,
-            memberPhone: phone.trim() || undefined,
+            memberNick:      nickname.trim(),
+            memberEmail:     email.trim(),
+            memberPassword:  password,
+            memberPhone:     phone.trim() || undefined,
           },
         },
       });
@@ -83,6 +91,11 @@ export const SignupPage = () => {
             <div className={styles.fieldGroup}>
               <label className={styles.label} htmlFor="nickname">Nickname*</label>
               <input id="nickname" type="text" className={styles.input} placeholder="Enter Nickname (3-15 chars)" value={nickname} onChange={(e) => setNickname(e.target.value)} autoComplete="username" minLength={3} maxLength={15} required />
+            </div>
+
+            <div className={styles.fieldGroup}>
+              <label className={styles.label} htmlFor="email">Email*</label>
+              <input id="email" type="email" className={styles.input} placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
             </div>
 
             <div className={styles.fieldGroup}>

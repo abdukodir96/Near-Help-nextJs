@@ -144,10 +144,27 @@ export const LOGOUT = gql`
 `;
 
 export const GET_ME = gql`
-  ${MEMBER_FIELDS}
   query GetMe {
     getMember {
-      ...MemberFields
+      _id
+      memberType
+      memberStatus
+      memberNick
+      memberFullName
+      memberImage
+      memberAddress
+      memberDesc
+      memberServices
+      memberArticles
+      memberFollowers
+      memberFollowings
+      memberPoints
+      memberLikes
+      memberViews
+      memberComments
+      memberRank
+      meFollowed
+      createdAt
       memberPhone
       memberEmail
     }
