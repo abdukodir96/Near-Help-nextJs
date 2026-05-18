@@ -471,7 +471,9 @@ export const LandingPage = () => {
             </p>
           </div>
           <div className={styles.teamSliderWrap}>
+            {topAgents.length > 0 && (
             <Swiper
+              key={topAgents.length}
               modules={[Autoplay, Pagination]}
               spaceBetween={26}
               slidesPerView={1}
@@ -536,6 +538,7 @@ export const LandingPage = () => {
                 </SwiperSlide>
               ))}
             </Swiper>
+            )}
           </div>
         </div>
       </section>
