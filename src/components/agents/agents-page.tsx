@@ -25,9 +25,9 @@ const compact = new Intl.NumberFormat('en', { notation: 'compact', maximumFracti
 const fmt = (n: number) => compact.format(n);
 
 const sortChoices = [
-  { value: 'RECENT',        label: 'Recent'        },
-  { value: 'MOST_LIKED',    label: 'Most Liked'    },
-  { value: 'MOST_FOLLOWED', label: 'Most Followed' },
+  { value: 'RECENT', label: 'Recent'      },
+  { value: 'LIKES',  label: 'Most Liked'  },
+  { value: 'VIEWS',  label: 'Most Viewed' },
 ] as const;
 
 const locationOptions = [

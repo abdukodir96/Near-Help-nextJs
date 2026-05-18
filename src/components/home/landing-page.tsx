@@ -18,6 +18,8 @@ import { Autoplay, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/pagination";
+import { useQuery } from '@apollo/client/react';
+import { GET_AGENTS } from '@/lib/graphql/queries';
 import styles from "./landing-page.module.scss";
 import { BookingForm } from '@/components/booking/booking-form';
 
@@ -103,103 +105,13 @@ const statItems = [
 
 import { projectItems } from '@/components/projects/projects-data';
 
-const agentItems = [
-  {
-    image: "/theme/images/team/1.jpg",
-    name: "Henry Barton",
-    role: "Team Leader",
-    completedProjects: 86,
-    likes: 1320,
-    followers: 468,
-  },
-  {
-    image: "/theme/images/team/2.jpg",
-    name: "Mattie Washington",
-    role: "Junior Member",
-    completedProjects: 74,
-    likes: 1188,
-    followers: 402,
-  },
-  {
-    image: "/theme/images/team/3.jpg",
-    name: "Winifred Harmon",
-    role: "Team Leader",
-    completedProjects: 74,
-    likes: 1210,
-    followers: 397,
-  },
-  {
-    image: "/theme/images/team/4.jpg",
-    name: "Shelia Lawrence",
-    role: "Senior Member",
-    completedProjects: 61,
-    likes: 980,
-    followers: 355,
-  },
-  {
-    image: "/theme/images/team/1.jpg",
-    name: "Elijah Foster",
-    role: "Field Supervisor",
-    completedProjects: 58,
-    likes: 940,
-    followers: 338,
-  },
-  {
-    image: "/theme/images/team/2.jpg",
-    name: "Grace Kim",
-    role: "Premium Installer",
-    completedProjects: 52,
-    likes: 905,
-    followers: 322,
-  },
-  {
-    image: "/theme/images/team/3.jpg",
-    name: "Owen Park",
-    role: "Gas Safety Specialist",
-    completedProjects: 49,
-    likes: 860,
-    followers: 301,
-  },
-  {
-    image: "/theme/images/team/4.jpg",
-    name: "Amelia Stone",
-    role: "Remodel Coordinator",
-    completedProjects: 45,
-    likes: 812,
-    followers: 286,
-  },
-  {
-    image: "/theme/images/team/1.jpg",
-    name: "Lucas Bennett",
-    role: "Drainage Technician",
-    completedProjects: 39,
-    likes: 760,
-    followers: 254,
-  },
-  {
-    image: "/theme/images/team/2.jpg",
-    name: "Chloe Rivera",
-    role: "Clean Finish Expert",
-    completedProjects: 34,
-    likes: 708,
-    followers: 233,
-  },
-] as const;
+const BACKEND_URL = 'http://localhost:3007';
 
-const rankedAgentItems = [...agentItems]
-  .map((item) => ({
-    ...item,
-    points: item.completedProjects,
-  }))
-  .sort((a, b) => {
-    if (b.points !== a.points) return b.points - a.points;
-    if (b.likes !== a.likes) return b.likes - a.likes;
-    return b.followers - a.followers;
-  })
-  .map((item, index) => ({
-    ...item,
-    rank: index + 1,
-  }));
+const getAgentAvatar = (img?: string) => {
+  if (!img) return '/theme/images/team/1.jpg';
+  if (img.startsWith('http')) return img;
+  return `${BACKEND_URL}${img}`;
+};
 
 const formatCompactNumber = (value: number) =>
   new Intl.NumberFormat("en-US", {
@@ -281,6 +193,36 @@ const workItems = [
 ] as const;
 
 export const LandingPage = () => {
+  const { data: agentsData } = useQuery<{
+    getAgents: {
+      list: {
+        _id: string;
+        memberNick: string;
+        memberFullName?: string;
+        memberImage?: string;
+        memberDesc?: string;
+        memberLikes: number;
+        memberFollowers: number;
+        memberRank: number;
+        memberServices: number;
+      }[];
+    };
+  }>(GET_AGENTS, {
+    variables: { input: { sortBy: 'LIKES', page: 1, limit: 10 } },
+    fetchPolicy: 'cache-and-network',
+  });
+
+  const topAgents = (agentsData?.getAgents?.list ?? []).map((agent, index) => ({
+    _id:        agent._id,
+    image:      getAgentAvatar(agent.memberImage),
+    name:       agent.memberFullName || agent.memberNick,
+    role:       agent.memberDesc?.slice(0, 30) || agent.memberNick,
+    rank:       index + 1,
+    points:     agent.memberRank,
+    likes:      agent.memberLikes,
+    followers:  agent.memberFollowers,
+  }));
+
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
@@ -544,8 +486,9 @@ export const LandingPage = () => {
               }}
               className={styles.teamSlider}
             >
-              {rankedAgentItems.map((item) => (
-                <SwiperSlide key={item.name} className={styles.teamSlide}>
+              {topAgents.map((item) => (
+                <SwiperSlide key={item._id} className={styles.teamSlide}>
+                  <Link prefetch={false} href={`/agents/${item._id}`} className={styles.teamCardLink}>
                   <article className={styles.teamCard}>
                     <div className={styles.teamRankBadge}>
                       <Trophy size={16} weight="fill" />
@@ -557,6 +500,7 @@ export const LandingPage = () => {
                       width={420}
                       height={420}
                       className={styles.teamImage}
+                      unoptimized
                     />
                     <div className={styles.teamBody}>
                       <h3>{item.name}</h3>
@@ -588,6 +532,7 @@ export const LandingPage = () => {
                       </div>
                     </div>
                   </article>
+                  </Link>
                 </SwiperSlide>
               ))}
             </Swiper>
