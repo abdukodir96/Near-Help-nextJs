@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRight } from 'phosphor-react';
+import { ArrowRight, Buildings, User } from 'phosphor-react';
 import { useState } from 'react';
 import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
@@ -14,11 +14,12 @@ import styles from './auth-page.module.scss';
 
 export const SignupPage = () => {
   const router = useRouter();
-  const [nickname, setNickname] = useState('');
-  const [email,    setEmail]    = useState('');
-  const [phone,    setPhone]    = useState('');
-  const [password, setPassword] = useState('');
-  const [confirm,  setConfirm]  = useState('');
+  const [memberType, setMemberType] = useState<'USER' | 'AGENT'>('USER');
+  const [nickname,   setNickname]   = useState('');
+  const [email,      setEmail]      = useState('');
+  const [phone,      setPhone]      = useState('');
+  const [password,   setPassword]   = useState('');
+  const [confirm,    setConfirm]    = useState('');
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [signupMutation, { loading }] = useMutation<any>(SIGNUP);
@@ -50,6 +51,7 @@ export const SignupPage = () => {
             memberEmail:     email.trim(),
             memberPassword:  password,
             memberPhone:     phone.trim() || undefined,
+            memberType,
           },
         },
       });
@@ -88,6 +90,29 @@ export const SignupPage = () => {
           <p className={styles.subheading}>Create your NearHelp account to get started.</p>
 
           <form className={styles.form} onSubmit={handleSubmit}>
+
+            {/* Account type toggle */}
+            <div className={styles.typeToggle}>
+              <button
+                type="button"
+                className={`${styles.typeBtn} ${memberType === 'USER' ? styles.typeBtnActive : ''}`}
+                onClick={() => setMemberType('USER')}
+              >
+                <User size={20} weight={memberType === 'USER' ? 'fill' : 'regular'} />
+                <span>User</span>
+                <span className={styles.typeBtnDesc}>I want to book services</span>
+              </button>
+              <button
+                type="button"
+                className={`${styles.typeBtn} ${memberType === 'AGENT' ? styles.typeBtnActive : ''}`}
+                onClick={() => setMemberType('AGENT')}
+              >
+                <Buildings size={20} weight={memberType === 'AGENT' ? 'fill' : 'regular'} />
+                <span>Agent</span>
+                <span className={styles.typeBtnDesc}>I provide services</span>
+              </button>
+            </div>
+
             <div className={styles.fieldGroup}>
               <label className={styles.label} htmlFor="nickname">Nickname*</label>
               <input id="nickname" type="text" className={styles.input} placeholder="Enter Nickname (3-15 chars)" value={nickname} onChange={(e) => setNickname(e.target.value)} autoComplete="username" minLength={3} maxLength={15} required />
