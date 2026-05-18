@@ -2,8 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import Swal from 'sweetalert2';
 import {
   ArrowRight,
   Buildings,
@@ -21,6 +19,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/pagination";
 import styles from "./landing-page.module.scss";
+import { BookingForm } from '@/components/booking/booking-form';
 
 const featureItems = [
   {
@@ -281,74 +280,7 @@ const workItems = [
   },
 ] as const;
 
-type BookingCategory =
-  | "PLUMBING"
-  | "GAS_LINE"
-  | "ELECTRICITY"
-  | "WATER_LINE"
-  | "BATHROOM_PLUMBING"
-  | "BASEMENT_PLUMBING"
-  | "REMODELING"
-  | "CLEANING";
-
-const bookingCategoryOptions: ReadonlyArray<{
-  value: BookingCategory;
-  label: string;
-}> = [
-  { value: "PLUMBING", label: "Plumbing" },
-  { value: "GAS_LINE", label: "Gas line services" },
-  { value: "ELECTRICITY", label: "Electricity services" },
-  { value: "WATER_LINE", label: "Water line repair" },
-  { value: "BATHROOM_PLUMBING", label: "Bathroom plumbing" },
-  { value: "BASEMENT_PLUMBING", label: "Basement plumbing" },
-  { value: "REMODELING", label: "Remodeling" },
-  { value: "CLEANING", label: "Cleaning" },
-];
-
 export const LandingPage = () => {
-  const [selectedCategory,     setSelectedCategory]     = useState<BookingCategory | "">("");
-  const [selectedServiceOption, setSelectedServiceOption] = useState("");
-  const [bookingName,    setBookingName]    = useState('');
-  const [bookingEmail,   setBookingEmail]   = useState('');
-  const [bookingMessage, setBookingMessage] = useState('');
-
-  const handleBookingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (!bookingName.trim() || !bookingEmail.trim() || !selectedCategory || !selectedServiceOption) {
-      void Swal.fire({
-        icon: 'warning',
-        title: 'Missing fields',
-        text: 'Please fill in all required fields before submitting.',
-        confirmButtonColor: '#0052da',
-        confirmButtonText: 'OK',
-      });
-      return;
-    }
-
-    await Swal.fire({
-      icon: 'success',
-      title: 'Appointment Requested!',
-      html: `
-        <div style="text-align:left;font-size:0.95rem;line-height:1.8">
-          <b>Name:</b> ${bookingName}<br/>
-          <b>Email:</b> ${bookingEmail}<br/>
-          <b>Category:</b> ${selectedCategory}<br/>
-          <b>Option:</b> ${selectedServiceOption}<br/>
-          ${bookingMessage ? `<b>Message:</b> ${bookingMessage}` : ''}
-        </div>
-      `,
-      confirmButtonColor: '#0052da',
-      confirmButtonText: 'OK',
-    });
-
-    setBookingName('');
-    setBookingEmail('');
-    setBookingMessage('');
-    setSelectedCategory('');
-    setSelectedServiceOption('');
-  };
-
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
@@ -693,54 +625,7 @@ export const LandingPage = () => {
             <div className={styles.contactFormCard}>
               <span>Online booking form</span>
               <h2>Book a trusted service visit in minutes.</h2>
-              <form className={styles.contactForm} onSubmit={handleBookingSubmit}>
-                <div className={styles.formGrid}>
-                  <input
-                    type="text"
-                    placeholder="Your full name"
-                    value={bookingName}
-                    onChange={(e) => setBookingName(e.target.value)}
-                  />
-                  <input
-                    type="email"
-                    placeholder="Email address"
-                    autoComplete="email"
-                    value={bookingEmail}
-                    onChange={(e) => setBookingEmail(e.target.value)}
-                  />
-                  <select
-                    value={selectedCategory}
-                    onChange={(e) => {
-                      setSelectedCategory(e.currentTarget.value as BookingCategory | "");
-                      setSelectedServiceOption("");
-                    }}
-                  >
-                    <option value="" disabled>Service category</option>
-                    {bookingCategoryOptions.map((c) => (
-                      <option key={c.value} value={c.value}>{c.label}</option>
-                    ))}
-                  </select>
-                  <select
-                    value={selectedServiceOption}
-                    disabled={!selectedCategory}
-                    onChange={(e) => setSelectedServiceOption(e.currentTarget.value)}
-                  >
-                    <option value="" disabled>Service option</option>
-                    <option value="STANDARD">Standard</option>
-                    <option value="PREMIUM">Premium</option>
-                    <option value="EMERGENCY">Emergency</option>
-                  </select>
-                </div>
-                <textarea
-                  rows={5}
-                  placeholder="Describe the issue you need help with"
-                  value={bookingMessage}
-                  onChange={(e) => setBookingMessage(e.target.value)}
-                />
-                <button type="submit" className={styles.primaryButton}>
-                  Get a Booking
-                </button>
-              </form>
+              <BookingForm />
             </div>
           </div>
         </div>
