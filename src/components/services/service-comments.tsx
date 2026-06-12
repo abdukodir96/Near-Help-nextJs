@@ -1,31 +1,16 @@
 'use client';
 
 import Image from 'next/image';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
 import { Heart, PaperPlaneTilt } from 'phosphor-react';
+import { useQuery, useMutation } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
-import type { ServiceComment } from './services-data';
+import { GET_COMMENTS, CREATE_COMMENT, CREATE_REPLY, LIKE_COMMENT } from '@/lib/graphql/queries';
 import styles from './service-comments.module.scss';
 
-type RuntimeComment = ServiceComment & {
-  likes: number;
-  meLiked: boolean;
-  avatar: string;
-  replies: RuntimeReply[];
-};
-
-type RuntimeReply = {
-  id: string;
-  author: string;
-  date: string;
-  message: string;
-  likes: number;
-  meLiked: boolean;
-  avatar: string;
-  replyTo?: string;
-};
+const BACKEND_URL = 'http://localhost:3007';
 
 const avatarPool = [
   '/theme/images/team/1.jpg',
@@ -34,28 +19,92 @@ const avatarPool = [
   '/theme/images/team/4.jpg',
 ];
 
-function pickAvatar(seed: string): string {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) | 0;
-  return avatarPool[Math.abs(hash) % avatarPool.length];
-}
+type BackendComment = {
+  _id: string;
+  commentContent: string;
+  commentLikes?: number;
+  meLiked?: boolean;
+  createdAt: string;
+  memberData?: { _id: string; memberNick: string; memberFullName?: string; memberImage?: string };
+};
 
-function toRuntime(comments: ServiceComment[]): RuntimeComment[] {
-  return comments.map((c, i) => ({
-    ...c,
-    likes: 4 + i * 7,
-    meLiked: false,
-    avatar: pickAvatar(c.author),
-    replies: [],
-  }));
-}
+type RuntimeReply = {
+  id: string;
+  author: string;
+  avatar: string;
+  date: string;
+  message: string;
+  likes: number;
+  meLiked: boolean;
+  replyTo?: string;
+};
 
-export function ServiceComments({ serviceSlug, initialComments }: { serviceSlug: string; initialComments: ServiceComment[] }) {
-  const [comments, setComments] = useState<RuntimeComment[]>(() => toRuntime(initialComments));
-  const [draft, setDraft] = useState('');
+type RuntimeComment = {
+  id: string;
+  author: string;
+  avatar: string;
+  date: string;
+  message: string;
+  likes: number;
+  meLiked: boolean;
+  replies: RuntimeReply[];
+};
+
+const getAuthor = (m?: BackendComment['memberData']) =>
+  m?.memberFullName ?? m?.memberNick ?? 'Anonymous';
+
+const getAvatar = (m?: BackendComment['memberData'], fallback = avatarPool[0]) => {
+  if (!m?.memberImage) return fallback;
+  if (m.memberImage.startsWith('http')) return m.memberImage;
+  return `${BACKEND_URL}${m.memberImage}`;
+};
+
+const formatDate = (iso: string) => {
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+};
+
+const toRuntime = (c: BackendComment, idx: number): RuntimeComment => ({
+  id: c._id,
+  author: getAuthor(c.memberData),
+  avatar: getAvatar(c.memberData, avatarPool[idx % avatarPool.length]),
+  date: formatDate(c.createdAt),
+  message: c.commentContent,
+  likes: c.commentLikes ?? 0,
+  meLiked: Boolean(c.meLiked),
+  replies: [],
+});
+
+export function ServiceComments({ serviceSlug }: { serviceSlug: string }) {
+  const [comments, setComments]       = useState<RuntimeComment[]>([]);
+  const [draft, setDraft]             = useState('');
   const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const initedRef = useRef(false);
 
+  // ── Fetch comments ──────────────────────────────────────────────────────────
+  const { data: commentsData } = useQuery<{
+    getComments: { list: BackendComment[] };
+  }>(GET_COMMENTS, {
+    variables: {
+      input: { page: 1, limit: 50, search: { commentRefId: serviceSlug } },
+    },
+    fetchPolicy: 'cache-and-network',
+  });
+
+  useEffect(() => {
+    if (commentsData?.getComments?.list && !initedRef.current) {
+      initedRef.current = true;
+      setComments(commentsData.getComments.list.map((c, i) => toRuntime(c, i)));
+    }
+  }, [commentsData]);
+
+  // ── Mutations ───────────────────────────────────────────────────────────────
+  const [createComment] = useMutation(CREATE_COMMENT);
+  const [createReply]   = useMutation(CREATE_REPLY);
+  const [likeComment]   = useMutation(LIKE_COMMENT);
+
+  // ── Auth helper ─────────────────────────────────────────────────────────────
   const showAuthAlert = async (action: string) => {
     await Swal.fire({
       icon: 'warning',
@@ -66,6 +115,7 @@ export function ServiceComments({ serviceSlug, initialComments }: { serviceSlug:
     });
   };
 
+  // ── Handlers ────────────────────────────────────────────────────────────────
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!Cookies.get(ACCESS_TOKEN_KEY)) { await showAuthAlert('write a comment'); return; }
@@ -76,53 +126,77 @@ export function ServiceComments({ serviceSlug, initialComments }: { serviceSlug:
       return;
     }
 
-    setComments((prev) => [{
-      id: `${serviceSlug}-local-${Date.now()}`,
-      author: 'You',
-      date: 'Just now',
-      message: text,
-      likes: 0,
-      meLiked: false,
-      avatar: '/theme/images/team/4.jpg',
-      replies: [],
-    }, ...prev]);
-    setDraft('');
+    try {
+      await createComment({
+        variables: { input: { commentGroup: 'SERVICE', commentContent: text, commentRefId: serviceSlug } },
+      });
+      setComments((prev) => [{
+        id: `local-${Date.now()}`,
+        author: 'You',
+        avatar: avatarPool[0],
+        date: 'Just now',
+        message: text,
+        likes: 0,
+        meLiked: false,
+        replies: [],
+      }, ...prev]);
+      setDraft('');
+    } catch {
+      await Swal.fire({ icon: 'error', title: 'Failed', text: 'Could not post comment. Please try again.', confirmButtonColor: '#0052da' });
+    }
   };
 
   const handleCommentLike = async (commentId: string) => {
     if (!Cookies.get(ACCESS_TOKEN_KEY)) { await showAuthAlert('like a comment'); return; }
-    setComments((prev) => prev.map((c) => c.id !== commentId ? c : { ...c, likes: c.likes + (c.meLiked ? -1 : 1), meLiked: !c.meLiked }));
+    setComments((prev) =>
+      prev.map((c) => c.id !== commentId ? c : { ...c, likes: c.likes + (c.meLiked ? -1 : 1), meLiked: !c.meLiked }),
+    );
+    try { await likeComment({ variables: { input: { likeRefId: commentId } } }); } catch {}
   };
 
   const handleReplyLike = async (commentId: string, replyId: string) => {
     if (!Cookies.get(ACCESS_TOKEN_KEY)) { await showAuthAlert('like a reply'); return; }
-    setComments((prev) => prev.map((c) => c.id !== commentId ? c : {
-      ...c,
-      replies: c.replies.map((r) => r.id !== replyId ? r : { ...r, likes: r.likes + (r.meLiked ? -1 : 1), meLiked: !r.meLiked }),
-    }));
+    setComments((prev) =>
+      prev.map((c) => c.id !== commentId ? c : {
+        ...c,
+        replies: c.replies.map((r) => r.id !== replyId ? r : { ...r, likes: r.likes + (r.meLiked ? -1 : 1), meLiked: !r.meLiked }),
+      }),
+    );
+    try { await likeComment({ variables: { input: { likeRefId: replyId } } }); } catch {}
   };
 
-  const handleReplySubmit = async (e: FormEvent<HTMLFormElement>, commentId: string, replyToId: string, replyToAuthor: string) => {
+  const handleReplySubmit = async (
+    e: FormEvent<HTMLFormElement>,
+    commentId: string,
+    replyToId: string,
+    replyToAuthor: string,
+  ) => {
     e.preventDefault();
     if (!Cookies.get(ACCESS_TOKEN_KEY)) { await showAuthAlert('reply'); return; }
-
     const text = (replyDrafts[replyToId] ?? '').trim();
     if (!text) return;
-
-    const newReply: RuntimeReply = {
-      id: `reply-${Date.now()}`,
-      author: 'You',
-      date: 'Just now',
-      message: text,
-      likes: 0,
-      meLiked: false,
-      avatar: '/theme/images/team/4.jpg',
-      replyTo: replyToAuthor,
-    };
-
-    setComments((prev) => prev.map((c) => c.id !== commentId ? c : { ...c, replies: [...c.replies, newReply] }));
-    setReplyDrafts((prev) => ({ ...prev, [replyToId]: '' }));
-    setActiveReplyId(null);
+    try {
+      await createReply({ variables: { input: { parentCommentId: commentId, commentContent: text } } });
+      setComments((prev) =>
+        prev.map((c) => c.id !== commentId ? c : {
+          ...c,
+          replies: [...c.replies, {
+            id: `reply-${Date.now()}`,
+            author: 'You',
+            avatar: avatarPool[0],
+            date: 'Just now',
+            message: text,
+            likes: 0,
+            meLiked: false,
+            replyTo: replyToAuthor,
+          }],
+        }),
+      );
+      setReplyDrafts((prev) => ({ ...prev, [replyToId]: '' }));
+      setActiveReplyId(null);
+    } catch {
+      await Swal.fire({ icon: 'error', title: 'Failed', text: 'Could not post reply.', confirmButtonColor: '#0052da' });
+    }
   };
 
   const totalCount = comments.reduce((t, c) => t + 1 + c.replies.length, 0);
@@ -149,7 +223,7 @@ export function ServiceComments({ serviceSlug, initialComments }: { serviceSlug:
         {comments.map((comment) => (
           <article className={styles.commentItem} key={comment.id}>
             <div className={styles.avatarWrap}>
-              <Image src={comment.avatar} alt={comment.author} fill sizes="56px" className={styles.avatar} />
+              <Image src={comment.avatar} alt={comment.author} fill sizes="56px" className={styles.avatar} unoptimized />
             </div>
             <div className={styles.content}>
               <button
@@ -165,7 +239,11 @@ export function ServiceComments({ serviceSlug, initialComments }: { serviceSlug:
               <div className={styles.actions}>
                 <span>{comment.date}</span>
                 <span>{comment.likes} likes</span>
-                <button type="button" className={styles.replyBtn} onClick={() => setActiveReplyId(activeReplyId === comment.id ? null : comment.id)}>
+                <button
+                  type="button"
+                  className={styles.replyBtn}
+                  onClick={() => setActiveReplyId(activeReplyId === comment.id ? null : comment.id)}
+                >
                   Reply
                 </button>
               </div>
@@ -189,7 +267,7 @@ export function ServiceComments({ serviceSlug, initialComments }: { serviceSlug:
                   {comment.replies.map((reply) => (
                     <article className={styles.replyItem} key={reply.id}>
                       <div className={styles.replyAvatarWrap}>
-                        <Image src={reply.avatar} alt={reply.author} fill sizes="40px" className={styles.avatar} />
+                        <Image src={reply.avatar} alt={reply.author} fill sizes="40px" className={styles.avatar} unoptimized />
                       </div>
                       <div className={styles.content}>
                         <button
@@ -208,7 +286,11 @@ export function ServiceComments({ serviceSlug, initialComments }: { serviceSlug:
                         <div className={styles.actions}>
                           <span>{reply.date}</span>
                           <span>{reply.likes} likes</span>
-                          <button type="button" className={styles.replyBtn} onClick={() => setActiveReplyId(activeReplyId === reply.id ? null : reply.id)}>
+                          <button
+                            type="button"
+                            className={styles.replyBtn}
+                            onClick={() => setActiveReplyId(activeReplyId === reply.id ? null : reply.id)}
+                          >
                             Reply
                           </button>
                         </div>

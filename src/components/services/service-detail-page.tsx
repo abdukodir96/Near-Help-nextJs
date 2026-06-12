@@ -118,7 +118,7 @@ export const ServiceDetailPageContent = ({ slug }: { slug: string }) => {
               </div>
             </div>
 
-            <ServiceComments serviceSlug={service._id} initialComments={[]} />
+            <ServiceComments serviceSlug={service._id} />
           </article>
 
           <aside className={styles.sidebar}>

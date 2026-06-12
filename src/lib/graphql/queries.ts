@@ -264,7 +264,7 @@ export const UPDATE_SERVICE = gql`
 export const LIKE_SERVICE = gql`
   mutation LikeTargetService($input: LikeTargetServiceInput!) {
     likeTargetService(input: $input) {
-      targetServiceId
+      likeRefId
       myFavorite
     }
   }
