@@ -127,11 +127,12 @@ export function ServiceComments({ serviceSlug }: { serviceSlug: string }) {
     }
 
     try {
-      await createComment({
+      const result = await createComment({
         variables: { input: { commentGroup: 'SERVICE', commentContent: text, commentRefId: serviceSlug } },
       });
+      const realId = (result.data as { createComment?: { _id?: string } })?.createComment?._id ?? `local-${Date.now()}`;
       setComments((prev) => [{
-        id: `local-${Date.now()}`,
+        id: realId,
         author: 'You',
         avatar: avatarPool[0],
         date: 'Just now',
