@@ -81,6 +81,7 @@ export const ServicesPageContent = () => {
   const [currentPage,      setCurrentPage]      = useState(1);
   const [isSortOpen,       setIsSortOpen]       = useState(false);
   const [likedMap,         setLikedMap]         = useState<Record<string, boolean>>({});
+  const [viewIncrMap,      setViewIncrMap]      = useState<Record<string, number>>({});
 
   const gridRef    = useRef<HTMLDivElement | null>(null);
   const sortRef    = useRef<HTMLDivElement | null>(null);
@@ -176,13 +177,23 @@ export const ServicesPageContent = () => {
       return;
     }
 
+    const prev = likedMap[id] ?? false;
+    setLikedMap((m) => ({ ...m, [id]: !prev }));
     try {
-      const { data: res } = await likeService({ variables: { input: { likeRefId: id } } });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: res } = await (likeService as any)({ variables: { input: { targetServiceId: id } } });
       if (res?.likeTargetService) {
-        const { myFavorite } = res.likeTargetService;
-        setLikedMap((prev) => ({ ...prev, [id]: myFavorite }));
+        setLikedMap((m) => ({ ...m, [id]: res.likeTargetService.myFavorite }));
       }
-    } catch { /* silently fail */ }
+    } catch {
+      setLikedMap((m) => ({ ...m, [id]: prev }));
+    }
+  };
+
+  const handleServiceClick = (id: string) => {
+    if (Cookies.get(ACCESS_TOKEN_KEY)) {
+      setViewIncrMap((prev) => ({ ...prev, [id]: (prev[id] ?? 0) + 1 }));
+    }
   };
 
   const currentSortLabel = sortChoices.find((c) => c.value === selectedSort)?.label ?? 'New';
@@ -349,11 +360,13 @@ export const ServicesPageContent = () => {
             ) : (
               <div className={styles.serviceGrid}>
                 {services.map((service) => {
-                  const liked = Boolean(likedMap[service._id]);
+                  const liked      = likedMap[service._id] ?? service.meLiked ?? false;
+                  const likeCount  = service.serviceLikes + (liked && !service.meLiked ? 1 : !liked && service.meLiked ? -1 : 0);
+                  const viewCount  = service.serviceViews + (viewIncrMap[service._id] ?? 0);
                   return (
                     <article key={service._id} className={styles.serviceCard}>
                       <div className={styles.serviceImageWrap}>
-                        <Link prefetch={false} href={`/services/${service._id}`} className={styles.mediaLink}>
+                        <Link prefetch={false} href={`/services/${service._id}`} className={styles.mediaLink} onClick={() => handleServiceClick(service._id)}>
                           <ServiceImage images={service.serviceImages} alt={service.serviceTitle} />
                         </Link>
                       </div>
@@ -378,7 +391,7 @@ export const ServicesPageContent = () => {
                           <div className={styles.engagementActions}>
                             <span className={styles.statItem}>
                               <Eye size={22} weight="regular" />
-                              <span>{fmt(service.serviceViews)}</span>
+                              <span>{fmt(viewCount)}</span>
                             </span>
 
                             <button
@@ -388,7 +401,7 @@ export const ServicesPageContent = () => {
                               onClick={() => handleLike(service._id)}
                             >
                               <HeartStraight size={22} weight={liked ? 'fill' : 'regular'} />
-                              <span>{fmt(service.serviceLikes + (liked && !service.meLiked ? 1 : 0))}</span>
+                              <span>{fmt(likeCount)}</span>
                             </button>
 
                             <Link

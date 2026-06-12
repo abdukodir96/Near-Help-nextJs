@@ -151,7 +151,7 @@ export const MyFavorites = () => {
     });
 
     if (result.isConfirmed) {
-      await unlikeService({ variables: { input: { likeRefId: id } } }).catch(() => {});
+      await unlikeService({ variables: { input: { targetServiceId: id } } }).catch(() => {});
       refetch();
       if (pageItems.length === 1 && page > 1) setPage((p) => p - 1);
     }
