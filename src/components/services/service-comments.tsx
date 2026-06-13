@@ -7,7 +7,7 @@ import Swal from 'sweetalert2';
 import { Heart, PaperPlaneTilt } from 'phosphor-react';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
-import { GET_COMMENTS, CREATE_COMMENT, CREATE_REPLY, LIKE_COMMENT } from '@/lib/graphql/queries';
+import { GET_COMMENTS, CREATE_COMMENT, CREATE_REPLY, LIKE_COMMENT, GET_ME } from '@/lib/graphql/queries';
 import styles from './service-comments.module.scss';
 
 const BACKEND_URL = 'http://localhost:3007';
@@ -92,6 +92,14 @@ export function ServiceComments({ serviceSlug }: { serviceSlug: string }) {
     fetchPolicy: 'cache-and-network',
   });
 
+  // ── Current user (for "You" avatar) ─────────────────────────────────────────
+  const { data: meData } = useQuery<{
+    getMember: { memberFullName?: string; memberNick: string; memberImage?: string };
+  }>(GET_ME, { skip: !Cookies.get(ACCESS_TOKEN_KEY), fetchPolicy: 'cache-and-network' });
+
+  const myAvatar = getAvatar(meData?.getMember as BackendComment['memberData'], avatarPool[0]);
+  const myName   = meData?.getMember?.memberFullName ?? meData?.getMember?.memberNick ?? 'You';
+
   useEffect(() => {
     if (commentsData?.getComments?.list && !initedRef.current) {
       initedRef.current = true;
@@ -133,8 +141,8 @@ export function ServiceComments({ serviceSlug }: { serviceSlug: string }) {
       const realId = (result.data as { createComment?: { _id?: string } })?.createComment?._id ?? `local-${Date.now()}`;
       setComments((prev) => [{
         id: realId,
-        author: 'You',
-        avatar: avatarPool[0],
+        author: myName,
+        avatar: myAvatar,
         date: 'Just now',
         message: text,
         likes: 0,
@@ -183,8 +191,8 @@ export function ServiceComments({ serviceSlug }: { serviceSlug: string }) {
           ...c,
           replies: [...c.replies, {
             id: `reply-${Date.now()}`,
-            author: 'You',
-            avatar: avatarPool[0],
+            author: myName,
+            avatar: myAvatar,
             date: 'Just now',
             message: text,
             likes: 0,

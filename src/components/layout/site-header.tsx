@@ -8,8 +8,18 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
+import { useQuery } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/auth/tokens';
+import { GET_ME } from '@/lib/graphql/queries';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
+
+const BACKEND_URL = 'http://localhost:3007';
+
+const getAvatarUrl = (img?: string | null) => {
+  if (!img) return '/theme/images/team/2.jpg';
+  if (img.startsWith('http')) return img;
+  return `${BACKEND_URL}${img}`;
+};
 
 const mainLinks = [
   { href: '/', key: 'home' },
@@ -32,7 +42,6 @@ export const SiteHeader = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
-  const userImage = '/theme/images/team/2.jpg';
   const lastScrollYRef = useRef(0);
   const lastToggleAtRef = useRef(0);
   const showTopbarRef = useRef(true);
@@ -109,6 +118,12 @@ export const SiteHeader = () => {
     window.addEventListener('focus', checkAuth);
     return () => window.removeEventListener('focus', checkAuth);
   }, []);
+
+  const { data: meData } = useQuery<{ getMember: { memberImage?: string } }>(GET_ME, {
+    skip: !isLoggedIn,
+    fetchPolicy: 'cache-and-network',
+  });
+  const userImage = getAvatarUrl(meData?.getMember?.memberImage);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
