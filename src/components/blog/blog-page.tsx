@@ -3,7 +3,7 @@
 import Cookies from 'js-cookie';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Eye, Heart, NotePencil, Sparkle } from 'phosphor-react';
+import { ChatCircleText, Eye, Heart, NotePencil, Sparkle } from 'phosphor-react';
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { useMemo, useState } from 'react';
 import Swal from 'sweetalert2';
@@ -88,6 +88,11 @@ export function BlogPageContent() {
   const handlePostKeyDown = (event: KeyboardEvent<HTMLElement>, id: string) => {
     if ((event.target as HTMLElement).closest('button')) return;
     if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openPost(id); }
+  };
+
+  const handleCommentClick = (event: MouseEvent, id: string) => {
+    event.stopPropagation();
+    router.push(`/blog/${id}#comments`);
   };
 
   const handlePostLike = async (event: MouseEvent, id: string) => {
@@ -212,6 +217,15 @@ export function BlogPageContent() {
                         >
                           <Heart size={22} weight={liked ? 'fill' : 'regular'} />
                           {likeCount}
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.likeButton}
+                          aria-label={`Comments on ${article.articleTitle}`}
+                          onClick={(e) => handleCommentClick(e, article._id)}
+                        >
+                          <ChatCircleText size={22} weight="regular" />
+                          {article.articleComments}
                         </button>
                       </div>
                     </div>

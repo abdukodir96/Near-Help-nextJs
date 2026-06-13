@@ -156,6 +156,12 @@ export function CommunityDetailPageContent({ post }: { post: CommunityPost }) {
     setReplyDrafts({});
   }, [post]);
 
+  useEffect(() => {
+    if (window.location.hash === '#comments') {
+      commentsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, []);
+
   const showAuthRequired = async (actionLabel: string) => {
     await Swal.fire({
       icon: 'warning',
@@ -431,7 +437,7 @@ export function CommunityDetailPageContent({ post }: { post: CommunityPost }) {
             </div>
           </article>
 
-          <section className={styles.commentsSection} ref={commentsSectionRef}>
+          <section id="comments" className={styles.commentsSection} ref={commentsSectionRef}>
             <div className={styles.commentsHeader}>
               <div>
                 <p className={styles.commentsEyebrow}>Community comments</p>
