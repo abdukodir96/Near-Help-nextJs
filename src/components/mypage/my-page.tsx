@@ -24,15 +24,10 @@ import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'r
 import { useQuery, useMutation } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/auth/tokens';
 import { GET_ME, UPDATE_MEMBER, UPLOAD_IMAGE } from '@/lib/graphql/queries';
+import { getAssetUrl } from '@/lib/config/env';
 import styles from './my-page.module.scss';
 
-const BACKEND_URL = (process.env.NEXT_PUBLIC_GRAPHQL_URL ?? 'http://localhost:3007/graphql').replace(/\/graphql$/, '');
-
-const normalizeImage = (img?: string | null) => {
-  if (!img) return '/theme/images/team/2.jpg';
-  if (img.startsWith('http')) return img;
-  return `${BACKEND_URL}${img}`;
-};
+const normalizeImage = (img?: string | null) => getAssetUrl(img) || '/theme/images/team/2.jpg';
 
 type SidebarItem = {
   label: string;

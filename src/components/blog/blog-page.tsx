@@ -9,6 +9,7 @@ import { useMemo, useState } from 'react';
 import Swal from 'sweetalert2';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
+import { getAssetUrl } from '@/lib/config/env';
 import { GET_ARTICLES, LIKE_ARTICLE } from '@/lib/graphql/queries';
 import { communityCategories, type CommunityCategoryKey } from './blog-data';
 import styles from './blog-page.module.scss';
@@ -34,11 +35,7 @@ const categoryMap: Record<CommunityCategoryKey, string> = {
   'humor':         'HUMOR',
 };
 
-const getImageUrl = (img?: string) => {
-  if (!img) return '/theme/images/blog/img-1.jpg';
-  if (img.startsWith('http')) return img;
-  return `http://localhost:3007${img}`;
-};
+const getImageUrl = (img?: string) => getAssetUrl(img) || '/theme/images/blog/img-1.jpg';
 
 const formatDate = (iso: string) => {
   const d = new Date(iso);

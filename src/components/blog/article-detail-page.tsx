@@ -9,6 +9,7 @@ import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
+import { getAssetUrl } from '@/lib/config/env';
 import {
   GET_ARTICLE,
   LIKE_ARTICLE,
@@ -20,13 +21,7 @@ import {
 import { communityCategories } from './blog-data';
 import styles from './blog-detail-page.module.scss';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3007';
-
-const getImageUrl = (img?: string) => {
-  if (!img) return '/theme/images/blog/img-1.jpg';
-  if (img.startsWith('http')) return img;
-  return `${BACKEND_URL}${img}`;
-};
+const getImageUrl = (img?: string) => getAssetUrl(img) || '/theme/images/blog/img-1.jpg';
 
 const formatDate = (iso: string) => {
   const d = new Date(iso);
@@ -83,11 +78,8 @@ type RuntimeComment = {
 const getAuthorName = (m?: BackendComment['memberData']) =>
   m?.memberFullName ?? m?.memberNick ?? 'Anonymous';
 
-const getAuthorAvatar = (m?: BackendComment['memberData']) => {
-  if (!m?.memberImage) return '/theme/images/team/2.jpg';
-  if (m.memberImage.startsWith('http')) return m.memberImage;
-  return `${BACKEND_URL}${m.memberImage}`;
-};
+const getAuthorAvatar = (m?: BackendComment['memberData']) =>
+  getAssetUrl(m?.memberImage) || '/theme/images/team/2.jpg';
 
 const toRuntime = (c: BackendComment): RuntimeComment => ({
   id: c._id,

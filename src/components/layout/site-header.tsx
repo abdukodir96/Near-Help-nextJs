@@ -11,15 +11,10 @@ import Swal from 'sweetalert2';
 import { useQuery } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/auth/tokens';
 import { GET_ME } from '@/lib/graphql/queries';
+import { getAssetUrl } from '@/lib/config/env';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
 
-const BACKEND_URL = 'http://localhost:3007';
-
-const getAvatarUrl = (img?: string | null) => {
-  if (!img) return '/theme/images/team/2.jpg';
-  if (img.startsWith('http')) return img;
-  return `${BACKEND_URL}${img}`;
-};
+const getAvatarUrl = (img?: string | null) => getAssetUrl(img) || '/theme/images/team/2.jpg';
 
 const mainLinks = [
   { href: '/', key: 'home' },

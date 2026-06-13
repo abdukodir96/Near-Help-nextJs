@@ -19,6 +19,7 @@ import {
 } from 'phosphor-react';
 import { serviceItems } from '@/components/services/services-data';
 import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
+import { BACKEND_URL } from '@/lib/config/env';
 import type { AgentItem, AgentReview } from './agents-data';
 import { AgentFollowButton } from './agent-follow-button';
 import styles from './agent-detail-page.module.scss';
@@ -158,8 +159,6 @@ const replyAvatars = [
   '/theme/images/team/4.jpg',
 ] as const;
 
-const GRAPHQL_ORIGIN = (process.env.NEXT_PUBLIC_GRAPHQL_URL ?? 'http://localhost:3007/graphql').replace(/\/graphql$/, '');
-
 const formatCompactNumber = (value: number) => compactNumberFormatter.format(value);
 
 const formatRelativeShort = (value: string | Date) => {
@@ -189,7 +188,7 @@ const formatRelativeShort = (value: string | Date) => {
 const normalizeAssetUrl = (value: string | null | undefined, fallback: string) => {
   if (!value) return fallback;
   if (value.startsWith('http://') || value.startsWith('https://')) return value;
-  if (value.startsWith('/uploads/')) return `${GRAPHQL_ORIGIN}${value}`;
+  if (value.startsWith('/uploads/')) return `${BACKEND_URL}${value}`;
   return value;
 };
 

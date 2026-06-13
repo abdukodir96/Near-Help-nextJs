@@ -16,6 +16,7 @@ import {
   File as FileIcon,
 } from 'phosphor-react';
 import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
+import { BACKEND_URL } from '@/lib/config/env';
 import {
   GET_MY_THREADS,
   GET_MESSAGES,
@@ -226,7 +227,7 @@ export const MessagePage = () => {
                   <div className={styles.threadAvatar}>
                     {thread.memberData.memberImage ? (
                       <Image
-                        src={`http://localhost:3007/uploads/${thread.memberData.memberImage}`}
+                        src={`${BACKEND_URL}/uploads/${thread.memberData.memberImage}`}
                         alt={thread.memberData.memberNick}
                         fill
                         sizes="48px"
@@ -277,7 +278,7 @@ export const MessagePage = () => {
                   <div className={styles.chatHeaderAvatar}>
                     {activeThread.memberData.memberImage ? (
                       <Image
-                        src={`http://localhost:3007/uploads/${activeThread.memberData.memberImage}`}
+                        src={`${BACKEND_URL}/uploads/${activeThread.memberData.memberImage}`}
                         alt={activeThread.memberData.memberNick}
                         fill
                         sizes="44px"
@@ -321,7 +322,7 @@ export const MessagePage = () => {
                           <div className={styles.msgAvatar}>
                             {activeThread.memberData.memberImage ? (
                               <Image
-                                src={`http://localhost:3007/uploads/${activeThread.memberData.memberImage}`}
+                                src={`${BACKEND_URL}/uploads/${activeThread.memberData.memberImage}`}
                                 alt={activeThread.memberData.memberNick}
                                 fill
                                 sizes="32px"
@@ -338,14 +339,14 @@ export const MessagePage = () => {
                         <div className={`${styles.bubble} ${isMine ? styles.mine : styles.other}`}>
                           {msg.messageType === 'IMAGE' && msg.messageImage && (
                             <img
-                              src={`http://localhost:3007/uploads/${msg.messageImage}`}
+                              src={`${BACKEND_URL}/uploads/${msg.messageImage}`}
                               alt="image"
                               className={styles.bubbleImage}
                             />
                           )}
                           {msg.messageType === 'FILE' && msg.messageFile && (
                             <a
-                              href={`http://localhost:3007/uploads/${msg.messageFile}`}
+                              href={`${BACKEND_URL}/uploads/${msg.messageFile}`}
                               target="_blank"
                               rel="noreferrer"
                               className={styles.bubbleFile}

@@ -104,14 +104,9 @@ const statItems = [
 ] as const;
 
 import { projectItems } from '@/components/projects/projects-data';
+import { getAssetUrl } from '@/lib/config/env';
 
-const BACKEND_URL = 'http://localhost:3007';
-
-const getAgentAvatar = (img?: string) => {
-  if (!img) return '/theme/images/team/1.jpg';
-  if (img.startsWith('http')) return img;
-  return `${BACKEND_URL}${img}`;
-};
+const getAgentAvatar = (img?: string) => getAssetUrl(img) || '/theme/images/team/1.jpg';
 
 const formatCompactNumber = (value: number) =>
   new Intl.NumberFormat("en-US", {

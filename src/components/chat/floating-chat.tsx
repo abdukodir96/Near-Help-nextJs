@@ -8,6 +8,7 @@ import Badge from '@mui/material/Badge';
 import { X, PaperPlaneTilt, Sparkle, ChatCircleText } from 'phosphor-react';
 import { useMutation } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
+import { WS_CHAT_URL } from '@/lib/config/env';
 import { CREATE_AI_CHAT_SESSION, SEND_AI_CHAT_MESSAGE } from '@/components/ai/ai-queries';
 import type { AiChatSession, AiChatSendResult } from '@/components/ai/ai-types';
 import styles from './floating-chat.module.scss';
@@ -37,8 +38,6 @@ const nowTime = () =>
 const initialMessages: ChatMessage[] = [
   { id: '1', author: 'Admin', text: 'Hello! How can I help you today?', time: '20:35' },
 ];
-
-const WS_CHAT_URL = 'ws://localhost:3007/ws/chat';
 
 // ── Component ─────────────────────────────────────────────────────────────────
 

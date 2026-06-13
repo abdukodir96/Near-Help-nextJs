@@ -13,6 +13,7 @@ import Swal from 'sweetalert2';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
 import { GET_SERVICES, LIKE_SERVICE } from '@/lib/graphql/queries';
+import { getAssetUrl } from '@/lib/config/env';
 import { locationOptions, priceRangeOptions, serviceOptionChoices, serviceTypeOptions, type ServicePriceBand } from './services-data';
 import styles from './services-page.module.scss';
 
@@ -46,9 +47,7 @@ type BackendService = {
 
 const getImageUrl = (images?: string[]) => {
   if (!images?.length) return '/theme/images/service/1.jpg';
-  const img = images[0];
-  if (img.startsWith('http')) return img;
-  return `http://localhost:3007${img}`;
+  return getAssetUrl(images[0]) || '/theme/images/service/1.jpg';
 };
 
 const ServiceImage = ({ images, alt }: { images?: string[]; alt: string }) => {

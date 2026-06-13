@@ -30,6 +30,7 @@ import { useState } from 'react';
 import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/auth/tokens';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { GET_FAVORITES, LIKE_SERVICE } from '@/lib/graphql/queries';
+import { getAssetUrl } from '@/lib/config/env';
 import styles from './my-favorites.module.scss';
 
 type SidebarItem = {
@@ -86,9 +87,7 @@ type BackendService = {
 
 const getImageUrl = (images?: string[]) => {
   if (!images?.length) return '/theme/images/service/1.jpg';
-  const img = images[0];
-  if (img.startsWith('http')) return img;
-  return `http://localhost:3007${img}`;
+  return getAssetUrl(images[0]) || '/theme/images/service/1.jpg';
 };
 
 export const MyFavorites = () => {

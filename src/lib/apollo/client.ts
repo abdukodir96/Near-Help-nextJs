@@ -8,9 +8,7 @@ import { createClient } from 'graphql-ws';
 import Cookies from 'js-cookie';
 import UploadHttpLink from 'apollo-upload-client/UploadHttpLink.mjs';
 import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/auth/tokens';
-
-const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_URL ?? 'http://localhost:3007/graphql';
-const WS_URL      = process.env.NEXT_PUBLIC_WS_URL      ?? 'ws://localhost:3007/graphql';
+import { GRAPHQL_URL, WS_URL } from '@/lib/config/env';
 
 export const createApolloClient = () => {
   const httpLink = new UploadHttpLink({

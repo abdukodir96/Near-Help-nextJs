@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { useQuery } from '@apollo/client/react';
 import { GET_SERVICE } from '@/lib/graphql/queries';
+import { getAssetUrl } from '@/lib/config/env';
 import { ServiceComments } from './service-comments';
 import styles from './service-detail-page.module.scss';
 
@@ -27,9 +28,7 @@ type BackendService = {
 
 const getImageUrl = (images?: string[]) => {
   if (!images?.length) return '/theme/images/service/1.jpg';
-  const img = images[0];
-  if (img.startsWith('http')) return img;
-  return `http://localhost:3007${img}`;
+  return getAssetUrl(images[0]) || '/theme/images/service/1.jpg';
 };
 
 const formatKRW = (price: number) =>

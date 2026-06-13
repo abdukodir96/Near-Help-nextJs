@@ -8,9 +8,8 @@ import { Heart, PaperPlaneTilt } from 'phosphor-react';
 import { useQuery, useMutation, useApolloClient } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
 import { GET_COMMENTS, GET_COMMENT_THREAD, CREATE_COMMENT, CREATE_REPLY, LIKE_COMMENT, GET_ME } from '@/lib/graphql/queries';
+import { getAssetUrl } from '@/lib/config/env';
 import styles from './service-comments.module.scss';
-
-const BACKEND_URL = 'http://localhost:3007';
 
 const avatarPool = [
   '/theme/images/team/1.jpg',
@@ -55,11 +54,8 @@ type RuntimeComment = {
 const getAuthor = (m?: BackendComment['memberData']) =>
   m?.memberFullName ?? m?.memberNick ?? 'Anonymous';
 
-const getAvatar = (m?: BackendComment['memberData'], fallback = avatarPool[0]) => {
-  if (!m?.memberImage) return fallback;
-  if (m.memberImage.startsWith('http')) return m.memberImage;
-  return `${BACKEND_URL}${m.memberImage}`;
-};
+const getAvatar = (m?: BackendComment['memberData'], fallback = avatarPool[0]) =>
+  getAssetUrl(m?.memberImage) || fallback;
 
 const formatDate = (iso: string) => {
   const d = new Date(iso);

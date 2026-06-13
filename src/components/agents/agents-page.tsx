@@ -21,6 +21,7 @@ import Swal from 'sweetalert2';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
 import { GET_AGENTS, LIKE_MEMBER, TOGGLE_FOLLOW } from '@/lib/graphql/queries';
+import { getAssetUrl } from '@/lib/config/env';
 import styles from './agents-page.module.scss';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -69,11 +70,7 @@ type BackendAgent = {
   meFollowed?: boolean;
 };
 
-const getAvatarUrl = (img?: string) => {
-  if (!img) return '/theme/images/team/1.jpg';
-  if (img.startsWith('http')) return img;
-  return `http://localhost:3007${img}`;
-};
+const getAvatarUrl = (img?: string) => getAssetUrl(img) || '/theme/images/team/1.jpg';
 
 // ── Component ─────────────────────────────────────────────────────────────────
 

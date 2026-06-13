@@ -21,6 +21,7 @@ import {
   UsersThree,
 } from 'phosphor-react';
 import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
+import { BACKEND_URL } from '@/lib/config/env';
 import {
   GET_MEMBER,
   GET_AGENT_SERVICES,
@@ -136,8 +137,6 @@ type ReviewThread = {
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-const BACKEND_URL = (process.env.NEXT_PUBLIC_GRAPHQL_URL ?? 'http://localhost:3007/graphql').replace(/\/graphql$/, '');
 
 const normalizeUrl = (val?: string | null, fallback = '/theme/images/team/1.jpg') => {
   if (!val) return fallback;

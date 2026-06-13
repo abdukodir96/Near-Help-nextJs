@@ -23,9 +23,8 @@ import {
 } from '@mui/icons-material';
 import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/auth/tokens';
 import { CREATE_ARTICLE, UPLOAD_IMAGE } from '@/lib/graphql/queries';
+import { BACKEND_URL } from '@/lib/config/env';
 import styles from './write-article-page.module.scss';
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3007';
 
 const CATEGORIES = [
   { value: 'FREE',      label: 'Free' },
@@ -134,7 +133,7 @@ export const WriteArticlePage = () => {
         const data = result.data;
         const relativePath = data.uploadSingleImage.url; // e.g. /uploads/images/.../file.jpg
         setImageUrl(relativePath);                        // send to backend as-is
-        setImagePreviewUrl(`http://localhost:3007${relativePath}`); // show in browser
+        setImagePreviewUrl(`${BACKEND_URL}${relativePath}`); // show in browser
       } else {
         throw new Error('Upload returned no URL');
       }
