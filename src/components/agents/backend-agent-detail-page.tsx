@@ -527,7 +527,7 @@ export function BackendAgentDetailPage({ memberId }: { memberId: string }) {
       )}
 
       {/* ── Reviews ── */}
-      <section className={styles.reviewsSection}>
+      <section id="comments" className={styles.reviewsSection}>
         <div className={styles.copyInner}>
           <div className={styles.sectionHeader}>
             <p className={styles.eyebrow}>Client Reviews</p>

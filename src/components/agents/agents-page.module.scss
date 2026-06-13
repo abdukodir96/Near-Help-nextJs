@@ -409,7 +409,7 @@ $white: #ffffff;
 .cardMeta {
   margin-top: 14px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -423,8 +423,32 @@ $white: #ffffff;
   font-size: 0.98rem;
   font-weight: 800;
   white-space: nowrap;
+  text-decoration: none;
 
   svg { color: $blue; flex-shrink: 0; }
+}
+
+.metaButton {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 12px;
+  padding: 0;
+  transition: background 0.2s, color 0.2s;
+
+  &:hover { background: #f5f8fe; }
+}
+
+.metaButtonLiked {
+  color: #e04868;
+
+  svg { color: #e04868; }
+}
+
+.metaButtonActive {
+  color: $blue;
+
+  svg { color: $blue; }
 }
 
 // ── Pagination ────────────────────────────────────────────────────────────────

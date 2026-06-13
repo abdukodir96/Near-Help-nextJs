@@ -305,7 +305,7 @@ export const GET_AGENTS = gql`
         _id memberType memberStatus memberNick memberFullName memberImage
         memberAddress memberDesc memberServices memberArticles memberFollowers
         memberFollowings memberPoints memberLikes memberViews memberComments
-        memberRank meFollowed createdAt
+        memberRank meFollowed meLiked createdAt
       }
       meta { totalCount }
     }

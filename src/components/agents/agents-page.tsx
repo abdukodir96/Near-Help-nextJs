@@ -7,6 +7,7 @@ import {
   CaretDown,
   CaretLeft,
   CaretRight,
+  ChatCircleText,
   Eye,
   HeartStraight,
   MagnifyingGlass,
@@ -14,8 +15,12 @@ import {
   X,
 } from 'phosphor-react';
 import { useEffect, useRef, useState } from 'react';
-import { useQuery } from '@apollo/client/react';
-import { GET_AGENTS } from '@/lib/graphql/queries';
+import { useRouter } from 'next/navigation';
+import Cookies from 'js-cookie';
+import Swal from 'sweetalert2';
+import { useQuery, useMutation } from '@apollo/client/react';
+import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
+import { GET_AGENTS, LIKE_MEMBER, TOGGLE_FOLLOW } from '@/lib/graphql/queries';
 import styles from './agents-page.module.scss';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -58,7 +63,10 @@ type BackendAgent = {
   memberLikes: number;
   memberFollowers: number;
   memberViews: number;
+  memberComments: number;
   memberRank: number;
+  meLiked?: boolean;
+  meFollowed?: boolean;
 };
 
 const getAvatarUrl = (img?: string) => {
@@ -70,12 +78,15 @@ const getAvatarUrl = (img?: string) => {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export const AgentsPageContent = () => {
+  const router = useRouter();
   const [searchTerm,       setSearchTerm]       = useState('');
   const [selectedSort,     setSelectedSort]     = useState<AgentSort>('RECENT');
   const [selectedLocation, setSelectedLocation] = useState('');
   const [selectedService,  setSelectedService]  = useState('');
   const [currentPage,      setCurrentPage]      = useState(1);
   const [isSortOpen,       setIsSortOpen]       = useState(false);
+  const [likedMap,         setLikedMap]         = useState<Record<string, boolean>>({});
+  const [followedMap,      setFollowedMap]      = useState<Record<string, boolean>>({});
   const sortRef = useRef<HTMLDivElement | null>(null);
 
   const combinedSearch = searchTerm.trim() || selectedService || undefined;
@@ -98,6 +109,20 @@ export const AgentsPageContent = () => {
   const agents     = data?.getAgents?.list ?? [];
   const totalCount = data?.getAgents?.meta?.totalCount ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalCount / AGENTS_PER_PAGE));
+
+  useEffect(() => {
+    if (agents.length === 0) return;
+    setLikedMap((m) => {
+      const next = { ...m };
+      agents.forEach((a) => { if (!(a._id in next)) next[a._id] = Boolean(a.meLiked); });
+      return next;
+    });
+    setFollowedMap((m) => {
+      const next = { ...m };
+      agents.forEach((a) => { if (!(a._id in next)) next[a._id] = Boolean(a.meFollowed); });
+      return next;
+    });
+  }, [agents]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -123,6 +148,42 @@ export const AgentsPageContent = () => {
     setSelectedLocation('');
     setSelectedService('');
     setSelectedSort('RECENT');
+  };
+
+  // ── Like / Follow ────────────────────────────────────────────────────────────
+  const [likeMember]   = useMutation(LIKE_MEMBER);
+  const [toggleFollow] = useMutation(TOGGLE_FOLLOW);
+
+  const showAuthAlert = async (action: string) => {
+    const result = await Swal.fire({
+      icon: 'warning', title: 'Login required',
+      text: `Please log in to ${action}.`,
+      confirmButtonText: 'Go to Login', showCancelButton: true,
+      cancelButtonText: 'Cancel', confirmButtonColor: '#0052da', cancelButtonColor: '#6b7280',
+    });
+    if (result.isConfirmed) router.push('/auth/login');
+  };
+
+  const handleLike = async (id: string) => {
+    if (!Cookies.get(ACCESS_TOKEN_KEY)) { await showAuthAlert('like an agent'); return; }
+    const prev = likedMap[id] ?? false;
+    setLikedMap((m) => ({ ...m, [id]: !prev }));
+    try {
+      await likeMember({ variables: { input: { targetMemberId: id } } });
+    } catch {
+      setLikedMap((m) => ({ ...m, [id]: prev }));
+    }
+  };
+
+  const handleFollow = async (id: string) => {
+    if (!Cookies.get(ACCESS_TOKEN_KEY)) { await showAuthAlert('follow an agent'); return; }
+    const prev = followedMap[id] ?? false;
+    setFollowedMap((m) => ({ ...m, [id]: !prev }));
+    try {
+      await toggleFollow({ variables: { input: { targetMemberId: id } } });
+    } catch {
+      setFollowedMap((m) => ({ ...m, [id]: prev }));
+    }
   };
 
   return (
@@ -266,7 +327,12 @@ export const AgentsPageContent = () => {
             ) : agents.length > 0 ? (
               <>
                 <div className={styles.agentGrid}>
-                  {agents.map((agent) => (
+                  {agents.map((agent) => {
+                    const liked = likedMap[agent._id] ?? Boolean(agent.meLiked);
+                    const followed = followedMap[agent._id] ?? Boolean(agent.meFollowed);
+                    const likeCount = agent.memberLikes + (liked && !agent.meLiked ? 1 : !liked && agent.meLiked ? -1 : 0);
+                    const followerCount = agent.memberFollowers + (followed && !agent.meFollowed ? 1 : !followed && agent.meFollowed ? -1 : 0);
+                    return (
                     <article key={agent._id} className={styles.agentCard}>
                       <Link prefetch={false} href={`/agents/${agent._id}`} className={styles.imageLink}>
                         <div className={styles.imageWrap}>
@@ -296,18 +362,37 @@ export const AgentsPageContent = () => {
                             <Eye size={18} weight="regular" />
                             <span>{fmt(agent.memberViews)}</span>
                           </span>
-                          <span className={styles.metaItem}>
-                            <HeartStraight size={18} weight="regular" />
-                            <span>{fmt(agent.memberLikes)}</span>
-                          </span>
-                          <span className={styles.metaItem}>
-                            <UsersThree size={18} weight="regular" />
-                            <span>{fmt(agent.memberFollowers)}</span>
-                          </span>
+                          <button
+                            type="button"
+                            className={`${styles.metaItem} ${styles.metaButton} ${liked ? styles.metaButtonLiked : ''}`}
+                            onClick={() => handleLike(agent._id)}
+                            aria-label="Like agent"
+                          >
+                            <HeartStraight size={18} weight={liked ? 'fill' : 'regular'} />
+                            <span>{fmt(likeCount)}</span>
+                          </button>
+                          <button
+                            type="button"
+                            className={`${styles.metaItem} ${styles.metaButton} ${followed ? styles.metaButtonActive : ''}`}
+                            onClick={() => handleFollow(agent._id)}
+                            aria-label="Follow agent"
+                          >
+                            <UsersThree size={18} weight={followed ? 'fill' : 'regular'} />
+                            <span>{fmt(followerCount)}</span>
+                          </button>
+                          <Link
+                            href={`/agents/${agent._id}#comments`}
+                            className={`${styles.metaItem} ${styles.metaButton}`}
+                            aria-label="View comments"
+                          >
+                            <ChatCircleText size={18} weight="regular" />
+                            <span>{fmt(agent.memberComments)}</span>
+                          </Link>
                         </div>
                       </div>
                     </article>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* Pagination */}
