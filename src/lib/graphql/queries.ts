@@ -430,6 +430,19 @@ export const GET_COMMENTS = gql`
   }
 `;
 
+export const GET_COMMENT_THREAD = gql`
+  query GetCommentThread($input: GetCommentThreadInput!) {
+    getCommentThread(input: $input) {
+      list {
+        _id commentStatus commentGroup commentContent commentRefId memberId
+        parentCommentId depth repliesCount commentLikes meLiked createdAt updatedAt
+        memberData { _id memberNick memberFullName memberImage }
+      }
+      metaCounter { total }
+    }
+  }
+`;
+
 export const CREATE_COMMENT = gql`
   mutation CreateComment($input: CommentInput!) {
     createComment(input: $input) {

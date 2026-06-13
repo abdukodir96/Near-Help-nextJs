@@ -5,9 +5,9 @@ import { type FormEvent, useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
 import { Heart, PaperPlaneTilt } from 'phosphor-react';
-import { useQuery, useMutation } from '@apollo/client/react';
+import { useQuery, useMutation, useApolloClient } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
-import { GET_COMMENTS, CREATE_COMMENT, CREATE_REPLY, LIKE_COMMENT, GET_ME } from '@/lib/graphql/queries';
+import { GET_COMMENTS, GET_COMMENT_THREAD, CREATE_COMMENT, CREATE_REPLY, LIKE_COMMENT, GET_ME } from '@/lib/graphql/queries';
 import styles from './service-comments.module.scss';
 
 const BACKEND_URL = 'http://localhost:3007';
@@ -25,6 +25,8 @@ type BackendComment = {
   commentLikes?: number;
   meLiked?: boolean;
   createdAt: string;
+  depth?: number;
+  repliesCount?: number;
   memberData?: { _id: string; memberNick: string; memberFullName?: string; memberImage?: string };
 };
 
@@ -64,6 +66,17 @@ const formatDate = (iso: string) => {
   return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
+const toRuntimeReply = (c: BackendComment, idx: number, replyTo?: string): RuntimeReply => ({
+  id: c._id,
+  author: getAuthor(c.memberData),
+  avatar: getAvatar(c.memberData, avatarPool[idx % avatarPool.length]),
+  date: formatDate(c.createdAt),
+  message: c.commentContent,
+  likes: c.commentLikes ?? 0,
+  meLiked: Boolean(c.meLiked),
+  replyTo,
+});
+
 const toRuntime = (c: BackendComment, idx: number): RuntimeComment => ({
   id: c._id,
   author: getAuthor(c.memberData),
@@ -100,12 +113,38 @@ export function ServiceComments({ serviceSlug }: { serviceSlug: string }) {
   const myAvatar = getAvatar(meData?.getMember as BackendComment['memberData'], avatarPool[0]);
   const myName   = meData?.getMember?.memberFullName ?? meData?.getMember?.memberNick ?? 'You';
 
+  const client = useApolloClient();
+
   useEffect(() => {
-    if (commentsData?.getComments?.list && !initedRef.current) {
-      initedRef.current = true;
-      setComments(commentsData.getComments.list.map((c, i) => toRuntime(c, i)));
-    }
-  }, [commentsData]);
+    const list = commentsData?.getComments?.list;
+    if (!list || initedRef.current) return;
+    initedRef.current = true;
+
+    const base = list.map((c, i) => toRuntime(c, i));
+    setComments(base);
+
+    // Fetch replies for comments that have any
+    list.forEach((c, idx) => {
+      if (!c.repliesCount) return;
+      client
+        .query<{ getCommentThread: { list: BackendComment[] } }>({
+          query: GET_COMMENT_THREAD,
+          variables: { input: { rootCommentId: c._id, page: 1, limit: 100 } },
+          fetchPolicy: 'network-only',
+        })
+        .then(({ data }) => {
+          const thread = data?.getCommentThread?.list ?? [];
+          const replies = thread
+            .filter((r) => (r.depth ?? 0) > 0)
+            .map((r, i) => toRuntimeReply(r, i));
+          if (!replies.length) return;
+          setComments((prev) =>
+            prev.map((rc, i) => i !== idx ? rc : { ...rc, replies }),
+          );
+        })
+        .catch(() => {});
+    });
+  }, [commentsData, client]);
 
   // ── Mutations ───────────────────────────────────────────────────────────────
   const [createComment] = useMutation(CREATE_COMMENT);
