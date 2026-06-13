@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const mailFrom = process.env.MAIL_FROM ?? 'NearHelp <onboarding@resend.dev>';
 
 type BookingBody = {
@@ -105,6 +104,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 });
     }
 
+    if (!process.env.RESEND_API_KEY) {
+      console.error('[booking/route] Missing RESEND_API_KEY');
+      return NextResponse.json({ error: 'Email service not configured.' }, { status: 500 });
+    }
+
+    const resend = new Resend(process.env.RESEND_API_KEY);
     const { data, error } = await resend.emails.send({
       from: mailFrom,
       to: email,
