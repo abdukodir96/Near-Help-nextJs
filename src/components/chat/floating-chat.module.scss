@@ -43,6 +43,19 @@
   &:hover { box-shadow: 0 12px 32px rgba(46, 107, 107, 0.55); }
 }
 
+// ── AI notification badge ───────────────────────────────────────────────────
+
+.aiBadge {
+  top: 6px;
+  right: 14px;
+  animation: badgeBlink 1.4s ease-in-out infinite;
+}
+
+@keyframes badgeBlink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+
 // ── Panel ────────────────────────────────────────────────────────────────────
 
 .panel {

@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
 import { useRouter } from 'next/navigation';
+import Badge from '@mui/material/Badge';
 import { X, PaperPlaneTilt, Sparkle, ChatCircleText } from 'phosphor-react';
 import { useMutation } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
@@ -47,6 +48,7 @@ export const FloatingChat = () => {
 
   const [chatOpen, setChatOpen] = useState(false);
   const [aiOpen,   setAiOpen]   = useState(false);
+  const [hasNewAiMessage, setHasNewAiMessage] = useState(true);
 
   // Community chat
   const [messages,  setMessages]  = useState<ChatMessage[]>(initialMessages);
@@ -300,14 +302,24 @@ export const FloatingChat = () => {
 
       {/* Floating buttons */}
       <div className={styles.floatWrap}>
-        <button
-          type="button"
-          className={`${styles.floatBtn} ${styles.aiBtn}`}
-          onClick={() => setAiOpen((p) => !p)}
+        <Badge
+          color="error"
+          overlap="circular"
+          badgeContent={hasNewAiMessage ? 1 : 0}
+          classes={{ badge: styles.aiBadge }}
         >
-          <Sparkle size={22} weight="fill" />
-          AI Chat
-        </button>
+          <button
+            type="button"
+            className={`${styles.floatBtn} ${styles.aiBtn}`}
+            onClick={() => {
+              setAiOpen((p) => !p);
+              setHasNewAiMessage(false);
+            }}
+          >
+            <Sparkle size={22} weight="fill" />
+            AI Chat
+          </button>
+        </Badge>
 
         <button
           type="button"
