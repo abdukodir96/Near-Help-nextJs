@@ -2,8 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { useLazyQuery, useMutation } from '@apollo/client/react';
-import Cookies from 'js-cookie';
+import { useLazyQuery } from '@apollo/client/react';
 import {
   Sparkle,
   CurrencyKrw,
@@ -17,8 +16,6 @@ import {
   SEMANTIC_SEARCH,
   GET_RECOMMENDATIONS,
   BOOKING_ASSISTANT,
-  CREATE_AI_CHAT_SESSION,
-  SEND_AI_CHAT_MESSAGE,
 } from './ai-queries';
 import {
   SERVICE_CATEGORIES,
@@ -29,7 +26,6 @@ import {
   type ServicesResult,
   type BookingAssistantResult,
 } from './ai-types';
-import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
 import styles from './ai-page.module.scss';
 
 type TabKey = 'price' | 'search' | 'recommend' | 'assistant';

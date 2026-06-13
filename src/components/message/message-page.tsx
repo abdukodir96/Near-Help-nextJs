@@ -44,7 +44,6 @@ export const MessagePage = () => {
   const [activeThread, setActiveThread] = useState<MessageThread | null>(null);
   const [searchTerm,   setSearchTerm]   = useState('');
   const [draft,        setDraft]        = useState('');
-  const [page,         setPage]         = useState(1);
   const messageEndRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef  = useRef<HTMLInputElement | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
@@ -81,7 +80,7 @@ export const MessagePage = () => {
 
   // ── Messages query ──────────────────────────────────────────────────────────
 
-  const { data: messagesData, loading: messagesLoading, fetchMore } = useQuery<{
+  const { data: messagesData, loading: messagesLoading } = useQuery<{
     getMessages: { list: Message[]; metaCounter: { total: number } };
   }>(GET_MESSAGES, {
     variables: { input: { threadId: activeThread?._id, page: 1, limit: 30 } },
@@ -92,11 +91,11 @@ export const MessagePage = () => {
 
   // ── Subscriptions ───────────────────────────────────────────────────────────
 
-  useSubscription(ON_MESSAGE_SENT, {
+  useSubscription<{ messageSent: Message }>(ON_MESSAGE_SENT, {
     variables: { threadId: activeThread?._id },
     skip: !activeThread,
     onData: ({ client, data }) => {
-      const newMsg = data.data?.messageSent as Message | undefined;
+      const newMsg = data.data?.messageSent;
       if (!newMsg) return;
       client.cache.modify({
         fields: {

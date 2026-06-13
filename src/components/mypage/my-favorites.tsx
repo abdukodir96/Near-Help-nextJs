@@ -8,7 +8,6 @@ import {
   AddCircleOutlineRounded,
   ArticleOutlined,
   BoltRounded,
-  ChatBubbleOutlineRounded,
   EditNoteOutlined,
   FavoriteBorderRounded,
   FavoriteRounded,
@@ -22,7 +21,6 @@ import {
   PhoneOutlined,
   PlaceOutlined,
   VisibilityOutlined,
-  AccessTimeOutlined,
 } from '@mui/icons-material';
 import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
@@ -280,7 +278,7 @@ export const MyFavorites = () => {
                                 aria-label="Remove from favorites"
                               >
                                 <FavoriteRounded fontSize="small" />
-                                  <span>{item.baseLikes}</span>
+                                  <span>{item.serviceLikes}</span>
                                 </button>
                             </div>
                           </div>

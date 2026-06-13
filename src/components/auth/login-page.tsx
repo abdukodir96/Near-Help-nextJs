@@ -18,7 +18,13 @@ export const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
 
-  const [loginMutation, { loading }] = useMutation(LOGIN);
+  const [loginMutation, { loading }] = useMutation<{
+    login: {
+      accessToken: string;
+      refreshToken: string;
+      member: { _id: string; memberNick: string; memberFullName?: string; memberImage?: string; memberType: string };
+    };
+  }>(LOGIN);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -159,7 +159,11 @@ export const ServicesPageContent = () => {
   const updateSort = (val: SortVal) => {
     setSelectedSort(val); setIsSortOpen(false);
     const params = new URLSearchParams(searchParams.toString());
-    val === 'RECENT' ? params.delete('sort') : params.set('sort', val);
+    if (val === 'RECENT') {
+      params.delete('sort');
+    } else {
+      params.set('sort', val);
+    }
     const q = params.toString();
     router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
   };
