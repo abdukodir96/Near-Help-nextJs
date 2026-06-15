@@ -10,6 +10,16 @@ const nextConfig = {
         port: '3007',
         pathname: '/uploads/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'nearhelps.com',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.nearhelps.com',
+        pathname: '/uploads/**',
+      },
     ],
   },
 };
