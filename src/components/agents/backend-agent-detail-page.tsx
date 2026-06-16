@@ -290,8 +290,25 @@ export function BackendAgentDetailPage({ memberId }: { memberId: string }) {
     setFollowing(next);
     try {
       await toggleFollow({ variables: { input: { targetMemberId: memberId } } });
+      await Swal.fire({
+        icon: 'success',
+        title: next ? 'Followed!' : 'Unfollowed!',
+        text: next
+          ? 'You are now following this agent.'
+          : 'This agent has been removed from your following list.',
+        confirmButtonColor: '#0052da',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
     } catch {
       setFollowing(!next);
+      await Swal.fire({
+        icon: 'error',
+        title: 'Failed',
+        text: 'Something went wrong. Please try again.',
+        confirmButtonColor: '#0052da',
+      });
     }
   };
 

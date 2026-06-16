@@ -132,7 +132,7 @@ export const MyFollowers = () => {
   const toggleFollow = async (followerId: string) => {
     const authed = await checkAuth();
     if (!authed) return;
-    await toggleFollowMutation({ variables: { input: { followingId: followerId } } }).catch(() => {});
+    await toggleFollowMutation({ variables: { input: { targetMemberId: followerId } } }).catch(() => {});
     refetch();
   };
 
@@ -210,7 +210,7 @@ export const MyFollowers = () => {
                   <tbody>
                     {followers.length === 0 ? (
                       <tr>
-                        <td colSpan={3} className={styles.emptyRow ?? ''}>
+                        <td colSpan={3} className={styles.emptyRow}>
                           No followers yet.
                         </td>
                       </tr>
@@ -271,40 +271,44 @@ export const MyFollowers = () => {
               </div>
 
               {/* Pagination */}
-              <div className={styles.pagination}>
-                <button
-                  type="button"
-                  className={styles.pagePrev}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                >
-                  <NavigateBeforeRounded fontSize="small" />
-                  <span>Prev</span>
-                </button>
+              {total > 0 && (
+                <>
+                  <div className={styles.pagination}>
+                    <button
+                      type="button"
+                      className={styles.pagePrev}
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                    >
+                      <NavigateBeforeRounded fontSize="small" />
+                      <span>Prev</span>
+                    </button>
 
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
-                  <button
-                    key={num}
-                    type="button"
-                    onClick={() => setPage(num)}
-                    className={`${styles.pageBtn} ${num === page ? styles.pageBtnActive : ''}`}
-                  >
-                    {num}
-                  </button>
-                ))}
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => setPage(num)}
+                        className={`${styles.pageBtn} ${num === page ? styles.pageBtnActive : ''}`}
+                      >
+                        {num}
+                      </button>
+                    ))}
 
-                <button
-                  type="button"
-                  className={styles.pageNext}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                >
-                  <span>Next</span>
-                  <NavigateNextRounded fontSize="small" />
-                </button>
-              </div>
+                    <button
+                      type="button"
+                      className={styles.pageNext}
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={page === totalPages}
+                    >
+                      <span>Next</span>
+                      <NavigateNextRounded fontSize="small" />
+                    </button>
+                  </div>
 
-              <p className={styles.totalCount}>{total} followers</p>
+                  <p className={styles.totalCount}>{total} followers</p>
+                </>
+              )}
             </div>
           </div>
         </section>

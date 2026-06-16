@@ -144,7 +144,7 @@ export const MyFollowings = () => {
     });
 
     if (result.isConfirmed) {
-      await toggleFollowMutation({ variables: { input: { followingId } } }).catch(() => {});
+      await toggleFollowMutation({ variables: { input: { targetMemberId: followingId } } }).catch(() => {});
       if (followings.length === 1 && page > 1) setPage((p) => p - 1);
       refetch();
     }

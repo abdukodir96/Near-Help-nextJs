@@ -418,3 +418,12 @@ $pagination-bg: #f0f2f8;
   font-size: 0.97rem;
   color: $muted;
 }
+
+// ── Empty state ─────────────────────────────────────────────────────────────
+
+.emptyRow {
+  padding: 48px 24px;
+  text-align: center;
+  color: $muted;
+  font-size: 0.97rem;
+}

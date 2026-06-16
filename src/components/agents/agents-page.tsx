@@ -175,11 +175,29 @@ export const AgentsPageContent = () => {
   const handleFollow = async (id: string) => {
     if (!Cookies.get(ACCESS_TOKEN_KEY)) { await showAuthAlert('follow an agent'); return; }
     const prev = followedMap[id] ?? false;
-    setFollowedMap((m) => ({ ...m, [id]: !prev }));
+    const next = !prev;
+    setFollowedMap((m) => ({ ...m, [id]: next }));
     try {
       await toggleFollow({ variables: { input: { targetMemberId: id } } });
+      await Swal.fire({
+        icon: 'success',
+        title: next ? 'Followed!' : 'Unfollowed!',
+        text: next
+          ? 'You are now following this agent.'
+          : 'This agent has been removed from your following list.',
+        confirmButtonColor: '#0052da',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
     } catch {
       setFollowedMap((m) => ({ ...m, [id]: prev }));
+      await Swal.fire({
+        icon: 'error',
+        title: 'Failed',
+        text: 'Something went wrong. Please try again.',
+        confirmButtonColor: '#0052da',
+      });
     }
   };
 
