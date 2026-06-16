@@ -34,6 +34,7 @@ type SidebarItem = {
   href?: string;
   icon: typeof AddCircleOutlineRounded;
   action?: 'logout';
+  agentOnly?: boolean;
 };
 
 type SidebarSection = { title: string; items: SidebarItem[] };
@@ -42,8 +43,8 @@ const sidebarSections: SidebarSection[] = [
   {
     title: 'Manage Services',
     items: [
-      { label: 'Add Service',      href: '/mypage/services/new', icon: AddCircleOutlineRounded },
-      { label: 'My Services',      href: '/mypage/services',     icon: HomeWorkOutlined },
+      { label: 'Add Service',      href: '/mypage/services/new', icon: AddCircleOutlineRounded, agentOnly: true },
+      { label: 'My Services',      href: '/mypage/services',     icon: HomeWorkOutlined,        agentOnly: true },
       { label: 'My Favorites',     href: '/mypage/favorites',    icon: FavoriteBorderRounded },
       { label: 'Recently Visited', href: '/mypage/recent',       icon: HistoryOutlined },
       { label: 'My Followers',     href: '/mypage/followers',    icon: GroupOutlined },
@@ -54,7 +55,7 @@ const sidebarSections: SidebarSection[] = [
     title: 'Community',
     items: [
       { label: 'Articles',      href: '/mypage/articles', icon: ArticleOutlined },
-      { label: 'Write Article', href: '/blog/write',      icon: EditNoteOutlined },
+      { label: 'Write Article', href: '/blog/write',      icon: EditNoteOutlined, agentOnly: true },
     ],
   },
   {
@@ -243,7 +244,7 @@ export const MyPage = () => {
                   <div key={section.title} className={styles.sidebarSection}>
                     <h3>{section.title}</h3>
                     <div className={styles.sidebarMenu}>
-                      {section.items.map((item) => {
+                      {section.items.filter((item) => !item.agentOnly || member?.memberType === 'AGENT').map((item) => {
                         const Icon = item.icon;
                         const isActive = item.href ? pathname === item.href : false;
 

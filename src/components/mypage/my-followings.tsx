@@ -22,7 +22,10 @@ import {
 import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
 import { useState } from 'react';
+import { useQuery, useMutation } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/auth/tokens';
+import { GET_ME, GET_FOLLOWINGS, TOGGLE_FOLLOW } from '@/lib/graphql/queries';
+import { getAssetUrl } from '@/lib/config/env';
 import styles from './my-followings.module.scss';
 
 type SidebarItem = {
@@ -30,22 +33,16 @@ type SidebarItem = {
   href?: string;
   icon: typeof AddCircleOutlineRounded;
   action?: 'logout';
+  agentOnly?: boolean;
 };
 type SidebarSection = { title: string; items: SidebarItem[] };
-
-const defaultProfile = {
-  name: 'Martin',
-  phone: '01024694424',
-  role: 'AGENT',
-  image: '/theme/images/team/2.jpg',
-};
 
 const sidebarSections: SidebarSection[] = [
   {
     title: 'Manage Services',
     items: [
-      { label: 'Add Service',      href: '/mypage/services/new', icon: AddCircleOutlineRounded },
-      { label: 'My Services',      href: '/mypage/services',     icon: HomeWorkOutlined },
+      { label: 'Add Service',      href: '/mypage/services/new', icon: AddCircleOutlineRounded, agentOnly: true },
+      { label: 'My Services',      href: '/mypage/services',     icon: HomeWorkOutlined,        agentOnly: true },
       { label: 'My Favorites',     href: '/mypage/favorites',    icon: FavoriteBorderRounded },
       { label: 'Recently Visited', href: '/mypage/recent',       icon: HistoryOutlined },
       { label: 'My Followers',     href: '/mypage/followers',    icon: GroupOutlined },
@@ -56,7 +53,7 @@ const sidebarSections: SidebarSection[] = [
     title: 'Community',
     items: [
       { label: 'Articles',     href: '/mypage/articles', icon: ArticleOutlined },
-      { label: 'Write Article', href: '/blog',      icon: EditNoteOutlined },
+      { label: 'Write Article', href: '/blog',      icon: EditNoteOutlined, agentOnly: true },
     ],
   },
   {
@@ -68,34 +65,41 @@ const sidebarSections: SidebarSection[] = [
   },
 ];
 
-type Following = {
-  id: number;
-  name: string;
-  image: string | null;
-  followersCount: number;
-  followingsCount: number;
-  likesCount: number;
+type FollowingMember = {
+  _id: string;
+  memberNick: string;
+  memberFullName?: string;
+  memberImage?: string;
+  memberFollowers: number;
+  memberFollowings: number;
+  memberLikes: number;
 };
-
-const initialFollowings: Following[] = [
-  { id: 1, name: 'David',         image: '/theme/images/team/1.jpg', followersCount: 2, followingsCount: 0, likesCount: 0  },
-  { id: 2, name: 'Henry Barton',  image: '/theme/images/team/2.jpg', followersCount: 5, followingsCount: 3, likesCount: 8  },
-  { id: 3, name: 'Winifred H.',   image: '/theme/images/team/3.jpg', followersCount: 3, followingsCount: 2, likesCount: 5  },
-  { id: 4, name: 'Shelia L.',     image: '/theme/images/team/4.jpg', followersCount: 7, followingsCount: 1, likesCount: 12 },
-  { id: 5, name: 'Elijah Foster', image: '/theme/images/team/1.jpg', followersCount: 4, followingsCount: 4, likesCount: 6  },
-  { id: 6, name: 'Grace Kim',     image: '/theme/images/team/2.jpg', followersCount: 6, followingsCount: 2, likesCount: 9  },
-];
 
 const ITEMS_PER_PAGE = 5;
 
 export const MyFollowings = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const [followings, setFollowings] = useState(initialFollowings);
   const [page, setPage] = useState(1);
 
-  const totalPages = Math.ceil(followings.length / ITEMS_PER_PAGE);
-  const pageItems = followings.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const { data: meData } = useQuery<{ getMember: { _id: string; memberNick: string; memberFullName?: string; memberImage?: string; memberPhone?: string; memberType: string } }>(GET_ME, { fetchPolicy: 'network-only' });
+  const member = meData?.getMember;
+  const displayName = member?.memberFullName || member?.memberNick || '—';
+  const memberImage = member?.memberImage ? getAssetUrl(member.memberImage) : '/theme/images/team/2.jpg';
+
+  const { data: followingsData, refetch } = useQuery<{ getMemberFollowings: { list: { followerId: string; followingData: FollowingMember }[]; metaCounter: { total: number } } }>(
+    GET_FOLLOWINGS,
+    {
+      variables: { input: { page, limit: ITEMS_PER_PAGE, search: { followerId: member?._id } } },
+      skip: !member?._id,
+      fetchPolicy: 'network-only',
+    },
+  );
+  const followings = (followingsData?.getMemberFollowings?.list ?? []).map((item) => item.followingData);
+  const total = followingsData?.getMemberFollowings?.metaCounter?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE));
+
+  const [toggleFollowMutation] = useMutation(TOGGLE_FOLLOW);
 
   const handleLogout = async () => {
     Cookies.remove(ACCESS_TOKEN_KEY);
@@ -124,7 +128,7 @@ export const MyFollowings = () => {
     return true;
   };
 
-  const handleUnfollow = async (id: number) => {
+  const handleUnfollow = async (followingId: string) => {
     const authed = await checkAuth();
     if (!authed) return;
 
@@ -140,8 +144,9 @@ export const MyFollowings = () => {
     });
 
     if (result.isConfirmed) {
-      setFollowings((prev) => prev.filter((f) => f.id !== id));
-      if (pageItems.length === 1 && page > 1) setPage((p) => p - 1);
+      await toggleFollowMutation({ variables: { input: { followingId } } }).catch(() => {});
+      if (followings.length === 1 && page > 1) setPage((p) => p - 1);
+      refetch();
     }
   };
 
@@ -158,15 +163,15 @@ export const MyFollowings = () => {
             <aside className={styles.sidebarCard}>
               <div className={styles.profileSummary}>
                 <div className={styles.summaryAvatarWrap}>
-                  <Image src={defaultProfile.image} alt={defaultProfile.name} fill sizes="106px" className={styles.summaryAvatar} />
+                  <Image src={memberImage} alt={displayName} fill sizes="106px" className={styles.summaryAvatar} unoptimized />
                 </div>
                 <div className={styles.summaryInfo}>
-                  <h2>{defaultProfile.name}</h2>
+                  <h2>{displayName}</h2>
                   <div className={styles.summaryPhone}>
                     <PhoneOutlined fontSize="small" />
-                    <span>{defaultProfile.phone}</span>
+                    <span>{member?.memberPhone || '—'}</span>
                   </div>
-                  <span className={styles.roleBadge}>{defaultProfile.role}</span>
+                  <span className={styles.roleBadge}>{member?.memberType || '—'}</span>
                 </div>
               </div>
 
@@ -175,7 +180,7 @@ export const MyFollowings = () => {
                   <div key={section.title} className={styles.sidebarSection}>
                     <h3>{section.title}</h3>
                     <div className={styles.sidebarMenu}>
-                      {section.items.map((item) => {
+                      {section.items.filter((item) => !item.agentOnly || member?.memberType === 'AGENT').map((item) => {
                         const Icon = item.icon;
                         const isActive = item.href ? pathname === item.href : false;
 
@@ -224,62 +229,66 @@ export const MyFollowings = () => {
                         </td>
                       </tr>
                     ) : (
-                      pageItems.map((following) => (
-                        <tr key={following.id} className={styles.tableRow}>
-                          {/* Name */}
-                          <td className={styles.colName}>
-                            <div className={styles.nameCell}>
-                              <div className={styles.avatarWrap}>
-                                {following.image ? (
-                                  <Image src={following.image} alt={following.name} fill sizes="64px" className={styles.avatarImg} />
-                                ) : (
-                                  <span className={styles.avatarFallback}>
-                                    <AccountCircleOutlined className={styles.avatarIcon} />
-                                  </span>
-                                )}
+                      followings.map((following) => {
+                        const name = following.memberFullName || following.memberNick;
+                        const avatar = following.memberImage ? getAssetUrl(following.memberImage) : null;
+                        return (
+                          <tr key={following._id} className={styles.tableRow}>
+                            {/* Name */}
+                            <td className={styles.colName}>
+                              <div className={styles.nameCell}>
+                                <div className={styles.avatarWrap}>
+                                  {avatar ? (
+                                    <Image src={avatar} alt={name} fill sizes="64px" className={styles.avatarImg} unoptimized />
+                                  ) : (
+                                    <span className={styles.avatarFallback}>
+                                      <AccountCircleOutlined className={styles.avatarIcon} />
+                                    </span>
+                                  )}
+                                </div>
+                                <span className={styles.followingName}>{name}</span>
                               </div>
-                              <span className={styles.followingName}>{following.name}</span>
-                            </div>
-                          </td>
+                            </td>
 
-                          {/* Details */}
-                          <td className={styles.colDetails}>
-                            <div className={styles.detailsCell}>
-                              <span className={styles.detailItem}>
-                                Followers <strong>({following.followersCount})</strong>
-                              </span>
-                              <span className={styles.detailItem}>
-                                Followings <strong>({following.followingsCount})</strong>
-                              </span>
-                              <span className={styles.detailLikes}>
-                                <FavoriteOutlined fontSize="small" />
-                                {following.likesCount}
-                              </span>
-                            </div>
-                          </td>
+                            {/* Details */}
+                            <td className={styles.colDetails}>
+                              <div className={styles.detailsCell}>
+                                <span className={styles.detailItem}>
+                                  Followers <strong>({following.memberFollowers})</strong>
+                                </span>
+                                <span className={styles.detailItem}>
+                                  Followings <strong>({following.memberFollowings})</strong>
+                                </span>
+                                <span className={styles.detailLikes}>
+                                  <FavoriteOutlined fontSize="small" />
+                                  {following.memberLikes}
+                                </span>
+                              </div>
+                            </td>
 
-                          {/* Subscription */}
-                          <td className={styles.colSub}>
-                            <div className={styles.subCell}>
-                              <span className={styles.followingLabel}>Following</span>
-                              <button
-                                type="button"
-                                onClick={() => handleUnfollow(following.id)}
-                                className={styles.unfollowBtn}
-                              >
-                                Unfollow
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
+                            {/* Subscription */}
+                            <td className={styles.colSub}>
+                              <div className={styles.subCell}>
+                                <span className={styles.followingLabel}>Following</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleUnfollow(following._id)}
+                                  className={styles.unfollowBtn}
+                                >
+                                  Unfollow
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
               </div>
 
               {/* Pagination */}
-              {followings.length > 0 && (
+              {total > 0 && (
                 <>
                   <div className={styles.pagination}>
                     <button
@@ -314,7 +323,7 @@ export const MyFollowings = () => {
                     </button>
                   </div>
 
-                  <p className={styles.totalCount}>{followings.length} followings</p>
+                  <p className={styles.totalCount}>{total} followings</p>
                 </>
               )}
             </div>

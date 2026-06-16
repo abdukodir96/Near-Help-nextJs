@@ -23,7 +23,10 @@ import {
 import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
 import { useState } from 'react';
+import { useQuery } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/auth/tokens';
+import { GET_ME } from '@/lib/graphql/queries';
+import { getAssetUrl } from '@/lib/config/env';
 import { serviceItems } from '@/components/services/services-data';
 import styles from './my-services.module.scss';
 
@@ -32,6 +35,7 @@ type SidebarItem = {
   href?: string;
   icon: typeof AddCircleOutlineRounded;
   action?: 'logout';
+  agentOnly?: boolean;
 };
 
 type SidebarSection = {
@@ -39,20 +43,12 @@ type SidebarSection = {
   items: SidebarItem[];
 };
 
-const defaultProfile = {
-  name: 'Martin',
-  phone: '01024694424',
-  role: 'AGENT',
-  image: '/theme/images/team/2.jpg',
-  address: 'Busan, South Korea',
-};
-
 const sidebarSections: SidebarSection[] = [
   {
     title: 'Manage Services',
     items: [
-      { label: 'Add Service', href: '/mypage/services/new', icon: AddCircleOutlineRounded },
-      { label: 'My Services', href: '/mypage/services', icon: HomeWorkOutlined },
+      { label: 'Add Service', href: '/mypage/services/new', icon: AddCircleOutlineRounded, agentOnly: true },
+      { label: 'My Services', href: '/mypage/services', icon: HomeWorkOutlined, agentOnly: true },
       { label: 'My Favorites', href: '/mypage/favorites', icon: FavoriteBorderRounded },
       { label: 'Recently Visited', href: '/mypage/recent', icon: HistoryOutlined },
       { label: 'My Followers', href: '/mypage/followers', icon: GroupOutlined },
@@ -63,7 +59,7 @@ const sidebarSections: SidebarSection[] = [
     title: 'Community',
     items: [
       { label: 'Articles', href: '/mypage/articles', icon: ArticleOutlined },
-      { label: 'Write Article', href: '/blog', icon: EditNoteOutlined },
+      { label: 'Write Article', href: '/blog', icon: EditNoteOutlined, agentOnly: true },
     ],
   },
   {
@@ -100,6 +96,11 @@ export const MyServices = () => {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [rows, setRows] = useState(myServiceRows);
+
+  const { data: meData } = useQuery<{ getMember: { memberNick: string; memberFullName?: string; memberImage?: string; memberPhone?: string; memberType: string } }>(GET_ME, { fetchPolicy: 'network-only' });
+  const member = meData?.getMember;
+  const displayName = member?.memberFullName || member?.memberNick || '—';
+  const memberImage = member?.memberImage ? getAssetUrl(member.memberImage) : '/theme/images/team/2.jpg';
 
   const totalPages = Math.ceil(rows.length / ITEMS_PER_PAGE);
   const pageRows = rows.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
@@ -159,20 +160,21 @@ export const MyServices = () => {
               <div className={styles.profileSummary}>
                 <div className={styles.summaryAvatarWrap}>
                   <Image
-                    src={defaultProfile.image}
-                    alt={defaultProfile.name}
+                    src={memberImage}
+                    alt={displayName}
                     fill
                     sizes="106px"
                     className={styles.summaryAvatar}
+                    unoptimized
                   />
                 </div>
                 <div className={styles.summaryInfo}>
-                  <h2>{defaultProfile.name}</h2>
+                  <h2>{displayName}</h2>
                   <div className={styles.summaryPhone}>
                     <PhoneOutlined fontSize="small" />
-                    <span>{defaultProfile.phone}</span>
+                    <span>{member?.memberPhone || '—'}</span>
                   </div>
-                  <span className={styles.roleBadge}>{defaultProfile.role}</span>
+                  <span className={styles.roleBadge}>{member?.memberType || '—'}</span>
                 </div>
               </div>
 
@@ -181,7 +183,7 @@ export const MyServices = () => {
                   <div key={section.title} className={styles.sidebarSection}>
                     <h3>{section.title}</h3>
                     <div className={styles.sidebarMenu}>
-                      {section.items.map((item) => {
+                      {section.items.filter((item) => !item.agentOnly || member?.memberType === 'AGENT').map((item) => {
                         const Icon = item.icon;
                         const isActive = item.href ? pathname === item.href : false;
 
