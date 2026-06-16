@@ -64,7 +64,8 @@ const ServiceImage = ({ images, alt }: { images?: string[]; alt: string }) => {
   );
 };
 
-const formatKRW = (price: number) => `₩${(price / 1000).toFixed(0)}k`;
+const formatKRW = (price: number) =>
+  new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 }).format(price);
 
 export const ServicesPageContent = () => {
   const router      = useRouter();

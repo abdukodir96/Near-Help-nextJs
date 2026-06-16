@@ -241,7 +241,7 @@ export const MyFavorites = () => {
                                 <BoltRounded fontSize="inherit" /> TOP
                               </span>
                             )}
-                            <span className={styles.priceBadge}>₩{Math.round(item.servicePrice / 1000)}k</span>
+                            <span className={styles.priceBadge}>{new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 }).format(item.servicePrice)}</span>
                           </div>
 
                           <div className={styles.cardBody}>
