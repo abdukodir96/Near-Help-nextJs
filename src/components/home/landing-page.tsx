@@ -196,27 +196,34 @@ export const LandingPage = () => {
         memberFullName?: string;
         memberImage?: string;
         memberDesc?: string;
+        memberPoints: number;
         memberLikes: number;
         memberFollowers: number;
-        memberRank: number;
         memberServices: number;
       }[];
     };
   }>(GET_AGENTS, {
-    variables: { input: { sortBy: 'LIKES', page: 1, limit: 10 } },
+    variables: { input: { sortBy: 'LIKES', page: 1, limit: 50 } },
     fetchPolicy: 'cache-and-network',
   });
 
-  const topAgents = (agentsData?.getAgents?.list ?? []).map((agent, index) => ({
-    _id:        agent._id,
-    image:      getAgentAvatar(agent.memberImage),
-    name:       agent.memberFullName || agent.memberNick,
-    role:       agent.memberDesc?.slice(0, 30) || agent.memberNick,
-    rank:       index + 1,
-    points:     agent.memberRank,
-    likes:      agent.memberLikes,
-    followers:  agent.memberFollowers,
-  }));
+  const topAgents = [...(agentsData?.getAgents?.list ?? [])]
+    .sort((a, b) => {
+      const scoreA = (a.memberPoints ?? 0) + (a.memberLikes ?? 0) + (a.memberFollowers ?? 0);
+      const scoreB = (b.memberPoints ?? 0) + (b.memberLikes ?? 0) + (b.memberFollowers ?? 0);
+      return scoreB - scoreA;
+    })
+    .slice(0, 10)
+    .map((agent, index) => ({
+      _id:       agent._id,
+      image:     getAgentAvatar(agent.memberImage),
+      name:      agent.memberFullName || agent.memberNick,
+      role:      agent.memberDesc?.slice(0, 30) || agent.memberNick,
+      rank:      index + 1,
+      points:    agent.memberPoints,
+      likes:     agent.memberLikes,
+      followers: agent.memberFollowers,
+    }));
 
   return (
     <main className={styles.page}>
