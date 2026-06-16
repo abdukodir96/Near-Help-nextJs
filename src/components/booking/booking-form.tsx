@@ -92,6 +92,22 @@ export const BookingForm = ({ preselectedServiceId = '' }: Props) => {
         });
         const booking = data?.createBooking;
 
+        // Send confirmation email for logged-in users too
+        fetch('/api/booking', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: email.split('@')[0],
+            email: email.trim(),
+            phone: phone.trim(),
+            serviceTitle: booking?.serviceTitleSnapshot ?? selectedService?.serviceTitle ?? serviceId,
+            date,
+            time,
+            address: address.trim(),
+            note: note.trim() || undefined,
+          }),
+        }).catch(() => {});
+
         await Swal.fire({
           icon: 'success',
           title: 'Booking Submitted!',
