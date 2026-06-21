@@ -1,16 +1,21 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
 import { useRouter } from 'next/navigation';
 import Badge from '@mui/material/Badge';
 import { X, PaperPlaneTilt, Sparkle, ChatCircleText } from 'phosphor-react';
-import { useMutation } from '@apollo/client/react';
+import { useMutation, useLazyQuery } from '@apollo/client/react';
 import { ACCESS_TOKEN_KEY } from '@/lib/auth/tokens';
+import { getOrCreateGuestId, getGuestAiSessionId, setGuestAiSessionId } from '@/lib/auth/guest';
 import { WS_CHAT_URL } from '@/lib/config/env';
-import { CREATE_AI_CHAT_SESSION, SEND_AI_CHAT_MESSAGE } from '@/components/ai/ai-queries';
-import type { AiChatSession, AiChatSendResult } from '@/components/ai/ai-types';
+import {
+  CREATE_AI_CHAT_SESSION,
+  SEND_AI_CHAT_MESSAGE,
+  GET_AI_CHAT_MESSAGES,
+} from '@/components/ai/ai-queries';
+import type { AiChatSession, AiChatSendResult, AiChatMessagesResult } from '@/components/ai/ai-types';
 import styles from './floating-chat.module.scss';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -66,6 +71,32 @@ export const FloatingChat = () => {
 
   const [createSession] = useMutation<{ createAiChatSession: AiChatSession }>(CREATE_AI_CHAT_SESSION);
   const [sendAiMessage] = useMutation<{ sendAiChatMessage: AiChatSendResult }>(SEND_AI_CHAT_MESSAGE);
+  const [loadAiMessages] = useLazyQuery<{ getAiChatMessages: AiChatMessagesResult }>(GET_AI_CHAT_MESSAGES, {
+    fetchPolicy: 'no-cache',
+  });
+
+  // ── Restore guest AI chat history on mount ───────────────────────────────
+
+  useEffect(() => {
+    if (isLoggedIn) return;
+    const storedSessionId = getGuestAiSessionId();
+    if (!storedSessionId) return;
+
+    const guestId = getOrCreateGuestId();
+    void loadAiMessages({ variables: { input: { sessionId: storedSessionId, guestId } } }).then(({ data }) => {
+      if (!data?.getAiChatMessages?.list?.length) return;
+      setAiSessionId(storedSessionId);
+      setAiMessages(
+        data.getAiChatMessages.list.map((m) => ({
+          id: m._id,
+          role: m.role === 'USER' ? 'user' : 'ai',
+          text: m.content,
+          time: new Date(m.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+        })),
+      );
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Auth guard ────────────────────────────────────────────────────────────
 
@@ -127,9 +158,10 @@ export const FloatingChat = () => {
   // ── AI chat ───────────────────────────────────────────────────────────────
 
   const sendAi = async () => {
-    if (!isLoggedIn) { await requireLogin(); return; }
     const text = aiDraft.trim();
     if (!text || aiTyping) return;
+
+    const guestId = isLoggedIn ? undefined : getOrCreateGuestId();
 
     const tempId = `t${Date.now()}`;
     setAiMessages((prev) => [...prev, { id: tempId, role: 'user', text, time: nowTime() }]);
@@ -140,14 +172,15 @@ export const FloatingChat = () => {
     try {
       let sid = aiSessionId;
       if (!sid) {
-        const { data: sd } = await createSession({ variables: { input: {} } });
-        if (!sd?.createAiChatSession?._id) throw new Error('auth');
+        const { data: sd } = await createSession({ variables: { input: { guestId } } });
+        if (!sd?.createAiChatSession?._id) throw new Error('session');
         sid = sd.createAiChatSession._id;
         setAiSessionId(sid);
+        if (!isLoggedIn) setGuestAiSessionId(sid);
       }
 
       const { data } = await sendAiMessage({
-        variables: { input: { sessionId: sid, message: text } },
+        variables: { input: { sessionId: sid, message: text, guestId } },
       });
 
       if (data?.sendAiChatMessage) {
@@ -158,16 +191,13 @@ export const FloatingChat = () => {
           { id: assistantMessage._id, role: 'ai',   text: assistantMessage.content, time: nowTime() },
         ]);
       }
-    } catch (err) {
-      const isAuthError = err instanceof Error && err.message === 'auth';
+    } catch {
       setAiMessages((prev) => [
         ...prev,
         {
           id: `err-${Date.now()}`,
           role: 'ai' as const,
-          text: isAuthError
-            ? 'Session expired. Please log out and log in again to use AI chat.'
-            : 'Something went wrong. Please try again.',
+          text: 'Something went wrong. Please try again.',
           time: nowTime(),
         },
       ]);
