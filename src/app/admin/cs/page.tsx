@@ -1,5 +1,5 @@
-import { PagePlaceholder } from '@/components/shared/page-placeholder';
+import { AdminCsPage } from '@/components/admin/admin-cs-page';
 
-export default function AdminCsPage() {
-  return <PagePlaceholder eyebrow="Admin / CS" title="Notice and FAQ management" description="This screen will connect to createNotice, getAllNoticesByAdmin and update/remove notice flows." />;
+export default function AdminCsRoute() {
+  return <AdminCsPage />;
 }

@@ -1,5 +1,5 @@
-import { PagePlaceholder } from '@/components/shared/page-placeholder';
+import { AdminUsersPage } from '@/components/admin/admin-users-page';
 
-export default function AdminUsersPage() {
-  return <PagePlaceholder eyebrow="Admin / Users" title="Users management" description="This screen will connect to getAllMembersByAdmin and updateMemberByAdmin." />;
+export default function AdminUsersRoute() {
+  return <AdminUsersPage />;
 }

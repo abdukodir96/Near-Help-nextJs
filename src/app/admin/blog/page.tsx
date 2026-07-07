@@ -1,5 +1,5 @@
-import { PagePlaceholder } from '@/components/shared/page-placeholder';
+import { AdminBlogPage } from '@/components/admin/admin-blog-page';
 
-export default function AdminCommunityPage() {
-  return <PagePlaceholder eyebrow="Admin / Blog" title="Blog moderation" description="This screen will connect to article moderation and comment review flows." />;
+export default function AdminBlogRoute() {
+  return <AdminBlogPage />;
 }

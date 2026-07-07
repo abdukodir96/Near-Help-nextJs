@@ -4,9 +4,14 @@ export default function AdminDashboardPage() {
   return (
     <PagePlaceholder
       eyebrow="Admin"
-      title="Admin dashboard shell is ready"
-      description="Next we can connect moderation counters, users, services, community and CS tables."
-      links={[{ href: '/admin/users', label: 'Users' }, { href: '/admin/services', label: 'Services' }]}
+      title="NearHelp Admin"
+      description="Manage users, services, blog moderation, and CS notices from one place."
+      links={[
+        { href: '/admin/users', label: 'Users' },
+        { href: '/admin/services', label: 'Services' },
+        { href: '/admin/blog', label: 'Blog' },
+        { href: '/admin/cs', label: 'CS' },
+      ]}
     />
   );
 }

@@ -61,8 +61,8 @@ const sidebarSections: SidebarSection[] = [
   {
     title: 'Manage Account',
     items: [
-      { label: 'My Profile', href: '/mypage',      icon: AccountCircleOutlined },
-      { label: 'Logout',     icon: LogoutRounded,  action: 'logout' },
+      { label: 'My Profile', href: '/mypage',     icon: AccountCircleOutlined },
+      { label: 'Logout',     icon: LogoutRounded, action: 'logout' },
     ],
   },
 ];
@@ -235,7 +235,13 @@ export const MyPage = () => {
                     <PhoneOutlined fontSize="small" />
                     <span>{member?.memberPhone || '—'}</span>
                   </div>
-                  <span className={styles.roleBadge}>{displayRole}</span>
+                  {displayRole === 'ADMIN' ? (
+                    <Link href="/admin" className={styles.roleBadge} title="Go to Admin Panel">
+                      {displayRole}
+                    </Link>
+                  ) : (
+                    <span className={styles.roleBadge}>{displayRole}</span>
+                  )}
                 </div>
               </div>
 
@@ -244,7 +250,9 @@ export const MyPage = () => {
                   <div key={section.title} className={styles.sidebarSection}>
                     <h3>{section.title}</h3>
                     <div className={styles.sidebarMenu}>
-                      {section.items.filter((item) => !item.agentOnly || member?.memberType === 'AGENT').map((item) => {
+                      {section.items
+                        .filter((item) => !item.agentOnly || member?.memberType === 'AGENT')
+                        .map((item) => {
                         const Icon = item.icon;
                         const isActive = item.href ? pathname === item.href : false;
 

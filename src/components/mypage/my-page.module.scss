@@ -133,6 +133,17 @@ $orange: #ef5a3c;
   text-transform: uppercase;
 }
 
+a.roleBadge {
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.75;
+    text-decoration: underline;
+  }
+}
+
 .sidebarSections {
   display: grid;
   gap: 34px;
