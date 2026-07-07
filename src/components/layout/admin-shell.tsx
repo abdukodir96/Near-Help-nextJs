@@ -122,12 +122,12 @@ export const AdminShell = ({ children }: { children: React.ReactNode }) => {
             const hasActive = section.items.some((i) => pathname.startsWith(i.href));
 
             return (
-              <div key={section.key} className="mb-1">
+              <div key={section.key} className="mb-3">
                 {/* Section header */}
                 <button
                   type="button"
                   onClick={() => setOpenSection(isOpen ? '' : section.key)}
-                  className={`flex w-full items-center justify-between rounded-xl px-3 py-3 transition-colors ${
+                  className={`flex w-full items-center justify-between rounded-xl px-3 py-3.5 transition-colors ${
                     hasActive
                       ? 'bg-slate-100 text-slate-900'
                       : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
