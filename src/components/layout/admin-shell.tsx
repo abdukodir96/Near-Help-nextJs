@@ -122,27 +122,27 @@ export const AdminShell = ({ children }: { children: React.ReactNode }) => {
             const hasActive = section.items.some((i) => pathname.startsWith(i.href));
 
             return (
-              <div key={section.key} className="mb-3">
+              <div key={section.key} className="mb-5">
                 {/* Section header */}
                 <button
                   type="button"
                   onClick={() => setOpenSection(isOpen ? '' : section.key)}
-                  className={`flex w-full items-center justify-between rounded-xl px-3 py-3.5 transition-colors ${
+                  className={`flex w-full items-center justify-between rounded-2xl px-4 py-4 transition-colors ${
                     hasActive
                       ? 'bg-slate-100 text-slate-900'
                       : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                   }`}
                 >
-                  <span className="flex items-center gap-3">
+                  <span className="flex items-center gap-4">
                     <Icon
-                      size={20}
+                      size={24}
                       weight={hasActive ? 'fill' : 'regular'}
                       className={hasActive ? 'text-slate-800' : 'text-slate-400'}
                     />
-                    <span className="text-sm font-semibold">{section.label}</span>
+                    <span className="text-base font-semibold">{section.label}</span>
                   </span>
                   <CaretUp
-                    size={14}
+                    size={16}
                     weight="bold"
                     className={`text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-0' : 'rotate-180'}`}
                   />
@@ -150,7 +150,7 @@ export const AdminShell = ({ children }: { children: React.ReactNode }) => {
 
                 {/* Sub-items */}
                 {isOpen && (
-                  <div className="ml-9 mt-1 flex flex-col gap-0.5">
+                  <div className="ml-10 mt-2 flex flex-col gap-1">
                     {section.items.map((item) => {
                       const active = pathname === item.href || pathname.startsWith(item.href + '/');
                       return (
@@ -158,7 +158,7 @@ export const AdminShell = ({ children }: { children: React.ReactNode }) => {
                           key={item.href}
                           href={item.href}
                           prefetch={false}
-                          className={`rounded-lg px-3 py-2 text-sm transition-colors ${
+                          className={`rounded-xl px-4 py-2.5 text-sm transition-colors ${
                             active
                               ? 'font-bold text-slate-900'
                               : 'font-medium text-slate-500 hover:text-slate-800'
